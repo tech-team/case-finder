@@ -23,7 +23,7 @@
                         <DatePicker />
                         <Label text="по:" />
                         <DatePicker />
-                        <Button alignment="TOP_LEFT" defaultButton="true" mnemonicParsing="false" text="Искать" textAlignment="CENTER">
+                        <Button alignment="TOP_LEFT" defaultButton="true" mnemonicParsing="false" text="Искать" textAlignment="CENTER" onAction="#casesSearchClick">
                            <font>
                               <Font name="System Bold" size="15.0" />
                            </font>
