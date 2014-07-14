@@ -10,13 +10,10 @@ public class HtmlProcessor {
     public HtmlProcessor() throws IOException {
         File input = new File("input.html");
         Document d = Jsoup.parse(input, "UTF-8");
-
-
     }
 
     public static void main(String[] args) throws IOException {
         HtmlProcessor h = new HtmlProcessor();
-
     }
 
 }
