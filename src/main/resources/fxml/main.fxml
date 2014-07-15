@@ -39,6 +39,7 @@
                       <TableColumn fx:id="casesTable_createdDate" prefWidth="75.0" text="Заведено" />
                       <TableColumn fx:id="casesTable_plaintiff" prefWidth="75.0" text="Истец" />
                       <TableColumn fx:id="casesTable_defendant" prefWidth="75.0" text="Ответчик" />
+                      <TableColumn fx:id="casesTable_cost" prefWidth="75.0" text="Сумма иска" />
                     </columns>
                   </TableView>
                </children>

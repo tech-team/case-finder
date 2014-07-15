@@ -10,17 +10,21 @@ public class Case {
 
     private final StringProperty plaintiff;
     private final StringProperty defendant;
+    
+    private final DoubleProperty cost;
 
     public Case() {
-        this(0, null, null, null);
+        this(null, null, null, null, null);
     }
 
-    public Case(int id, LocalDate createdDate, String plaintiff, String defendant) {
+    public Case(Integer id, LocalDate createdDate, String plaintiff, String defendant, Double cost) {
         this.id = new SimpleIntegerProperty(id);
         this.createdDate = new SimpleObjectProperty<>(createdDate);
         
         this.plaintiff = new SimpleStringProperty(plaintiff);
         this.defendant = new SimpleStringProperty(defendant);
+        
+        this.cost = new SimpleDoubleProperty(cost);
     }
 
     public int getId() {
@@ -31,7 +35,7 @@ public class Case {
         return id;
     }
 
-    public void setId(int value) {
+    public void setId(Integer value) {
         id.set(value);
     }
 
@@ -43,8 +47,8 @@ public class Case {
         return createdDate;
     }
 
-    public void setCreatedDate(LocalDate date) {
-        createdDate.set(date);
+    public void setCreatedDate(LocalDate value) {
+        this.createdDate.set(value);
     }
 
     public String getPlaintiff() {
@@ -55,8 +59,8 @@ public class Case {
         return plaintiff;
     }
 
-    public void setPlaintiff(String date) {
-        plaintiff.set(date);
+    public void setPlaintiff(String value) {
+        plaintiff.set(value);
     }
 
     public String getDefendant() {
@@ -67,7 +71,19 @@ public class Case {
         return defendant;
     }
 
-    public void setDefendant(String date) {
-        defendant.set(date);
+    public void setDefendant(String value) {
+        defendant.set(value);
+    }
+
+    public Double getCost() {
+        return cost.get();
+    }
+
+    public DoubleProperty costProperty() {
+        return cost;
+    }
+
+    public void setCost(Double value) {
+        cost.set(value);
     }
 }

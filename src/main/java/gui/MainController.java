@@ -17,6 +17,7 @@ public class MainController {
     @FXML private TableColumn<Case, LocalDate> casesTable_createdDate;
     @FXML private TableColumn<Case, String> casesTable_plaintiff;
     @FXML private TableColumn<Case, String> casesTable_defendant;
+    @FXML private TableColumn<Case, Double> casesTable_cost;
 
     private ObservableList<Case> casesData = FXCollections.observableArrayList();
 
@@ -30,6 +31,7 @@ public class MainController {
         casesTable_createdDate.setCellValueFactory(cellData -> cellData.getValue().createdDateProperty());
         casesTable_plaintiff.setCellValueFactory(cellData -> cellData.getValue().plaintiffProperty());
         casesTable_defendant.setCellValueFactory(cellData -> cellData.getValue().defendantProperty());
+        casesTable_cost.setCellValueFactory(cellData -> cellData.getValue().costProperty().asObject());
 
         casesTable.setItems(casesData);
     }
@@ -39,6 +41,8 @@ public class MainController {
         int caseId = random.nextInt(100);
         long days = random.nextInt(50);
 
-        casesData.add(new Case(caseId, LocalDate.now().minusDays(days), "Вася", "Петя"));
+        double cost = random.nextDouble() * 10000;
+
+        casesData.add(new Case(caseId, LocalDate.now().minusDays(days), "Вася", "Петя", cost));
     }
 }
