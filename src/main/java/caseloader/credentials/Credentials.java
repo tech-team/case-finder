@@ -1,20 +1,30 @@
 package caseloader.credentials;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.LinkedList;
+import java.util.List;
 
 public class Credentials {
-    private Set<String> directors = new HashSet<>();
-    private Set<String> telephones = new HashSet<>();
+    private class Pair {
+        private String website;
+        private String value;
+
+        private Pair(String website, String value) {
+            this.website = website;
+            this.value = value;
+        }
+    }
+
+    private List<Pair> directors = new LinkedList<>();
+    private List<Pair> telephones = new LinkedList<>();
     private String inn = null;
     private String ogrn = null;
 
-    public void addDirector(String director) {
-        directors.add(director);
+    public void addDirector(String website, String director) {
+        directors.add(new Pair(website, director));
     }
 
-    public void addTelephone(String telephone) {
-        telephones.add(telephone);
+    public void addTelephone(String website, String telephone) {
+        telephones.add(new Pair(website, telephone));
     }
 
     public boolean hasDirector() {
@@ -26,7 +36,7 @@ public class Credentials {
     }
 
     public boolean hasInn() {
-        return inn != null;
+        return inn != null && !inn.equals("");
     }
 
     public String getInn() {
@@ -38,7 +48,7 @@ public class Credentials {
     }
 
     public boolean hasOgrn() {
-        return ogrn != null;
+        return ogrn != null && !ogrn.equals("");
     }
 
     public String getOgrn() {

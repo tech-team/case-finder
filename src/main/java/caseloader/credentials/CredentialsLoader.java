@@ -61,9 +61,7 @@ public class CredentialsLoader {
         @Override
         public void run() {
             System.out.println("[" + Thread.currentThread().getName() + "] Working on: " + webSite.url());
-            String html = webSite.downloadPage();
-            Document document = Jsoup.parse(html);
-            Credentials found = webSite.findCredentials(document, request, credentials);
+            Credentials found = webSite.findCredentials(request, credentials);
             synchronized (credentials) {
                 credentials.merge(found);
             }
