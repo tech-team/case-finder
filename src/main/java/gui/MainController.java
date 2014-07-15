@@ -1,6 +1,7 @@
 package gui;
 
 import gui.casestable.Case;
+import gui.casestable.TextFlowCell;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -30,6 +31,9 @@ public class MainController {
         casesTable_Id.setCellValueFactory(cellData -> cellData.getValue().idProperty().asObject());
         casesTable_createdDate.setCellValueFactory(cellData -> cellData.getValue().createdDateProperty());
         casesTable_plaintiff.setCellValueFactory(cellData -> cellData.getValue().plaintiffProperty());
+
+        casesTable_plaintiff.setCellFactory(p -> new TextFlowCell<>());
+
         casesTable_defendant.setCellValueFactory(cellData -> cellData.getValue().defendantProperty());
         casesTable_cost.setCellValueFactory(cellData -> cellData.getValue().costProperty().asObject());
 
