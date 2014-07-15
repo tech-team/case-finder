@@ -43,6 +43,6 @@ public class MainController {
 
         double cost = random.nextDouble() * 10000;
 
-        casesData.add(new Case(caseId, LocalDate.now().minusDays(days), "Вася", "Петя", cost));
+        casesData.add(new Case(caseId, LocalDate.now().minusDays(days), "http://google.com", "Петя", cost));
     }
 }
