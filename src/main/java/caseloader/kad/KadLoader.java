@@ -78,7 +78,6 @@ public class KadLoader {
         for (KadResponseItem item : items) {
             executor.execute(new KadWorker(item, outData));
         }
-
     }
 
     private KadResponse retrieveKadResponse(KadSearchRequest request, int page) {
