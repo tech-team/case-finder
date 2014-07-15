@@ -17,6 +17,7 @@ public abstract class HttpDownloader {
         URL url;
         HttpURLConnection connection = null;
         try {
+
             // Create connection
             url = new URL(targetUrl);
             connection = (HttpURLConnection) url.openConnection();
