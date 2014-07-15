@@ -77,6 +77,10 @@ public class KadSearchRequest {
         json.put(Keys.PAGE, page);
     }
 
+    public void setCount(final int count) {
+        json.put(Keys.COUNT, count);
+    }
+
     @Override
     public String toString() {
         return json.toString();

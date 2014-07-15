@@ -1,23 +1,29 @@
 package caseloader.kad;
 
 import caseloader.Urls;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import util.HttpDownloader;
-import util.JsonUtils;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class KadLoader {
     private Map<String, String> courts = new HashMap<>();
+    private ExecutorService executor = null;
+    private static final int ITEMS_COUNT_PER_REQUEST = 100;
+    private static final int WAIT_TIMEOUT = 5 * 60;
+
+    private ExecutorService getExecutor() {
+        return Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
+    }
 
     public KadLoader() {
 
@@ -37,58 +43,40 @@ public class KadLoader {
     }
 
     public KadData retrieveKadData(KadSearchRequest request) {
+        executor = getExecutor();
+
+        request.setCount(ITEMS_COUNT_PER_REQUEST);
         KadResponse initial = retrieveKadResponse(request, 1);
         KadData data = null;
 
         if (initial.isSuccess()) {
-            data = new KadData(initial.getPagesCount() * initial.getPageSize(), initial.getTotalCount());
+            int size = initial.getPagesCount() * initial.getPageSize();
+            data = new KadData(size, initial.getTotalCount());
 
             processKadResponse(initial, data);
-            for (int i = 2; i < initial.getPagesCount(); ++i) {
+            int iterationsCount = size / initial.getPageSize();
+            for (int i = 2; i < iterationsCount; ++i) {
                 KadResponse resp = retrieveKadResponse(request, i);
                 if (resp.isSuccess()) {
                     processKadResponse(resp, data);
                 }
             }
         }
+
+        executor.shutdown();
+        try {
+            executor.awaitTermination(WAIT_TIMEOUT, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         return data;
     }
 
     private void processKadResponse(KadResponse resp, KadData outData) {
         List<KadResponseItem> items = resp.getItems();
         for (KadResponseItem item : items) {
-
-            Map<String, String> params = new HashMap<>();
-            Map<String, String> headers = new HashMap<>();
-            params.put("id", item.getCaseId());
-            headers.put("X-Requested-With", "XMLHttpRequest");
-            JSONObject fullCard = new JSONObject(HttpDownloader.get(Urls.KAD_FULL_CARD, params, headers));
-
-            if (fullCard.getBoolean("Success")) {
-                try {
-                    JSONObject result = JsonUtils.getJSONObject(fullCard, "Result");
-                    JSONArray instances = JsonUtils.getJSONArray(result, "Instances");
-                    JSONArray documents = instances.getJSONObject(instances.length() - 1).getJSONArray("Documents");
-                    JSONObject lastDocument = documents.getJSONObject(documents.length() - 1);
-
-                    String additionalInfo = JsonUtils.getString(lastDocument, "AdditionalInfo");
-
-                    if (additionalInfo != null) {
-                        String pattern = "(.*)(Сумма[\\D]*)(\\d*[,\\.]\\d*)$";
-                        Pattern r = Pattern.compile(pattern);
-
-                        Matcher m = r.matcher(additionalInfo);
-                        if (m.find()) {
-                            String costStr = m.group(3).replace(',', '.');
-                            double cost = Double.parseDouble(costStr);
-                            KadDataEntry entry = new KadDataEntry(item, cost);
-                            outData.addEntry(entry);
-                        }
-                    }
-                } catch (NullPointerException ignored) {
-
-                }
-            }
+            executor.execute(new KadWorker(item, outData));
         }
 
     }
@@ -99,6 +87,8 @@ public class KadLoader {
         String json = request.toString();
         Map<String, String> headers = new HashMap<>();
         headers.put("X-Requested-With", "XMLHttpRequest");
+        headers.put("Content-Type", "application/json");
+        headers.put("Accept", "application/json, text/javascript, */*");
         JSONObject jsonObj = HttpDownloader.post(Urls.KAD_SEARCH, json, headers);
         return KadResponse.fromJSON(jsonObj);
     }
@@ -106,6 +96,6 @@ public class KadLoader {
 
     public static void main(String[] args) {
         KadLoader kl = new KadLoader();
-        kl.retrieveKadData(new KadSearchRequest());
+        KadData data = kl.retrieveKadData(new KadSearchRequest());
     }
 }
