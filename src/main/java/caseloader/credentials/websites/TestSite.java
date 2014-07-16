@@ -1,10 +1,8 @@
 package caseloader.credentials.websites;
 
 import caseloader.credentials.Credentials;
-import caseloader.credentials.SearchRequest;
-import org.jsoup.Jsoup;
+import caseloader.credentials.CredentialsSearchRequest;
 import org.jsoup.nodes.Document;
-import util.HttpDownloader;
 
 public class TestSite extends WebSite {
     @Override
@@ -13,7 +11,7 @@ public class TestSite extends WebSite {
     }
 
     @Override
-    public Credentials findCredentials(SearchRequest request, final Credentials credentials) {
+    public Credentials findCredentials(final CredentialsSearchRequest request, final Credentials credentials) {
         Document page = downloadPage();
         return null;
     }

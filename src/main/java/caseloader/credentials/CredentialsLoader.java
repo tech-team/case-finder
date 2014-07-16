@@ -1,8 +1,6 @@
 package caseloader.credentials;
 
 import caseloader.credentials.websites.WebSite;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -27,7 +25,7 @@ public class CredentialsLoader {
         this.webSites = webSites;
     }
 
-    public Credentials retrieveCredentials(SearchRequest request) {
+    public Credentials retrieveCredentials(CredentialsSearchRequest request) {
         Credentials credentials = new Credentials();
 
         ExecutorService executor = getExecutor();
@@ -49,10 +47,10 @@ public class CredentialsLoader {
 
     private class CredentialsWorker implements Runnable {
         private final WebSite webSite;
-        private final SearchRequest request;
+        private final CredentialsSearchRequest request;
         private final Credentials credentials;
 
-        public CredentialsWorker(WebSite webSite, SearchRequest request, Credentials credentials) {
+        public CredentialsWorker(WebSite webSite, CredentialsSearchRequest request, Credentials credentials) {
             this.webSite = webSite;
             this.request = request;
             this.credentials = credentials;

@@ -1,5 +1,6 @@
 package caseloader.kad;
 
+import caseloader.credentials.Credentials;
 import org.json.JSONObject;
 import util.JsonUtils;
 
@@ -36,6 +37,7 @@ public class KadResponseSide {
     private SideType sideType = null;
     private Object subjectCategory = null;
     private Integer type = null;
+    private Credentials credentials = null;
 
     public String getAddress() {
         return address;
@@ -71,6 +73,14 @@ public class KadResponseSide {
 
     public Integer getType() {
         return type;
+    }
+
+    public Credentials getCredentials() {
+        return credentials;
+    }
+
+    public void setCredentials(Credentials credentials) {
+        this.credentials = credentials;
     }
 
     public static KadResponseSide fromJSON(JSONObject obj) {
