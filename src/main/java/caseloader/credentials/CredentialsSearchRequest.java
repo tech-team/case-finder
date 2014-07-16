@@ -1,16 +1,21 @@
 package caseloader.credentials;
 
-public class SearchRequest {
+public class CredentialsSearchRequest {
     private String companyName = null;
     private String address = null;
     private String inn = null;
     private String ogrn = null;
 
-    public SearchRequest(String companyName, String address, String inn, String ogrn) {
+    public CredentialsSearchRequest(String companyName, String address, String inn, String ogrn) {
         this.companyName = companyName;
         this.address = address;
         this.inn = inn;
         this.ogrn = ogrn;
+    }
+
+    public CredentialsSearchRequest(String companyName, String address) {
+        this.companyName = companyName;
+        this.address = address;
     }
 
     public String getCompanyName() {

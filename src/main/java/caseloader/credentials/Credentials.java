@@ -12,6 +12,14 @@ public class Credentials {
             this.website = website;
             this.value = value;
         }
+
+        public String getWebsite() {
+            return website;
+        }
+
+        public String getValue() {
+            return value;
+        }
     }
 
     private List<Pair> directors = new LinkedList<>();
