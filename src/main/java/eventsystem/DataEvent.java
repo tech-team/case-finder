@@ -4,7 +4,7 @@ import javafx.application.Platform;
 import java.util.ArrayList;
 import java.util.function.Consumer;
 
-public class DateEvent<T> {
+public class DataEvent<T> {
     ArrayList<Consumer<T>> handlers = new ArrayList<>();
 
     public void on(Consumer<T> handler) {
