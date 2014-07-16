@@ -18,7 +18,7 @@ public class Main extends Application {
         FXMLLoader loader = new FXMLLoader(Main.class.getResource("/fxml/main.fxml"));
         Parent root = loader.load();
         primaryStage.setTitle("Case Finder");
-        primaryStage.setScene(new Scene(root, 600, 400));
+        primaryStage.setScene(new Scene(root, 800, 600));
 
         MainController controller = loader.getController();
         controller.setStage(primaryStage);
