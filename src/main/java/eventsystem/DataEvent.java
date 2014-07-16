@@ -17,7 +17,7 @@ public class DataEvent<T> {
 
     public void fire(T data) {
         handlers.forEach(handler -> {
-            if (Platform.isFxApplicationThread())
+            if (!Platform.isFxApplicationThread())
                 handler.accept(data);
             else
                 Platform.runLater(() -> handler.accept(data));

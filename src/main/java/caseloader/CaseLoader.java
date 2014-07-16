@@ -2,13 +2,20 @@ package caseloader;
 
 import caseloader.credentials.*;
 import caseloader.kad.*;
+import eventsystem.DataEvent;
 
 public class CaseLoader implements Runnable {
     private KadLoader kadLoader = new KadLoader();
     private CredentialsLoader credentialsLoader = new CredentialsLoader();
     private KadSearchRequest request = null;
 
+    private DataEvent<CasesData> casesLoaded = new DataEvent<>();
+
     public CaseLoader() {
+    }
+
+    public DataEvent<CasesData> casesLoaded() {
+        return casesLoaded;
     }
 
     public void setKadRequest(KadSearchRequest request) {
@@ -27,6 +34,10 @@ public class CaseLoader implements Runnable {
             throw new RuntimeException("request is null");
         }
         KadData kadData = kadLoader.retrieveKadData(this.request);
+
+        CasesData casesData = new CasesData(kadData.getEntries().size());
+        casesData.setTotalCount(kadData.getTotalCount());
+
         for (KadDataEntry entry : kadData.getEntries()) {
             for (KadResponseSide defendant : entry.getItem().getDefendants()) {
                 CredentialsSearchRequest credentialsSearchRequest =
@@ -37,8 +48,9 @@ public class CaseLoader implements Runnable {
                 Credentials defendantCredentials = credentialsLoader.retrieveCredentials(credentialsSearchRequest);
                 defendant.setCredentials(defendantCredentials);
             }
+            CaseInfo caseInfo = new CaseInfo(entry);
+            casesData.addCase(caseInfo);
         }
-
-
+        casesLoaded.fire(casesData);
     }
 }
