@@ -13,23 +13,15 @@ import java.util.Map;
 
 public abstract class HttpDownloader {
     private static Map<String, Long> lastTimes = new HashMap<>();
-    private static final long WAIT_DELTA = 3 * 1000;
+    private static final long WAIT_DELTA = 5 * 1000;
 
     private static void checkTime(URL url) {
-        Long lastTime = lastTimes.get(url.getHost());
-        if (lastTime == null) {
-
-        } else {
-            long time = System.currentTimeMillis();
-            long delta = time - lastTime;
-            if (delta < WAIT_DELTA) {
-                try {
-                    Thread.sleep(WAIT_DELTA - delta);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-            lastTimes.put(url.getHost(), System.currentTimeMillis());
+        try {
+            Thread.sleep(WAIT_DELTA);
+        } catch (InterruptedException e) {
+            System.out.println("<------------Sleep interrupted");
+            e.printStackTrace();
+            System.exit(1);
         }
     }
 
@@ -98,6 +90,8 @@ public abstract class HttpDownloader {
             InputStream is = connection.getInputStream();
             String response = IOUtils.streamToString(is);
             is.close();
+
+            lastTimes.put(url.getHost(), System.currentTimeMillis());
             return response;
         } catch (Exception e) {
             e.printStackTrace();

@@ -64,6 +64,8 @@ public class KadLoader {
         }
 
         executor.shutdown();
+        while (!executor.isTerminated()) {
+        }
         try {
             executor.awaitTermination(WAIT_TIMEOUT, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
