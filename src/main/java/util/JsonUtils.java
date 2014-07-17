@@ -28,4 +28,8 @@ public abstract class JsonUtils {
     public static Object getObject(@NotNull JSONObject obj, @NotNull String key) {
         return obj.isNull(key) ? null : obj.get(key);
     }
+
+    public static Double getDouble(@NotNull JSONObject obj, @NotNull String key) {
+        return obj.isNull(key) ? null : obj.getDouble(key);
+    }
 }

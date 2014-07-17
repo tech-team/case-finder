@@ -53,4 +53,18 @@ public class CaseLoader implements Runnable {
         }
         casesLoaded.fire(casesData);
     }
+
+    public static void main(String[] args) {
+        CaseLoader cl = new CaseLoader();
+        cl.setKadRequest(new KadSearchRequest());
+        Thread th = new Thread(cl);
+        th.start();
+        try {
+            th.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+
 }

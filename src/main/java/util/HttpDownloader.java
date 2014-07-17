@@ -8,9 +8,30 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.HashMap;
 import java.util.Map;
 
 public abstract class HttpDownloader {
+    private static Map<String, Long> lastTimes = new HashMap<>();
+    private static final long WAIT_DELTA = 3 * 1000;
+
+    private static void checkTime(URL url) {
+        Long lastTime = lastTimes.get(url.getHost());
+        if (lastTime == null) {
+
+        } else {
+            long time = System.currentTimeMillis();
+            long delta = time - lastTime;
+            if (delta < WAIT_DELTA) {
+                try {
+                    Thread.sleep(WAIT_DELTA - delta);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            lastTimes.put(url.getHost(), System.currentTimeMillis());
+        }
+    }
 
     public static JSONObject post(String targetUrl, String data, Map<String, String> headers) {
         URL url;
@@ -19,6 +40,7 @@ public abstract class HttpDownloader {
 
             // Create connection
             url = new URL(targetUrl);
+            checkTime(url);
             connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
 
@@ -44,6 +66,7 @@ public abstract class HttpDownloader {
             String response = IOUtils.streamToString(is);
             is.close();
 
+            lastTimes.put(url.getHost(), System.currentTimeMillis());
             return new JSONObject(response);
 
         } catch (Exception e) {
@@ -60,7 +83,10 @@ public abstract class HttpDownloader {
         HttpURLConnection connection = null;
         try {
             String query = buildQuery(params);
-            connection = (HttpURLConnection) new URL(targetUrl + "?" + query).openConnection();
+
+            URL url = new URL(targetUrl + "?" + query);
+            checkTime(url);
+            connection = (HttpURLConnection) url.openConnection();
             connection.setRequestProperty("Accept-Charset", "UTF-8");
 
             if (headers != null) {

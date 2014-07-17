@@ -22,7 +22,7 @@ public class KadLoader {
     private static final int WAIT_TIMEOUT = 5 * 60;
 
     private ExecutorService getExecutor() {
-        return Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
+        return Executors.newFixedThreadPool(1);
     }
 
     public KadLoader() {
