@@ -30,33 +30,46 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
     }
 
     public Set<String> retrieveCourts() {
-        String kadHtml = HttpDownloader.get(Urls.KAD_HOME);
-        Document d = Jsoup.parse(kadHtml);
-        Elements courtsDOM = d.child(0).select("#Courts").first().children();
-        courtsDOM.stream().filter(c -> c.hasText() && c.hasAttr("value"))
-                          .forEach(c -> courts.put(c.text(), c.attr("value")));
-        return courts.keySet(); // TODO: should be a callback call perhaps
+        if (courts.size() == 0) {
+            String kadHtml = HttpDownloader.get(Urls.KAD_HOME);
+            Document d = Jsoup.parse(kadHtml);
+            Elements courtsDOM = d.child(0).select("#Courts").first().children();
+            courtsDOM.stream().filter(c -> c.hasText() && c.hasAttr("value"))
+                              .forEach(c -> courts.put(c.text(), c.attr("value")));
+        }
+        return courts.keySet();
     }
 
     public String courtCode(String court) {
         return courts.get(court);
     }
 
-    public CaseContainerType retrieveData(KadSearchRequest request, CaseContainerType data) {
+    public CaseContainerType retrieveData(KadSearchRequest request, int minCost, int searchLimit, CaseContainerType data) {
 //        executor = getExecutor();
 
-        request.setCount(ITEMS_COUNT_PER_REQUEST);
+        // TODO: uncomment this after all debugging
+//        if (minCost <= 0) {
+//            throw new RuntimeException("Min cost is wrong. Should be greater than 0");
+//        }
+//        if (!(searchLimit > 0 && searchLimit <= 1000)) {
+//            throw new RuntimeException("Search limit is wrong. Should be in (0; 1000]");
+//        }
+
+        int itemsCountToLoad = searchLimit != 0 && searchLimit < ITEMS_COUNT_PER_REQUEST ? searchLimit : ITEMS_COUNT_PER_REQUEST;
+
+        request.setCount(itemsCountToLoad);
         KadResponse initial = retrieveKadResponse(request, 1);
 
         if (initial.isSuccess()) {
+            processKadResponse(initial, minCost, data);
+
             int size = initial.getPagesCount() * initial.getPageSize();
 
-            processKadResponse(initial, data);
             int iterationsCount = size / initial.getPageSize();
-            for (int i = 2; i < iterationsCount; ++i) {
+            for (int i = 2; i <= iterationsCount; ++i) {
                 KadResponse resp = retrieveKadResponse(request, i);
                 if (resp.isSuccess()) {
-                    processKadResponse(resp, data);
+                    processKadResponse(resp, minCost, data);
                 }
             }
         }
@@ -73,11 +86,11 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
         return data;
     }
 
-    private void processKadResponse(KadResponse resp, CaseContainerType outData) {
+    private void processKadResponse(KadResponse resp, int minCost, CaseContainerType outData) {
         List<CaseInfo> items = resp.getItems();
         for (CaseInfo item : items) {
 //            executor.execute(new KadWorker(item, outData));
-            (new KadWorker<>(item, outData)).run();
+            (new KadWorker<>(item, minCost, outData)).run();
         }
     }
 

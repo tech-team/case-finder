@@ -4,15 +4,17 @@ import caseloader.kad.*;
 import eventsystem.DataEvent;
 
 import java.util.List;
+import java.util.Set;
 
-public class CaseLoader<CaseContainerType extends util.Appendable<CaseInfo>> implements Runnable {
+public class CaseLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
     private KadLoader<CaseContainerType> kadLoader = new KadLoader<>();
     private KadSearchRequest request = null;
-
-    public DataEvent<CaseContainerType> casesLoaded = new DataEvent<>();
     private CaseContainerType outputContainer = null;
     private int minCost;
     private int searchLimit;
+
+    public DataEvent<CaseContainerType> casesLoaded = new DataEvent<>();
+    public DataEvent<Set<String>> courtsLoaded = new DataEvent<>();
 
     public CaseLoader() {
     }
@@ -21,17 +23,31 @@ public class CaseLoader<CaseContainerType extends util.Appendable<CaseInfo>> imp
         this.request = request;
     }
 
-    @Override
-    public void run() {
-        System.out.println("--- Started CaseLoader ---");
+    public Thread retrieveDataAsync() {
+        return new Thread(() -> {
+            System.out.println("--- Started CaseLoader ---");
 
-        if (this.request == null) {
-            throw new RuntimeException("request is null");
-        }
-        kadLoader.retrieveData(this.request, this.outputContainer);
-        casesLoaded.fire(this.outputContainer);
+            if (this.request == null) {
+                throw new RuntimeException("request is null");
+            }
+            kadLoader.retrieveData(this.request, this.minCost, this.searchLimit, this.outputContainer);
+            casesLoaded.fire(this.outputContainer);
 
-        System.out.println("--- Finished CaseLoader ---");
+            System.out.println("--- Finished CaseLoader ---");
+        });
+    }
+
+    public Thread retrieveCourtsAsync() {
+        return new Thread(() -> {
+            System.out.println("--- Retrieving courts list ---");
+            Set<String> courts = kadLoader.retrieveCourts();
+            courtsLoaded.fire(courts);
+            System.out.println("--- Finished retrieving courts list ---");
+        });
+    }
+
+    public String getCourtCode(String courtName) {
+        return kadLoader.courtCode(courtName);
     }
 
     public void setOutputContainer(CaseContainerType outputContainer) {
@@ -64,9 +80,9 @@ public class CaseLoader<CaseContainerType extends util.Appendable<CaseInfo>> imp
         CaseLoader<CasesData> cl = new CaseLoader<>();
         cl.setKadRequest(new KadSearchRequest());
 
-        CasesLoadedHandler<CasesData> handler = new CasesLoadedHandler<>(cl);
+        new CasesLoadedHandler<>(cl);
 
-        Thread th = new Thread(cl);
+        Thread th = cl.retrieveDataAsync();
         th.start();
         try {
             th.join();

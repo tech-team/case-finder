@@ -16,10 +16,12 @@ public class KadWorker <CaseContainerType extends util.Appendable<CaseInfo> > im
     private static final CredentialsLoader CREDENTIALS_LOADER = new CredentialsLoader();
     private final CaseInfo caseInfo;
     private final CaseContainerType data;
+    private final int minCost;
 
-    public KadWorker(CaseInfo caseInfo, CaseContainerType data) {
+    public KadWorker(CaseInfo caseInfo, int minCost, CaseContainerType data) {
         this.caseInfo = caseInfo;
         this.data = data;
+        this.minCost = minCost;
     }
 
     @Override
@@ -38,7 +40,7 @@ public class KadWorker <CaseContainerType extends util.Appendable<CaseInfo> > im
             JSONObject result = JsonUtils.getJSONObject(caseInfo, "Result");
             try {
                 Double cost = JsonUtils.getDouble(result, "ClaimSum");
-                if (cost != null && cost != 0) {
+                if (cost != null && cost != 0 && cost >= minCost) {
                     this.caseInfo.setCost(cost);
 
                     for (CaseSide defendant : this.caseInfo.getDefendants()) {
