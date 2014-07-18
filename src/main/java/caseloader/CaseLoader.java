@@ -35,22 +35,7 @@ public class CaseLoader implements Runnable {
         }
         KadData kadData = kadLoader.retrieveKadData(this.request);
 
-        CasesData casesData = new CasesData(kadData.getEntries().size());
-        casesData.setTotalCount(kadData.getTotalCount());
-
-        for (KadDataEntry entry : kadData.getEntries()) {
-            for (KadResponseSide defendant : entry.getItem().getDefendants()) {
-                CredentialsSearchRequest credentialsSearchRequest =
-                        new CredentialsSearchRequest(defendant.getName(),
-                                                     defendant.getAddress(),
-                                                     defendant.getInn(),
-                                                     defendant.getOgrn());
-                Credentials defendantCredentials = credentialsLoader.retrieveCredentials(credentialsSearchRequest);
-                defendant.setCredentials(defendantCredentials);
-            }
-            CaseInfo caseInfo = new CaseInfo(entry);
-            casesData.addCase(caseInfo);
-        }
+        CasesData casesData = new CasesData(kadData);
         casesLoaded.fire(casesData);
     }
 
