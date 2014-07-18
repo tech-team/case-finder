@@ -4,13 +4,16 @@ import caseloader.CaseInfo;
 import gui.casestable.Case;
 import javafx.collections.ObservableList;
 
-public class CaseModelAppender {
+import java.util.Collection;
+
+public class CaseModelAppender implements Appendable<CaseInfo> {
     private ObservableList<Case> casesData;
 
     public CaseModelAppender(ObservableList<Case> casesData) {
         this.casesData = casesData;
     }
 
+    @Override
     public void append(CaseInfo caseInfo) {
         Case caseData = new Case();
 
@@ -20,4 +23,11 @@ public class CaseModelAppender {
 
         casesData.add(caseData);
     }
+
+    @Override
+    public Collection<CaseInfo> getCollection() {
+        throw new RuntimeException("No getter for collection here");
+    }
+
+
 }

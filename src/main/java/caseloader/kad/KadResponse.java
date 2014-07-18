@@ -1,5 +1,6 @@
 package caseloader.kad;
 
+import caseloader.CaseInfo;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import util.JsonUtils;
@@ -27,7 +28,7 @@ public class KadResponse {
     private Integer pageSize = null;
     private Integer pagesCount = null;
     private Integer totalCount = null;
-    private List<KadResponseItem> items = null;
+    private List<CaseInfo> items = null;
 
     private KadResponse() {
 
@@ -61,7 +62,7 @@ public class KadResponse {
         return totalCount;
     }
 
-    public List<KadResponseItem> getItems() {
+    public List<CaseInfo> getItems() {
         return items;
     }
 
@@ -83,7 +84,7 @@ public class KadResponse {
             if (items != null) {
                 res.items = new LinkedList<>();
                 for (int i = 0; i < items.length(); ++i) {
-                    res.items.add(KadResponseItem.fromJSON(items.getJSONObject(i)));
+                    res.items.add(CaseInfo.fromJSON(items.getJSONObject(i)));
                 }
             }
         }

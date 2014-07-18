@@ -1,5 +1,7 @@
 package gui;
 
+import caseloader.CaseLoader;
+import caseloader.kad.KadSearchRequest;
 import gui.casestable.Case;
 import gui.casestable.TextFlowCell;
 import javafx.collections.FXCollections;
@@ -11,6 +13,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import util.CaseModelAppender;
 import util.ExcelExporter;
 
 import java.io.File;
@@ -62,22 +65,22 @@ public class MainController {
 
         casesData.add(new Case(caseId, LocalDate.now().minusDays(days), "http://google.com", "Петя", cost));
 
-        //real data
-        /*
-        CaseModelAppender CaseModelAppender = new CaseModelAppender(casesData);
-        casesData.clear();
+        // real data
 
-        CaseLoader caseLoader = new CaseLoader();
-        caseLoader.setKadRequest(new KadSearchRequest(...));
+//        CaseModelAppender caseModelAppender = new CaseModelAppender(casesData);
+//        casesData.clear();
+//
+//        CaseLoader<CaseModelAppender> caseLoader = new CaseLoader<>();
+//        caseLoader.setKadRequest(new KadSearchRequest());
+//
+//        //TODO:
+//        caseLoader.setOutputContainer(caseModelAppender);
+//        caseLoader.setMinCost(minCost);
+//        caseLoader.setSearchLimit(searchLimit);
+//
+//        Thread casesLoaderThread = new Thread(caseLoader);
+//        casesLoaderThread.start();
 
-        //TODO:
-        //caseLoader.setCaseModelAppender(CaseModelAppender);
-        //caseLoader.setMinCost(minCost);
-        //caseLoader.setSearchLimit(searchLimit);
-
-        Thread casesLoaderThread = new Thread(caseLoader);
-        casesLoaderThread.start();
-        */
     }
 
     public void exportCasesToExcel(ActionEvent actionEvent) {

@@ -1,21 +1,20 @@
 package caseloader;
 
-import caseloader.credentials.*;
 import caseloader.kad.*;
 import eventsystem.DataEvent;
 
-public class CaseLoader implements Runnable {
-    private KadLoader kadLoader = new KadLoader();
-    private CredentialsLoader credentialsLoader = new CredentialsLoader();
+import java.util.List;
+
+public class CaseLoader<OutputType extends util.Appendable<CaseInfo>> implements Runnable {
+    private KadLoader<OutputType> kadLoader = new KadLoader<>();
     private KadSearchRequest request = null;
 
-    private DataEvent<CasesData> casesLoaded = new DataEvent<>();
+    public DataEvent<OutputType> casesLoaded = new DataEvent<>();
+    private OutputType outputContainer = null;
+    private int minCost;
+    private int searchLimit;
 
     public CaseLoader() {
-    }
-
-    public DataEvent<CasesData> casesLoaded() {
-        return casesLoaded;
     }
 
     public void setKadRequest(KadSearchRequest request) {
@@ -25,23 +24,48 @@ public class CaseLoader implements Runnable {
     @Override
     public void run() {
         System.out.println("--- Started CaseLoader ---");
-        job();
-        System.out.println("--- Finished CaseLoader ---");
-    }
 
-    private void job() {
         if (this.request == null) {
             throw new RuntimeException("request is null");
         }
-        KadData kadData = kadLoader.retrieveKadData(this.request);
+        kadLoader.retrieveData(this.request, this.outputContainer);
+        casesLoaded.fire(this.outputContainer);
 
-        CasesData casesData = new CasesData(kadData);
-        casesLoaded.fire(casesData);
+        System.out.println("--- Finished CaseLoader ---");
     }
 
+    public void setOutputContainer(OutputType outputContainer) {
+        this.outputContainer = outputContainer;
+    }
+
+    public OutputType getOutputContainer() {
+        return outputContainer;
+    }
+
+    public void setMinCost(int minCost) {
+        this.minCost = minCost;
+    }
+
+    public int getMinCost() {
+        return minCost;
+    }
+
+    public void setSearchLimit(int searchLimit) {
+        this.searchLimit = searchLimit;
+    }
+
+    public int getSearchLimit() {
+        return searchLimit;
+    }
+
+
+
     public static void main(String[] args) {
-        CaseLoader cl = new CaseLoader();
+        CaseLoader<CasesData> cl = new CaseLoader<>();
         cl.setKadRequest(new KadSearchRequest());
+
+        CasesLoadedHandler<CasesData> handler = new CasesLoadedHandler<>(cl);
+
         Thread th = new Thread(cl);
         th.start();
         try {
@@ -50,6 +74,14 @@ public class CaseLoader implements Runnable {
             e.printStackTrace();
         }
     }
+}
 
+class CasesLoadedHandler<OutputType extends util.Appendable<CaseInfo>> {
 
+    CasesLoadedHandler(CaseLoader<OutputType> cl) {
+        cl.casesLoaded.on((data) -> {
+            List<CaseInfo> cases = (List<CaseInfo>) data.getCollection();
+            System.out.println("Cases loaded successfully");
+        });
+    }
 }

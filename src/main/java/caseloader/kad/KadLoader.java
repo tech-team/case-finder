@@ -1,11 +1,12 @@
 package caseloader.kad;
 
+import caseloader.CaseInfo;
 import caseloader.Urls;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
-import util.HttpDownloader;
+import util.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -13,9 +14,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
-public class KadLoader {
+public class KadLoader<OutputType extends util.Appendable<CaseInfo>> {
     private Map<String, String> courts = new HashMap<>();
     private ExecutorService executor = null;
     private static final int ITEMS_COUNT_PER_REQUEST = 100;
@@ -42,16 +42,14 @@ public class KadLoader {
         return courts.get(court);
     }
 
-    public KadData retrieveKadData(KadSearchRequest request) {
+    public OutputType retrieveData(KadSearchRequest request, OutputType data) {
 //        executor = getExecutor();
 
         request.setCount(ITEMS_COUNT_PER_REQUEST);
         KadResponse initial = retrieveKadResponse(request, 1);
-        KadData data = null;
 
         if (initial.isSuccess()) {
             int size = initial.getPagesCount() * initial.getPageSize();
-            data = new KadData(size, initial.getTotalCount());
 
             processKadResponse(initial, data);
             int iterationsCount = size / initial.getPageSize();
@@ -75,11 +73,11 @@ public class KadLoader {
         return data;
     }
 
-    private void processKadResponse(KadResponse resp, KadData outData) {
-        List<KadResponseItem> items = resp.getItems();
-        for (KadResponseItem item : items) {
+    private void processKadResponse(KadResponse resp, OutputType outData) {
+        List<CaseInfo> items = resp.getItems();
+        for (CaseInfo item : items) {
 //            executor.execute(new KadWorker(item, outData));
-            (new KadWorker(item, outData)).run();
+            (new KadWorker<>(item, outData)).run();
         }
     }
 
@@ -97,7 +95,7 @@ public class KadLoader {
 
 
     public static void main(String[] args) {
-        KadLoader kl = new KadLoader();
-        KadData data = kl.retrieveKadData(new KadSearchRequest());
+//        KadLoader kl = new KadLoader();
+//        KadData data = kl.retrieveData(new KadSearchRequest());
     }
 }

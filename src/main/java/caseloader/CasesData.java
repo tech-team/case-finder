@@ -1,37 +1,20 @@
 package caseloader;
 
-import caseloader.kad.KadData;
-import caseloader.kad.KadDataEntry;
-
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 
-public class CasesData {
-    private int totalCount;
-    private List<CaseInfo> cases;
+public class CasesData implements util.Appendable<CaseInfo> {
 
-    public CasesData(KadData kadData) {
-        cases = new ArrayList<>(kadData.getEntries().size());
-        setTotalCount(kadData.getTotalCount());
-        for (KadDataEntry entry : kadData.getEntries()) {
-            CaseInfo caseInfo = new CaseInfo(entry);
-            addCase(caseInfo);
-        }
+    private List<CaseInfo> cases = new LinkedList<>();
+
+    @Override
+    public void append(CaseInfo obj) {
+        cases.add(obj);
     }
 
-    public void setTotalCount(int totalCount) {
-        this.totalCount = totalCount;
-    }
-
-    public int getTotalCount() {
-        return totalCount;
-    }
-
-    public List<CaseInfo> getCases() {
+    @Override
+    public Collection<CaseInfo> getCollection() {
         return cases;
-    }
-
-    public void addCase(CaseInfo caseInfo) {
-        cases.add(caseInfo);
     }
 }

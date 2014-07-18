@@ -1,96 +1,206 @@
 package caseloader;
 
-import caseloader.kad.KadDataEntry;
-import caseloader.kad.KadResponseSide;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import util.JsonUtils;
 
+import java.util.LinkedList;
 import java.util.List;
 
 public class CaseInfo {
-    private KadDataEntry entry = null;
-
-    public CaseInfo(KadDataEntry entry) {
-        this.entry = entry;
+    abstract class Keys {
+        public static final String CASE_ID = "CaseId";
+        public static final String CASE_NUMBER = "CaseNumber";
+        public static final String CASE_TYPE = "CaseType";
+        public static final String CATEGORY_DISPUTE = "CategoryDispute";
+        public static final String CATEGORY_DISPUTE_ID = "CategoryDisputeId";
+        public static final String COURT = "Court";
+        public static final String COURT_TAG = "CourtTag";
+        public static final String DATE = "Date";
+        public static final String DEFENDANTS_COUNT = "DefendantsCount";
+        public static final String EVENT = "Event";
+        public static final String INSTANCE_NUMBER = "InstanceNumber";
+        public static final String IS_FINISHED = "IsFinished";
+        public static final String IS_SIMPLE_JUSTICE = "IsSimpleJustice";
+        public static final String JUDGE = "Judge";
+        public static final String JUDGE_NAME = "Name";
+        public static final String JUDGE_ID = "Id";
+        public static final String PLAINTIFFS_COUNT = "PlaintiffsCount";
+        public static final String SIDES = "Sides";
+        public static final String SUBSCRIPTION_ID = "SubscriptionId";
     }
 
-    public double getCost() {
-        return entry.getCost();
+    private String caseId = null;
+    private String caseNumber = null;
+    private String caseType = null;
+    private String categoryDispute = null;
+    private String categoryDisputeId = null;
+    private String court = null;
+    private String courtTag = null;
+    private String date = null;
+    private Integer defendantsCount = null;
+    private Object event = null;
+    private String instanceNumber = null;
+    private Boolean isFinished = null;
+    private Boolean isSimpleJustice = null;
+    private String judgeName = null;
+    private String judgeId = null;
+    private Integer plaintiffsCount = null;
+    private List<CaseSide> sides = null;
+    private Object subscriptionId = null;
+
+    private List<CaseSide> defendants = null;
+    private List<CaseSide> plaintiffs  = null;
+    private double cost = 0.0;
+
+    private CaseInfo() {
+    }
+
+    public void splitSides() {
+        if (sides == null) {
+            return; // TODO: throw an exception
+        }
+
+        defendants = new LinkedList<>();
+        plaintiffs = new LinkedList<>();
+
+        for (CaseSide side : sides) {
+            switch (side.getSideType()) {
+                case PLAINTIFF:
+                    plaintiffs.add(side);
+                    break;
+                case DEFENDER:
+                    defendants.add(side);
+                    break;
+            }
+        }
+
+        sides = null;
     }
 
     public String getCaseId() {
-        return entry.getItem().getCaseId();
+        return caseId;
     }
 
     public String getCaseNumber() {
-        return entry.getItem().getCaseNumber();
+        return caseNumber;
     }
 
     public String getCaseType() {
-        return entry.getItem().getCaseType();
+        return caseType;
     }
 
     public String getCategoryDispute() {
-        return entry.getItem().getCategoryDispute();
+        return categoryDispute;
     }
 
     public String getCategoryDisputeId() {
-        return entry.getItem().getCategoryDisputeId();
+        return categoryDisputeId;
     }
 
     public String getCourt() {
-        return entry.getItem().getCourt();
+        return court;
     }
 
     public String getCourtTag() {
-        return entry.getItem().getCourtTag();
+        return courtTag;
     }
 
     public String getDate() {
-        return entry.getItem().getDate();
+        return date;
     }
 
     public Integer getDefendantsCount() {
-        return entry.getItem().getDefendantsCount();
+        return defendantsCount;
     }
 
     public Object getEvent() {
-        return entry.getItem().getEvent();
+        return event;
     }
 
     public String getInstanceNumber() {
-        return entry.getItem().getInstanceNumber();
+        return instanceNumber;
     }
 
     public Boolean isFinished() {
-        return entry.getItem().isFinished();
+        return isFinished;
     }
 
     public Boolean isSimpleJustice() {
-        return entry.getItem().isSimpleJustice();
+        return isSimpleJustice;
     }
 
     public String getJudgeName() {
-        return entry.getItem().getJudgeName();
+        return judgeName;
     }
 
     public String getJudgeId() {
-        return entry.getItem().getJudgeId();
+        return judgeId;
     }
 
     public Integer getPlaintiffsCount() {
-        return entry.getItem().getPlaintiffsCount();
+        return plaintiffsCount;
+    }
+
+    public List<CaseSide> getSides() {
+        return sides;
     }
 
     public Object getSubscriptionId() {
-        return entry.getItem().getSubscriptionId();
+        return subscriptionId;
     }
 
-    public List<KadResponseSide> getDefendants() {
-        return entry.getItem().getDefendants();
+    public List<CaseSide> getDefendants() {
+        return defendants;
     }
 
-    public List<KadResponseSide> getPlaintiffs() {
-        return entry.getItem().getPlaintiffs();
+    public List<CaseSide> getPlaintiffs() {
+        return plaintiffs;
     }
 
+    public double getCost() {
+        return cost;
+    }
 
+    public void setCost(double cost) {
+        this.cost = cost;
+    }
+
+    public static CaseInfo fromJSON(JSONObject obj) {
+        CaseInfo res = new CaseInfo();
+
+        res.caseId = JsonUtils.getString(obj, Keys.CASE_ID);
+        res.caseNumber = JsonUtils.getString(obj, Keys.CASE_NUMBER);
+        res.caseType = JsonUtils.getString(obj, Keys.CASE_TYPE);
+        res.categoryDispute = JsonUtils.getString(obj, Keys.CATEGORY_DISPUTE);
+        res.categoryDisputeId = JsonUtils.getString(obj, Keys.CATEGORY_DISPUTE_ID);
+        res.court = JsonUtils.getString(obj, Keys.COURT);
+        res.courtTag = JsonUtils.getString(obj, Keys.COURT_TAG);
+        res.date = JsonUtils.getString(obj, Keys.DATE);
+        res.defendantsCount = JsonUtils.getInteger(obj, Keys.DEFENDANTS_COUNT);
+        res.event = JsonUtils.getObject(obj, Keys.EVENT);
+        res.instanceNumber = JsonUtils.getString(obj, Keys.INSTANCE_NUMBER);
+        res.isFinished = JsonUtils.getBoolean(obj, Keys.IS_FINISHED);
+        res.isSimpleJustice = JsonUtils.getBoolean(obj, Keys.IS_SIMPLE_JUSTICE);
+
+        JSONObject judge = JsonUtils.getJSONObject(obj, Keys.JUDGE);
+        if (judge != null) {
+            res.judgeName = JsonUtils.getString(judge, Keys.JUDGE_NAME);
+            res.judgeId = JsonUtils.getString(judge, Keys.JUDGE_ID);
+        }
+
+        res.plaintiffsCount = JsonUtils.getInteger(obj, Keys.PLAINTIFFS_COUNT);
+        res.subscriptionId = JsonUtils.getInteger(obj, Keys.SUBSCRIPTION_ID);
+
+        JSONArray sides = JsonUtils.getJSONArray(obj, Keys.SIDES);
+
+        if (sides != null) {
+            res.sides = new LinkedList<>();
+            for (int i = 0; i < sides.length(); ++i) {
+                res.sides.add(CaseSide.fromJSON(sides.getJSONObject(i)));
+            }
+        }
+
+        return res;
+    }
 }

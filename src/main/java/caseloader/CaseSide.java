@@ -1,10 +1,10 @@
-package caseloader.kad;
+package caseloader;
 
 import caseloader.credentials.Credentials;
 import org.json.JSONObject;
 import util.JsonUtils;
 
-public class KadResponseSide {
+public class CaseSide {
     abstract class Keys {
         public static final String ADDRESS = "Address";
         public static final String INN = "Inn";
@@ -25,7 +25,7 @@ public class KadResponseSide {
         public static SideType fromOrdinal(int n) {return allValues[n];}
     }
 
-    private KadResponseSide() {
+    private CaseSide() {
     }
 
     private String address = null;
@@ -83,8 +83,8 @@ public class KadResponseSide {
         this.credentials = credentials;
     }
 
-    public static KadResponseSide fromJSON(JSONObject obj) {
-        KadResponseSide res = new KadResponseSide();
+    public static CaseSide fromJSON(JSONObject obj) {
+        CaseSide res = new CaseSide();
 
         res.address = JsonUtils.getString(obj, Keys.ADDRESS);
         res.inn = JsonUtils.getString(obj, Keys.INN);
