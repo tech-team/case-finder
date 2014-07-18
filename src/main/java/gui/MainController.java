@@ -53,6 +53,7 @@ public class MainController {
     }
 
     public void casesSearchClick(ActionEvent actionEvent) {
+        //test data
         Random random = new Random();
         int caseId = random.nextInt(100);
         long days = random.nextInt(50);
@@ -60,6 +61,23 @@ public class MainController {
         double cost = random.nextDouble() * 10000;
 
         casesData.add(new Case(caseId, LocalDate.now().minusDays(days), "http://google.com", "Петя", cost));
+
+        //real data
+        /*
+        CaseModelAppender CaseModelAppender = new CaseModelAppender(casesData);
+        casesData.clear();
+
+        CaseLoader caseLoader = new CaseLoader();
+        caseLoader.setKadRequest(new KadSearchRequest(...));
+
+        //TODO:
+        //caseLoader.setCaseModelAppender(CaseModelAppender);
+        //caseLoader.setMinCost(minCost);
+        //caseLoader.setSearchLimit(searchLimit);
+
+        Thread casesLoaderThread = new Thread(caseLoader);
+        casesLoaderThread.start();
+        */
     }
 
     public void exportCasesToExcel(ActionEvent actionEvent) {
