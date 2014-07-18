@@ -1,27 +1,27 @@
 package util;
 
 import caseloader.CaseInfo;
-import gui.casestable.Case;
+import gui.casestable.CaseModel;
 import javafx.collections.ObservableList;
 
 import java.util.Collection;
 
 public class CaseModelAppender implements Appendable<CaseInfo> {
-    private ObservableList<Case> casesData;
+    private ObservableList<CaseModel> casesData;
 
-    public CaseModelAppender(ObservableList<Case> casesData) {
+    public CaseModelAppender(ObservableList<CaseModel> casesData) {
         this.casesData = casesData;
     }
 
     @Override
     public void append(CaseInfo caseInfo) {
-        Case caseData = new Case();
+        CaseModel caseModelData = new CaseModel();
 
         //TODO: copy all the data from caseInfo to caseData
         //(add fields to Case if needed)
         //Case class is a model for JavaFX and for export to Excel
 
-        casesData.add(caseData);
+        casesData.add(caseModelData);
     }
 
     @Override

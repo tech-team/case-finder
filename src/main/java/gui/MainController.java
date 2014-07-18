@@ -1,8 +1,6 @@
 package gui;
 
-import caseloader.CaseLoader;
-import caseloader.kad.KadSearchRequest;
-import gui.casestable.Case;
+import gui.casestable.CaseModel;
 import gui.casestable.TextFlowCell;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -13,7 +11,6 @@ import javafx.scene.control.TableView;
 import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import util.CaseModelAppender;
 import util.ExcelExporter;
 
 import java.io.File;
@@ -22,14 +19,14 @@ import java.util.Random;
 
 public class MainController {
     @FXML private HBox rootNode;
-    @FXML private TableView<Case> casesTable;
-    @FXML private TableColumn<Case, Integer> casesTable_Id;
-    @FXML private TableColumn<Case, LocalDate> casesTable_createdDate;
-    @FXML private TableColumn<Case, String> casesTable_plaintiff;
-    @FXML private TableColumn<Case, String> casesTable_defendant;
-    @FXML private TableColumn<Case, Double> casesTable_cost;
+    @FXML private TableView<CaseModel> casesTable;
+    @FXML private TableColumn<CaseModel, Integer> casesTable_Id;
+    @FXML private TableColumn<CaseModel, LocalDate> casesTable_createdDate;
+    @FXML private TableColumn<CaseModel, String> casesTable_plaintiff;
+    @FXML private TableColumn<CaseModel, String> casesTable_defendant;
+    @FXML private TableColumn<CaseModel, Double> casesTable_cost;
 
-    private ObservableList<Case> casesData = FXCollections.observableArrayList();
+    private ObservableList<CaseModel> casesData = FXCollections.observableArrayList();
 
     private Stage stage;
 
@@ -43,14 +40,14 @@ public class MainController {
      */
     @FXML
     private void initialize() {
-        casesTable_Id.setCellValueFactory(cellData -> cellData.getValue().idProperty().asObject());
-        casesTable_createdDate.setCellValueFactory(cellData -> cellData.getValue().createdDateProperty());
-        casesTable_plaintiff.setCellValueFactory(cellData -> cellData.getValue().plaintiffProperty());
+        casesTable_Id.setCellValueFactory(cellData -> cellData.getValue().id.asObject());
+        casesTable_createdDate.setCellValueFactory(cellData -> cellData.getValue().createdDate);
+        casesTable_plaintiff.setCellValueFactory(cellData -> cellData.getValue().plaintiff);
 
         casesTable_plaintiff.setCellFactory(p -> new TextFlowCell<>());
 
-        casesTable_defendant.setCellValueFactory(cellData -> cellData.getValue().defendantProperty());
-        casesTable_cost.setCellValueFactory(cellData -> cellData.getValue().costProperty().asObject());
+        casesTable_defendant.setCellValueFactory(cellData -> cellData.getValue().defendant);
+        casesTable_cost.setCellValueFactory(cellData -> cellData.getValue().cost.asObject());
 
         casesTable.setItems(casesData);
     }
@@ -63,7 +60,7 @@ public class MainController {
 
         double cost = random.nextDouble() * 10000;
 
-        casesData.add(new Case(caseId, LocalDate.now().minusDays(days), "http://google.com", "Петя", cost));
+        casesData.add(new CaseModel(caseId, LocalDate.now().minusDays(days), "http://google.com", "Петя", cost));
 
         // real data
 
