@@ -1,6 +1,9 @@
 package caseloader.kad;
 
 import caseloader.Urls;
+import caseloader.credentials.Credentials;
+import caseloader.credentials.CredentialsLoader;
+import caseloader.credentials.CredentialsSearchRequest;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
@@ -16,12 +19,29 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class KadWorker implements Runnable {
+    private static final CredentialsLoader CREDENTIALS_LOADER = new CredentialsLoader();
     private KadResponseItem item;
     private final KadData data;
 
     public KadWorker(KadResponseItem item, KadData data) {
         this.item = item;
         this.data = data;
+    }
+
+    private void processSucceeded(KadDataEntry entry) {
+// TODO
+//        for (KadResponseSide defendant : entry.getItem().getDefendants()) {
+//            CredentialsSearchRequest credentialsSearchRequest =
+//                    new CredentialsSearchRequest(defendant.getName(),
+//                            defendant.getAddress(),
+//                            defendant.getInn(),
+//                            defendant.getOgrn());
+//            Credentials defendantCredentials = CREDENTIALS_LOADER.retrieveCredentials(credentialsSearchRequest);
+//            defendant.setCredentials(defendantCredentials);
+//        }
+        synchronized (data) {
+            data.addEntry(entry);
+        }
     }
 
     @Override

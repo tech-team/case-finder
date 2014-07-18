@@ -43,7 +43,7 @@ public class KadLoader {
     }
 
     public KadData retrieveKadData(KadSearchRequest request) {
-        executor = getExecutor();
+//        executor = getExecutor();
 
         request.setCount(ITEMS_COUNT_PER_REQUEST);
         KadResponse initial = retrieveKadResponse(request, 1);
@@ -63,14 +63,14 @@ public class KadLoader {
             }
         }
 
-        executor.shutdown();
-        while (!executor.isTerminated()) {
-        }
-        try {
-            executor.awaitTermination(WAIT_TIMEOUT, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+//        executor.shutdown();
+//        while (!executor.isTerminated()) {
+//        }
+//        try {
+//            executor.awaitTermination(WAIT_TIMEOUT, TimeUnit.MILLISECONDS);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
 
         return data;
     }
@@ -78,7 +78,8 @@ public class KadLoader {
     private void processKadResponse(KadResponse resp, KadData outData) {
         List<KadResponseItem> items = resp.getItems();
         for (KadResponseItem item : items) {
-            executor.execute(new KadWorker(item, outData));
+//            executor.execute(new KadWorker(item, outData));
+            (new KadWorker(item, outData)).run();
         }
     }
 
