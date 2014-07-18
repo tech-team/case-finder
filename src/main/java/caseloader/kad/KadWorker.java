@@ -12,12 +12,12 @@ import util.*;
 import java.util.HashMap;
 import java.util.Map;
 
-public class KadWorker <OutputType extends util.Appendable<CaseInfo> > implements Runnable {
+public class KadWorker <CaseContainerType extends util.Appendable<CaseInfo> > implements Runnable {
     private static final CredentialsLoader CREDENTIALS_LOADER = new CredentialsLoader();
     private final CaseInfo caseInfo;
-    private final OutputType data;
+    private final CaseContainerType data;
 
-    public KadWorker(CaseInfo caseInfo, OutputType data) {
+    public KadWorker(CaseInfo caseInfo, CaseContainerType data) {
         this.caseInfo = caseInfo;
         this.data = data;
     }

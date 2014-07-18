@@ -5,12 +5,12 @@ import eventsystem.DataEvent;
 
 import java.util.List;
 
-public class CaseLoader<OutputType extends util.Appendable<CaseInfo>> implements Runnable {
-    private KadLoader<OutputType> kadLoader = new KadLoader<>();
+public class CaseLoader<CaseContainerType extends util.Appendable<CaseInfo>> implements Runnable {
+    private KadLoader<CaseContainerType> kadLoader = new KadLoader<>();
     private KadSearchRequest request = null;
 
-    public DataEvent<OutputType> casesLoaded = new DataEvent<>();
-    private OutputType outputContainer = null;
+    public DataEvent<CaseContainerType> casesLoaded = new DataEvent<>();
+    private CaseContainerType outputContainer = null;
     private int minCost;
     private int searchLimit;
 
@@ -34,11 +34,11 @@ public class CaseLoader<OutputType extends util.Appendable<CaseInfo>> implements
         System.out.println("--- Finished CaseLoader ---");
     }
 
-    public void setOutputContainer(OutputType outputContainer) {
+    public void setOutputContainer(CaseContainerType outputContainer) {
         this.outputContainer = outputContainer;
     }
 
-    public OutputType getOutputContainer() {
+    public CaseContainerType getOutputContainer() {
         return outputContainer;
     }
 
@@ -76,9 +76,9 @@ public class CaseLoader<OutputType extends util.Appendable<CaseInfo>> implements
     }
 }
 
-class CasesLoadedHandler<OutputType extends util.Appendable<CaseInfo>> {
+class CasesLoadedHandler<CaseContainerType extends util.Appendable<CaseInfo>> {
 
-    CasesLoadedHandler(CaseLoader<OutputType> cl) {
+    CasesLoadedHandler(CaseLoader<CaseContainerType> cl) {
         cl.casesLoaded.on((data) -> {
             List<CaseInfo> cases = (List<CaseInfo>) data.getCollection();
             System.out.println("Cases loaded successfully");

@@ -15,7 +15,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class KadLoader<OutputType extends util.Appendable<CaseInfo>> {
+public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
     private Map<String, String> courts = new HashMap<>();
     private ExecutorService executor = null;
     private static final int ITEMS_COUNT_PER_REQUEST = 100;
@@ -42,7 +42,7 @@ public class KadLoader<OutputType extends util.Appendable<CaseInfo>> {
         return courts.get(court);
     }
 
-    public OutputType retrieveData(KadSearchRequest request, OutputType data) {
+    public CaseContainerType retrieveData(KadSearchRequest request, CaseContainerType data) {
 //        executor = getExecutor();
 
         request.setCount(ITEMS_COUNT_PER_REQUEST);
@@ -73,7 +73,7 @@ public class KadLoader<OutputType extends util.Appendable<CaseInfo>> {
         return data;
     }
 
-    private void processKadResponse(KadResponse resp, OutputType outData) {
+    private void processKadResponse(KadResponse resp, CaseContainerType outData) {
         List<CaseInfo> items = resp.getItems();
         for (CaseInfo item : items) {
 //            executor.execute(new KadWorker(item, outData));
