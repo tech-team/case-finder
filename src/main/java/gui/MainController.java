@@ -2,6 +2,7 @@ package gui;
 
 import gui.casestable.CaseModel;
 import gui.casestable.TextFlowCell;
+import gui.searchpanel.NumberSpinner;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -9,6 +10,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import util.ExcelExporter;
@@ -18,6 +20,9 @@ import java.time.LocalDate;
 import java.util.Random;
 
 public class MainController {
+    public NumberSpinner costSpinner;
+    public NumberSpinner searchLimitSpinner;
+    @FXML private VBox searchPanel;
     @FXML private HBox rootNode;
     @FXML private TableView<CaseModel> casesTable;
     @FXML private TableColumn<CaseModel, Integer> casesTable_Id;
