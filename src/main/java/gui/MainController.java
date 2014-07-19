@@ -2,7 +2,7 @@ package gui;
 
 import gui.casestable.CaseModel;
 import gui.casestable.TextFlowCell;
-import gui.searchpanel.NumberSpinner;
+import gui.searchpanel.MySpinner;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -20,8 +20,8 @@ import java.time.LocalDate;
 import java.util.Random;
 
 public class MainController {
-    public NumberSpinner costSpinner;
-    public NumberSpinner searchLimitSpinner;
+    @FXML private MySpinner costSpinner;
+    @FXML private MySpinner searchLimitSpinner;
     @FXML private VBox searchPanel;
     @FXML private HBox rootNode;
     @FXML private TableView<CaseModel> casesTable;

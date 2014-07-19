@@ -1,16 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.embed.swing.*?>
-<?import javafx.scene.*?>
-<?import java.lang.*?>
-<?import javafx.geometry.*?>
-<?import javafx.scene.text.*?>
+<?scenebuilder-classpath-element ../../../target/classes?>
+<?import gui.searchpanel.MySpinner?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
 
-<?import gui.searchpanel.NumberSpinner?>
 <HBox fx:id="rootNode" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="618.0" prefWidth="756.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.MainController">
     <children>
 
@@ -42,10 +38,10 @@
                 </GridPane>
             <Separator prefWidth="200.0" />
             <Label text="Минимальная сумма:" />
-            <NumberSpinner fx:id="costSpinner" />
+            <MySpinner fx:id="costSpinner" />
                 <Separator prefWidth="200.0" VBox.vgrow="SOMETIMES" />
             <Label text="Анализировать дел:" />
-            <NumberSpinner fx:id="searchLimitSpinner" />
+            <MySpinner fx:id="searchLimitSpinner" />
             <Separator prefWidth="200.0" />
                 <Button alignment="BASELINE_CENTER" contentDisplay="CENTER" defaultButton="true" mnemonicParsing="false" onAction="#casesSearchClick" prefHeight="31.0" prefWidth="185.0" text="Искать" textAlignment="CENTER">
                     <font>
