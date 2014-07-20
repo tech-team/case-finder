@@ -8,10 +8,10 @@ import util.HttpDownloader;
 
 public abstract class WebSite {
     public abstract String url();
-    public abstract Credentials findCredentials(CredentialsSearchRequest request, final Credentials credentials);
+    public abstract Credentials findCredentials(final CredentialsSearchRequest request, final Credentials credentials);
 
-    protected Document downloadPage() {
-        String html = HttpDownloader.get(url());
-        return Jsoup.parse(html, url());
+    protected Document downloadPage(String url) {
+        String html = HttpDownloader.get(url);
+        return Jsoup.parse(html, url);
     }
 }

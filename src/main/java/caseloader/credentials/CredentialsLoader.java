@@ -1,5 +1,6 @@
 package caseloader.credentials;
 
+import caseloader.credentials.websites.RusProfile;
 import caseloader.credentials.websites.WebSite;
 
 import java.util.LinkedList;
@@ -17,8 +18,8 @@ public class CredentialsLoader {
     }
 
     public CredentialsLoader() {
-        this.webSites = new LinkedList<>();
-
+        webSites = new LinkedList<>();
+        webSites.add(new RusProfile());
     }
 
     public CredentialsLoader(List<WebSite> webSites) {
