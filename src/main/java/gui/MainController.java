@@ -1,5 +1,8 @@
 package gui;
 
+import export.Extension;
+import export.UnsupportedExtensionException;
+import gui.casestable.CaseFieldNamesMismatchException;
 import gui.casestable.CaseModel;
 import gui.casestable.TextFlowCell;
 import gui.searchpanel.MySpinner;
@@ -13,9 +16,11 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import util.ExcelExporter;
+import org.controlsfx.dialog.Dialogs;
+import export.ExcelExporter;
 
 import java.io.File;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.Random;
 
@@ -45,6 +50,14 @@ public class MainController {
      */
     @FXML
     private void initialize() {
+        try {
+            CaseModel.loadTitles();
+        }
+        catch (CaseFieldNamesMismatchException e) {
+            Dialogs.create().showException(e);
+            System.exit(1);
+        }
+
         casesTable_Id.setCellValueFactory(cellData -> cellData.getValue().id.asObject());
         casesTable_createdDate.setCellValueFactory(cellData -> cellData.getValue().createdDate);
         casesTable_plaintiff.setCellValueFactory(cellData -> cellData.getValue().plaintiff);
@@ -86,14 +99,22 @@ public class MainController {
     }
 
     public void exportCasesToExcel(ActionEvent actionEvent) {
+        //TODO: save initial folder
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Export to Excel");
         fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("Excel Files", "*.xls"));
+                new FileChooser.ExtensionFilter(Extension.Excel.getName(), Extension.Excel.getValue()),
+                new FileChooser.ExtensionFilter(Extension.AncientExcel.getName(), Extension.AncientExcel.getValue()));
 
         File selectedFile = fileChooser.showSaveDialog(stage);
+        String extensionName = fileChooser.getSelectedExtensionFilter().getDescription();
+
         if (selectedFile != null) {
-            ExcelExporter.export(casesData, selectedFile.getAbsolutePath());
+            try {
+                ExcelExporter.export(casesData, selectedFile.getAbsolutePath(), Extension.fromName(extensionName));
+            } catch (IOException | UnsupportedExtensionException e) {
+                Dialogs.create().showException(e);
+            }
         }
     }
 }
