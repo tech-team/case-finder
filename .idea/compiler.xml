@@ -25,6 +25,9 @@
         <module name="case-finder" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="case-finder" target="1.8" />
+    </bytecodeTargetLevel>
   </component>
 </project>
 
