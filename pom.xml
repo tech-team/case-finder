@@ -23,6 +23,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
+                <version>2.5</version>
                 <configuration>
                     <archive>
                         <manifest>
@@ -73,9 +74,6 @@
             <artifactId>controlsfx</artifactId>
             <version>8.0.6</version>
         </dependency>
-
     </dependencies>
-
-
 
 </project>

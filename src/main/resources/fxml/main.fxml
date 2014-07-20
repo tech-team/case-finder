@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?scenebuilder-classpath-element ../../../target/classes?>
-<?import gui.searchpanel.MySpinner?>
+<?import gui.searchpanel.*?>
+<?import java.lang.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.text.*?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
@@ -38,10 +40,10 @@
                 </GridPane>
             <Separator prefWidth="200.0" />
             <Label text="Минимальная сумма:" />
-            <MySpinner fx:id="costSpinner" />
+            <MySpinner />
                 <Separator prefWidth="200.0" VBox.vgrow="SOMETIMES" />
             <Label text="Анализировать дел:" />
-            <MySpinner fx:id="searchLimitSpinner" />
+            <NumberSpinner />
             <Separator prefWidth="200.0" />
                 <Button alignment="BASELINE_CENTER" contentDisplay="CENTER" defaultButton="true" mnemonicParsing="false" onAction="#casesSearchClick" prefHeight="31.0" prefWidth="185.0" text="Искать" textAlignment="CENTER">
                     <font>
