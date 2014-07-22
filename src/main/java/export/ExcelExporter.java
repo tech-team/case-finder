@@ -7,6 +7,7 @@ import org.apache.poi.ss.util.CellRangeAddress;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Map;
 
 public class ExcelExporter {
     /**
@@ -48,13 +49,12 @@ public class ExcelExporter {
         headerRow.setHeightInPoints(40);
 
         //get model titles
-        String[] titles = new String[CaseModel.FIELD_NAMES.keySet().size()];
-        titles = CaseModel.FIELD_NAMES.keySet().toArray(titles);
-
-        for (int i = 0; i < data.size(); i++) {
+        int i = 0;
+        for (Map.Entry<String, String> entry: CaseModel.FIELD_NAMES.entrySet()) {
             Cell headerCell = headerRow.createCell(i);
-            headerCell.setCellValue(titles[i]);
+            headerCell.setCellValue(entry.getValue());
             //headerCell.setCellStyle(styles.get("header"));
+            ++i;
         }
 
         //save to file
