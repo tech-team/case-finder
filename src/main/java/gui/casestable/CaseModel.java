@@ -1,6 +1,7 @@
 package gui.casestable;
 
 import javafx.beans.property.*;
+import util.ResourceControl;
 
 import java.lang.reflect.Field;
 import java.time.LocalDate;
@@ -13,7 +14,7 @@ public class CaseModel {
     public final static Map<String, String> FIELD_NAMES = new HashMap<>();
 
     public static void loadTitles() throws CaseFieldNamesMismatchException {
-        ResourceBundle res = ResourceBundle.getBundle("properties.case_field_names");
+        ResourceBundle res = ResourceBundle.getBundle("properties.case_field_names", new ResourceControl("UTF-8"));
 
         Enumeration<String> nameItr = res.getKeys();
         while(nameItr.hasMoreElements()) {
