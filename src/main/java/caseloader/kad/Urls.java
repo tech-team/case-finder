@@ -1,4 +1,4 @@
-package caseloader;
+package caseloader.kad;
 
 public interface Urls {
     public static final String KAD_HOME = "http://kad.arbitr.ru/";

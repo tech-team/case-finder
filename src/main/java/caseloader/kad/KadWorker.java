@@ -2,7 +2,6 @@ package caseloader.kad;
 
 import caseloader.CaseInfo;
 import caseloader.CaseSide;
-import caseloader.Urls;
 import caseloader.credentials.Credentials;
 import caseloader.credentials.CredentialsLoader;
 import caseloader.credentials.CredentialsSearchRequest;

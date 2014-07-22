@@ -18,6 +18,13 @@ public class CredentialsSearchRequest {
         this.address = address;
     }
 
+//    public CredentialsSearchRequest clone(final CredentialsSearchRequest req) {
+//        return new CredentialsSearchRequest(req.getCompanyName(),
+//                                            req.getAddress(),
+//                                            req.getInn(),
+//                                            req.getOgrn());
+//    }
+
     public String getCompanyName() {
         return companyName;
     }
@@ -32,5 +39,13 @@ public class CredentialsSearchRequest {
 
     public String getOgrn() {
         return ogrn;
+    }
+
+    public void setInn(String inn) {
+        this.inn = inn;
+    }
+
+    public void setOgrn(String ogrn) {
+        this.ogrn = ogrn;
     }
 }

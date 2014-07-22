@@ -64,8 +64,10 @@ public class CredentialsLoader {
         public void run() {
             System.out.println("[" + Thread.currentThread().getName() + "] Working on: " + webSite.url());
             Credentials found = webSite.findCredentials(request, credentials);
-            synchronized (credentials) {
-                credentials.merge(found);
+            if (found != null) {
+                synchronized (credentials) {
+                    credentials.merge(found);
+                }
             }
             System.out.println("[" + Thread.currentThread().getName() + "] Finished: " + webSite.url());
         }

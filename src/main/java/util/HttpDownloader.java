@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public abstract class HttpDownloader {
+    public static final String USER_AGENT = "Test UserAgent 1.0";
     private static Map<String, Long> lastTimes = new HashMap<>();
     private static final long WAIT_DELTA = 5 * 1000;
 
