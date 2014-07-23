@@ -2,7 +2,9 @@ package caseloader.credentials;
 
 import caseloader.credentials.websites.RusProfile;
 import caseloader.credentials.websites.WebSite;
+import exceptions.DataRetrievingError;
 
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -63,7 +65,12 @@ public class CredentialsLoader {
         @Override
         public void run() {
             System.out.println("[" + Thread.currentThread().getName() + "] Working on: " + webSite.url());
-            Credentials found = webSite.findCredentials(request, credentials);
+            Credentials found = null;
+            try {
+                found = webSite.findCredentials(request, credentials);
+            } catch (IOException | DataRetrievingError e) {
+                throw new RuntimeException(e);
+            }
             if (found != null) {
                 synchronized (credentials) {
                     credentials.merge(found);

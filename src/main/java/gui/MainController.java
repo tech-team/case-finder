@@ -1,5 +1,7 @@
 package gui;
 
+import caseloader.CaseLoader;
+import caseloader.CaseSearchRequest;
 import export.Extension;
 import export.UnsupportedExtensionException;
 import gui.casestable.CaseFieldNamesMismatchException;
@@ -18,6 +20,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.controlsfx.dialog.Dialogs;
 import export.ExcelExporter;
+import util.CaseModelAppender;
 
 import java.io.File;
 import java.io.IOException;
@@ -86,14 +89,12 @@ public class MainController {
 //        casesData.clear();
 //
 //        CaseLoader<CaseModelAppender> caseLoader = new CaseLoader<>();
-//        caseLoader.setKadRequest(new KadSearchRequest());
+//        caseLoader.casesLoaded.on((data) -> {
+//            // TODO: Probably react somehow
+//        });
 //
-//        //TODO:
-//        caseLoader.setOutputContainer(caseModelAppender);
-//        caseLoader.setMinCost(minCost);
-//        caseLoader.setSearchLimit(searchLimit);
-//
-//        Thread casesLoaderThread = new Thread(caseLoader);
+//        Thread casesLoaderThread =
+//                caseLoader.retrieveDataAsync(new CaseSearchRequest(), caseModelAppender);
 //        casesLoaderThread.start();
 
     }

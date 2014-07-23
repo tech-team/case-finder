@@ -2,9 +2,12 @@ package caseloader.credentials.websites;
 
 import caseloader.credentials.Credentials;
 import caseloader.credentials.CredentialsSearchRequest;
+import exceptions.DataRetrievingError;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+
+import java.io.IOException;
 
 public class RusProfile extends WebSite {
     abstract class Urls {
@@ -18,7 +21,7 @@ public class RusProfile extends WebSite {
     }
 
     @Override
-    public Credentials findCredentials(final CredentialsSearchRequest request, final Credentials credentials) {
+    public Credentials findCredentials(final CredentialsSearchRequest request, final Credentials credentials) throws IOException, DataRetrievingError {
         if (request.getInn() != null) {
             return findByInn(request, credentials);
         } else if (request.getOgrn() != null) {
@@ -30,7 +33,7 @@ public class RusProfile extends WebSite {
         return res;
     }
 
-    private Credentials findByInn(CredentialsSearchRequest request, Credentials credentials) {
+    private Credentials findByInn(CredentialsSearchRequest request, Credentials credentials) throws IOException, DataRetrievingError {
         Element searchPage = downloadPage(Urls.SEARCH + request.getInn()).getElementsByTag("html").first();
         Element googleResults = searchPage.select(".gs-webResult .gs-result").first();
         return null;
@@ -40,7 +43,7 @@ public class RusProfile extends WebSite {
         return null;
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException, DataRetrievingError {
         RusProfile rp = new RusProfile();
 
         CredentialsSearchRequest req = new CredentialsSearchRequest("БОГАТЫРЬ", "unknown", "1102017213", null);

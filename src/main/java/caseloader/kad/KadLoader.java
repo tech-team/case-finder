@@ -1,21 +1,18 @@
 package caseloader.kad;
 
 import caseloader.CaseInfo;
+import caseloader.CaseSearchRequest;
 import org.json.JSONObject;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
 import util.*;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
-    private Map<String, String> courts = new HashMap<>();
     private ExecutorService executor = null;
     private static final int ITEMS_COUNT_PER_REQUEST = 100;
     private static final int WAIT_TIMEOUT = 5 * 60;
@@ -28,31 +25,11 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
 
     }
 
-    public Set<String> retrieveCourts() {
-        if (courts.size() == 0) {
-            String kadHtml = HttpDownloader.get(Urls.KAD_HOME);
-            Document d = Jsoup.parse(kadHtml);
-            Elements courtsDOM = d.child(0).select("#Courts").first().children();
-            courtsDOM.stream().filter(c -> c.hasText() && c.hasAttr("value"))
-                              .forEach(c -> courts.put(c.text(), c.attr("value")));
-        }
-        return courts.keySet();
-    }
-
-    public String courtCode(String court) {
-        return courts.get(court);
-    }
-
-    public CaseContainerType retrieveData(KadSearchRequest request, int minCost, int searchLimit, CaseContainerType data) {
+    public CaseContainerType retrieveData(CaseSearchRequest request, CaseContainerType data) throws IOException {
 //        executor = getExecutor();
 
-        // TODO: uncomment this after all debugging
-//        if (minCost <= 0) {
-//            throw new RuntimeException("Min cost is wrong. Should be greater than 0");
-//        }
-//        if (!(searchLimit > 0 && searchLimit <= 1000)) {
-//            throw new RuntimeException("Search limit is wrong. Should be in (0; 1000]");
-//        }
+        int minCost = request.getMinCost();
+        int searchLimit = request.getSearchLimit();
 
         int itemsCountToLoad = searchLimit != 0 && searchLimit < ITEMS_COUNT_PER_REQUEST ? searchLimit : ITEMS_COUNT_PER_REQUEST;
 
@@ -93,7 +70,7 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
         }
     }
 
-    private KadResponse retrieveKadResponse(KadSearchRequest request, int page) {
+    private KadResponse retrieveKadResponse(CaseSearchRequest request, int page) throws IOException {
         request.setPage(page);
 
         String json = request.toString();
@@ -101,13 +78,13 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
         headers.put("X-Requested-With", "XMLHttpRequest");
         headers.put("Content-Type", "application/json");
         headers.put("Accept", "application/json, text/javascript, */*");
-        JSONObject jsonObj = HttpDownloader.post(Urls.KAD_SEARCH, json, headers);
+        JSONObject jsonObj = new JSONObject(HttpDownloader.post(Urls.KAD_SEARCH, json, headers));
         return KadResponse.fromJSON(jsonObj);
     }
 
 
     public static void main(String[] args) {
 //        KadLoader kl = new KadLoader();
-//        KadData data = kl.retrieveData(new KadSearchRequest());
+//        KadData data = kl.retrieveData(new CaseSearchRequest());
     }
 }

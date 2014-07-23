@@ -5,10 +5,16 @@ import caseloader.CaseSide;
 import caseloader.credentials.Credentials;
 import caseloader.credentials.CredentialsLoader;
 import caseloader.credentials.CredentialsSearchRequest;
+import exceptions.DataRetrievingError;
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONObject;
 import util.*;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class KadWorker <CaseContainerType extends util.Appendable<CaseInfo> > implements Runnable {
@@ -27,13 +33,18 @@ public class KadWorker <CaseContainerType extends util.Appendable<CaseInfo> > im
     public void run() {
         System.out.println("[" + Thread.currentThread().getName() + "] Processing case = " + caseInfo.getCaseId());
 
-        Map<String, String> params = new HashMap<>();
+        List<NameValuePair> params = new ArrayList<>();
         Map<String, String> headers = new HashMap<>();
-        params.put("number", caseInfo.getCaseNumber());
+        params.add(new BasicNameValuePair("number", caseInfo.getCaseNumber()));
         headers.put("X-Requested-With", "XMLHttpRequest");
         headers.put("Content-Type", "application/json");
         headers.put("Accept", "application/json, text/javascript, */*");
-        JSONObject caseInfo = new JSONObject(HttpDownloader.get(Urls.KAD_CARD, params, headers));
+        JSONObject caseInfo = null;
+        try {
+            caseInfo = new JSONObject(HttpDownloader.get(Urls.KAD_CARD, params, headers));
+        } catch (IOException | DataRetrievingError e) {
+            throw new RuntimeException(e);
+        }
 
         if (JsonUtils.getBoolean(caseInfo, "Success")) {
             JSONObject result = JsonUtils.getJSONObject(caseInfo, "Result");
