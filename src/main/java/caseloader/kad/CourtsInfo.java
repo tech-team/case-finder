@@ -15,7 +15,7 @@ import java.util.Set;
 public abstract class CourtsInfo {
     private static Map<String, String> courts = new HashMap<>();
 
-    public static DataEvent<Set<String>> courtsLoaded = new DataEvent<>();
+    public static DataEvent<Set<String>> courtsLoadedEvent = new DataEvent<>();
 
     private static Set<String> retrieveCourts() throws IOException, DataRetrievingError {
         if (courts.size() == 0) {
@@ -37,7 +37,7 @@ public abstract class CourtsInfo {
             } catch (IOException | DataRetrievingError e) {
                 throw new RuntimeException(e);
             }
-            courtsLoaded.fire(courts);
+            courtsLoadedEvent.fire(courts);
             System.out.println("--- Finished retrieving courts list ---");
         });
     }
@@ -54,5 +54,9 @@ public abstract class CourtsInfo {
             }
         }
         return null;
+    }
+
+    public static boolean courtsLoaded() {
+        return courts.size() != 0;
     }
 }

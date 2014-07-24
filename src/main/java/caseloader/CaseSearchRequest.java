@@ -46,7 +46,7 @@ public class CaseSearchRequest {
         kadJson.put(Keys.WITH_VKS_INSTANCES, false);
     }
 
-    public CaseSearchRequest(final String[] courts,
+    public CaseSearchRequest(final String[] courtsIds,
                              final String dateFrom,
                              final String dateTo,
                              final CaseType caseType,
@@ -58,8 +58,8 @@ public class CaseSearchRequest {
                              final int searchLimit) {
         this();
 
-        if (minCost <= 0) {
-            throw new RuntimeException("Min cost is wrong. Should be greater than 0");
+        if (minCost < 0) {
+            throw new RuntimeException("Min cost is wrong. Should be greater than or equal to 0");
         }
         if (!(searchLimit > 0 && searchLimit <= 1000)) {
             throw new RuntimeException("Search limit is wrong. Should be in (0; 1000]");
@@ -76,8 +76,8 @@ public class CaseSearchRequest {
             kadJson.put(Keys.WITH_VKS_INSTANCES, withVKSInstances);
         }
 
-        if (courts != null) {
-            for (final String court : courts) {
+        if (courtsIds != null) {
+            for (final String court : courtsIds) {
                 kadJson.append(Keys.COURTS, court);
             }
         }
@@ -105,6 +105,8 @@ public class CaseSearchRequest {
     }
 
     public String[] getCourts() {
+        if (!CourtsInfo.courtsLoaded())
+            return null;
         JSONArray courtsJson = JsonUtils.getJSONArray(kadJson, Keys.COURTS);
         List<String> courts = new ArrayList<>();
         for (int i = 0; i < courtsJson.length(); ++i) {

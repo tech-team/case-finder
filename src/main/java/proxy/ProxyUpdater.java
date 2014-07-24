@@ -1,22 +1,20 @@
 package proxy;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
-import org.json.JSONObject;
+import exceptions.DataRetrievingError;
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import util.HttpDownloader;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ProxyUpdater implements Runnable {
     class Urls {
-        public static final String HOME_PAGE = "http://proxylist.hidemyass.com/";
+        public static final String HIDE_MY_ASS = "http://proxylist.hidemyass.com/";
+        public static final String COOL_PROXY = "http://www.cool-proxy.net/proxies/http_proxy_list/sort:download_speed_average/direction:desc/country_code:/port:/anonymous:1";
     }
 
     private static final int UPDATE_PERIOD = 30 * 60 * 1000; // 30 minutes
@@ -26,10 +24,10 @@ public class ProxyUpdater implements Runnable {
     public void run() {
         doWork = true;
         while (doWork) {
-            List<ProxyPair> newList = null;
+            List<ProxyInfo> newList = null;
             try {
                 newList = retrieveProxyList();
-            } catch (IOException e) {
+            } catch (IOException | DataRetrievingError e) {
                 throw new RuntimeException(e);
             }
             ProxyList.loadNewList(newList);
@@ -48,106 +46,62 @@ public class ProxyUpdater implements Runnable {
     }
 
 
-    private List<ProxyPair> retrieveProxyList() throws IOException {
-        JSONObject resp = new JSONObject(retrieveRawData());
-        String proxyTableStr = resp.getString("table");
-        Document proxyTable = Jsoup.parseBodyFragment(proxyTableStr);
+    private List<ProxyInfo> retrieveProxyList() throws IOException, DataRetrievingError {
+        List<ProxyInfo> proxies = new ArrayList<>();
 
-        List<ProxyPair> proxies = new ArrayList<>();
-        for (Element tr : proxyTable.getElementsByTag("tr")) {
-            String ip = tr.child(1).text();
-            int port = Integer.parseInt(tr.child(2).text());
-            String country = tr.child(3).text();
-            proxies.add(new ProxyPair(ip, port, country));
+        Element page = Jsoup.parse(retrieveRawData()).body();
+        Element table = page.select("#main table").first();
+        Elements trs = table.getElementsByTag("tr");
+        for (int i = 1; i < trs.size(); ++i) {
+            try {
+                Element tr = trs.get(i);
+
+                Pattern ipBase64Pattern = Pattern.compile(".*\"(.*)\".*");
+                String ipBase64String = tr.child(0).getElementsByTag("script").first().html();
+                Matcher m = ipBase64Pattern.matcher(ipBase64String);
+                String ip = "";
+                while (m.find()) {
+                    ip = new String(Base64.getDecoder().decode(m.group(1)));
+                }
+
+                int port = Integer.parseInt(tr.child(1).text());
+                String country = tr.child(3).text();
+                int rating = Integer.parseInt(tr.child(4).getElementsByTag("img").attr("alt").substring(0, 1));
+
+                int working = 0;
+                String workingStyleString = tr.child(6).select(".graph .bar").first().attr("style");
+                m = Pattern.compile(".*width:([\\d\\.]+)%.*").matcher(workingStyleString);
+                while (m.find()) {
+                    working = (int) Double.parseDouble(m.group(1));
+                }
+
+                int responseTime = 0;
+                String responseTimeStyleString = tr.child(7).select(".graph .bar").first().attr("style");
+                m = Pattern.compile(".*width:([\\d\\.]+)%.*").matcher(responseTimeStyleString);
+                while (m.find()) {
+                    responseTime = (int) Double.parseDouble(m.group(1));
+                }
+
+                int downloadSpeed = 0;
+                String downloadSpeedStyleString = tr.child(8).select(".graph .bar").first().attr("style");
+                m = Pattern.compile(".*width:([\\d\\.]+)%.*").matcher(downloadSpeedStyleString);
+                while (m.find()) {
+                    downloadSpeed = (int) Double.parseDouble(m.group(1));
+                }
+
+                proxies.add(new ProxyInfo(ip, port, country, rating, working, responseTime, downloadSpeed));
+
+            } catch (Exception e) {
+                System.out.println("<---Wrong line");
+            }
+
+
         }
-
         return proxies;
     }
 
-    private String retrieveRawData() throws IOException {
-        List<NameValuePair> formData = new ArrayList<>();
-        Map<String, String> headers = new HashMap<>();
-
-        String[] countries = {
-                "China",
-                "Venezuela",
-                "United States",
-                "Indonesia",
-                "Russian Federation",
-                "Brazil",
-                "China",
-                "Venezuela",
-                "Thailand",
-                "India",
-                "Romania",
-                "United Kingdom",
-                "Germany",
-                "Colombia",
-                "Hong Kong",
-                "Netherlands",
-                "Viet Nam",
-                "Australia",
-                "Bangladesh",
-                "Argentina",
-                "Sri Lanka",
-                "Turkey",
-                "United Arab Emirates",
-                "Korea, Republic of",
-                "Japan",
-                "Serbia",
-                "Iran",
-                "Poland",
-                "Saudi Arabia",
-                "Bosnia and Herzegovina",
-                "Netherlands Antilles",
-                "Albania",
-                "Zaire",
-                "Sweden",
-                "Maldives",
-                "Taiwan",
-                "Nigeria",
-                "Paraguay",
-                "Panama",
-                "France",
-                "Bulgaria",
-                "Ukraine",
-                "Hungary",
-                "Chile",
-                "Malaysia",
-                "Italy",
-                "Mexico",
-                "Austria",
-                "Ecuador",
-                "Moldova, Republic of",
-                "Taiwan",
-                "Philippines",
-                "Lithuania"
-        };
-
-        formData.add(new BasicNameValuePair("ac", "on"));
-        for (String country : countries) {
-            formData.add(new BasicNameValuePair("c[]", country));
-        }
-        formData.add(new BasicNameValuePair("allPorts", "1"));
-        formData.add(new BasicNameValuePair("p", ""));
-        formData.add(new BasicNameValuePair("pr[]", "0"));
-        formData.add(new BasicNameValuePair("a[]", "0"));
-        formData.add(new BasicNameValuePair("a[]", "1"));
-        formData.add(new BasicNameValuePair("a[]", "2"));
-        formData.add(new BasicNameValuePair("a[]", "3"));
-        formData.add(new BasicNameValuePair("a[]", "4"));
-        formData.add(new BasicNameValuePair("pl", "on"));
-        formData.add(new BasicNameValuePair("sp[]", "2"));
-        formData.add(new BasicNameValuePair("sp[]", "3"));
-        formData.add(new BasicNameValuePair("ct[]", "2"));
-        formData.add(new BasicNameValuePair("ct[]", "3"));
-        formData.add(new BasicNameValuePair("s", "1"));
-        formData.add(new BasicNameValuePair("o", "0"));
-        formData.add(new BasicNameValuePair("pp", "3"));
-        formData.add(new BasicNameValuePair("sortBy", "response_time"));
-
-        headers.put("X-Requested-With", "XMLHttpRequest");
-        return HttpDownloader.post(Urls.HOME_PAGE, formData, headers);
+    private String retrieveRawData() throws IOException, DataRetrievingError {
+        return HttpDownloader.get(Urls.COOL_PROXY);
     }
 
     public static void main(String[] args) {
