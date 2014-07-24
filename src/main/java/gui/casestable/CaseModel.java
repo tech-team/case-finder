@@ -4,37 +4,37 @@ import javafx.beans.property.*;
 import util.ResourceControl;
 
 import java.lang.reflect.Field;
-import java.time.LocalDate;
-import java.util.Enumeration;
-import java.util.HashMap;
+import java.lang.reflect.Modifier;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
 public class CaseModel {
-    public final static Map<String, String> FIELD_NAMES = new HashMap<>();
+    public final static Map<String, String> FIELD_NAMES = new LinkedHashMap<>();
 
     public static void loadTitles() throws CaseFieldNamesMismatchException {
         ResourceBundle res = ResourceBundle.getBundle("properties.case_field_names", new ResourceControl("UTF-8"));
 
-        Enumeration<String> nameItr = res.getKeys();
-        while(nameItr.hasMoreElements()) {
-            String key = nameItr.nextElement();
-            FIELD_NAMES.put(key, res.getString(key));
+        Field[] fields = CaseModel.class.getDeclaredFields();
 
-            try {
-                Field field = CaseModel.class.getField(key);
-            }
-            catch (NoSuchFieldException e) {
-                throw new CaseFieldNamesMismatchException("No such field: " + key, e);
+        for (Field field: fields) {
+            String key = field.getName();
+
+            if (!Modifier.isStatic(field.getModifiers())) {
+                try {
+                    String value = res.getString(key);
+                    FIELD_NAMES.put(key, value);
+                }
+                catch (MissingResourceException e) {
+                    throw new CaseFieldNamesMismatchException("No such property for field: " + key, e);
+                }
             }
         }
-
-        if (FIELD_NAMES.size() != CaseModel.class.getDeclaredFields().length - 1) //without FIELD_NAMES
-            throw new CaseFieldNamesMismatchException("CaseModel.fields.size() != res.size()");
     }
 
     public final IntegerProperty id;
-    public final ObjectProperty<LocalDate> createdDate;
+    public final StringProperty createdDate;
     public final StringProperty plaintiff;
     public final StringProperty defendant;
     public final DoubleProperty cost;
@@ -43,9 +43,9 @@ public class CaseModel {
         this(null, null, null, null, null);
     }
 
-    public CaseModel(Integer id, LocalDate createdDate, String plaintiff, String defendant, Double cost) {
+    public CaseModel(Integer id, String createdDate, String plaintiff, String defendant, Double cost) {
         this.id = new SimpleIntegerProperty(id);
-        this.createdDate = new SimpleObjectProperty<>(createdDate);
+        this.createdDate = new SimpleStringProperty(createdDate);
         
         this.plaintiff = new SimpleStringProperty(plaintiff);
         this.defendant = new SimpleStringProperty(defendant);

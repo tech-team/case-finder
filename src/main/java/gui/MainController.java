@@ -2,6 +2,7 @@ package gui;
 
 import caseloader.CaseSearchRequest;
 import export.ExcelExporter;
+import export.ExportException;
 import export.Extension;
 import export.UnsupportedExtensionException;
 import gui.casestable.CaseFieldNamesMismatchException;
@@ -21,7 +22,6 @@ import javafx.stage.Stage;
 import org.controlsfx.dialog.Dialogs;
 
 import java.io.File;
-import java.io.IOException;
 import java.time.LocalDate;
 import java.util.Random;
 
@@ -32,7 +32,7 @@ public class MainController {
     @FXML private HBox rootNode;
     @FXML private TableView<CaseModel> casesTable;
     @FXML private TableColumn<CaseModel, Integer> casesTable_Id;
-    @FXML private TableColumn<CaseModel, LocalDate> casesTable_createdDate;
+    @FXML private TableColumn<CaseModel, String> casesTable_createdDate;
     @FXML private TableColumn<CaseModel, String> casesTable_plaintiff;
     @FXML private TableColumn<CaseModel, String> casesTable_defendant;
     @FXML private TableColumn<CaseModel, Double> casesTable_cost;
@@ -79,7 +79,7 @@ public class MainController {
 
         double cost = random.nextDouble() * 10000;
 
-        casesData.add(new CaseModel(caseId, LocalDate.now().minusDays(days), "http://google.com", "Петя", cost));
+        casesData.add(new CaseModel(caseId, LocalDate.now().minusDays(days).toString(), "http://google.com", "Петя", cost));
 
         // real data
 
@@ -106,9 +106,10 @@ public class MainController {
                 new FileChooser.ExtensionFilter(Extension.AncientExcel.getName(), Extension.AncientExcel.getValue()));
 
         File selectedFile = fileChooser.showSaveDialog(stage);
-        String extensionName = fileChooser.getSelectedExtensionFilter().getDescription();
 
         if (selectedFile != null) {
+            String extensionName = fileChooser.getSelectedExtensionFilter().getDescription();
+
             try {
                 CaseSearchRequest request = new CaseSearchRequest(
                         new String[]{"courtName"},
@@ -120,7 +121,7 @@ public class MainController {
                         200);
 
                 ExcelExporter.export(request, casesData, selectedFile.getAbsolutePath(), Extension.fromName(extensionName));
-            } catch (IOException | UnsupportedExtensionException e) {
+            } catch (ExportException | UnsupportedExtensionException e) {
                 Dialogs.create().showException(e);
             }
         }
