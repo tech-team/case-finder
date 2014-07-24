@@ -1,5 +1,6 @@
 package export;
 
+import caseloader.CaseSearchRequest;
 import gui.casestable.CaseModel;
 import javafx.collections.ObservableList;
 import org.apache.poi.ss.usermodel.*;
@@ -20,7 +21,7 @@ public class ExcelExporter {
         REQUEST, TITLE, NORMAL
     }
 
-    public static void export(ObservableList<CaseModel> data, String fileName, Extension extension) throws IOException, UnsupportedExtensionException {
+    public static void export(CaseSearchRequest request, ObservableList<CaseModel> data, String fileName, Extension extension) throws IOException, UnsupportedExtensionException {
         Workbook wb = null;
         try {
             wb = (Workbook) extension.getWorkbookClass().newInstance();
@@ -33,30 +34,34 @@ public class ExcelExporter {
                 "\\.xlsx?$",
                 extension.getStarlessValue());
 
-        export(data, actualFileName, wb);
+        export(request, data, actualFileName, wb);
     }
 
-    private static void export(ObservableList<CaseModel> data, String fileName, Workbook wb) throws IOException {
+    private static void export(CaseSearchRequest request, ObservableList<CaseModel> data, String fileName, Workbook wb) throws IOException {
         ResourceBundle res = ResourceBundle.getBundle("properties.export_strings", new ResourceControl("UTF-8"));
 
         Map<CellType, CellStyle> styles = createStyles(wb);
 
-        Sheet sheet = wb.createSheet(res.getString("sheetName"));
+        saveData(wb, data, res, styles);
+        saveRequest(wb, request, res, styles);
+
+        //save to file
+        FileOutputStream out = new FileOutputStream(fileName);
+        wb.write(out);
+        out.close();
+    }
+
+    private static void saveData(Workbook wb, ObservableList<CaseModel> data, ResourceBundle res, Map<CellType, CellStyle> styles) {
+        Sheet sheet = wb.createSheet(res.getString("dataSheetName"));
         PrintSetup printSetup = sheet.getPrintSetup();
         printSetup.setLandscape(true);
         sheet.setFitToPage(true);
         sheet.setHorizontallyCenter(true);
 
-        //request row
-        Row requestRow = sheet.createRow(0);
-        requestRow.setHeightInPoints(45);
-        Cell requestCell = requestRow.createCell(0);
-        requestCell.setCellValue(res.getString("requestTemplate"));
-        requestCell.setCellStyle(styles.get(CellType.REQUEST));
-        sheet.addMergedRegion(CellRangeAddress.valueOf("$A$1:$L$1"));
+        int rowId = 0;
 
         //title row
-        Row titleRow = sheet.createRow(1);
+        Row titleRow = sheet.createRow(rowId++);
         titleRow.setHeightInPoints(40);
 
         //get model titles
@@ -67,11 +72,32 @@ public class ExcelExporter {
             titleCell.setCellStyle(styles.get(CellType.TITLE));
             ++i;
         }
+    }
 
-        //save to file
-        FileOutputStream out = new FileOutputStream(fileName);
-        wb.write(out);
-        out.close();
+    private static void saveRequest(Workbook wb, CaseSearchRequest request, ResourceBundle res, Map<CellType, CellStyle> styles) {
+        Sheet sheet = wb.createSheet(res.getString("requestSheetName"));
+        PrintSetup printSetup = sheet.getPrintSetup();
+        printSetup.setLandscape(true);
+        sheet.setFitToPage(true);
+        sheet.setHorizontallyCenter(true);
+
+        int rowId = 0;
+
+        //request row
+        Row requestRow = sheet.createRow(rowId++);
+        requestRow.setHeightInPoints(45);
+        Cell requestCell = requestRow.createCell(0);
+        requestCell.setCellValue(res.getString("requestTemplate"));
+        requestCell.setCellStyle(styles.get(CellType.REQUEST));
+        sheet.addMergedRegion(CellRangeAddress.valueOf("$A$1:$L$1"));
+
+        /*request.getCourts();
+        request.getCaseType();
+        request.isWithVKSInstances()
+        request.getDateFrom();
+        request.getDateTo()
+        request.getMinCost()
+        request.getSearchLimit()*/
     }
 
     private static Map<CellType, CellStyle> createStyles(Workbook wb){

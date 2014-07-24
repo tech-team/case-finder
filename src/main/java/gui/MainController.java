@@ -1,7 +1,7 @@
 package gui;
 
-import caseloader.CaseLoader;
 import caseloader.CaseSearchRequest;
+import export.ExcelExporter;
 import export.Extension;
 import export.UnsupportedExtensionException;
 import gui.casestable.CaseFieldNamesMismatchException;
@@ -19,8 +19,6 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.controlsfx.dialog.Dialogs;
-import export.ExcelExporter;
-import util.CaseModelAppender;
 
 import java.io.File;
 import java.io.IOException;
@@ -112,7 +110,7 @@ public class MainController {
 
         if (selectedFile != null) {
             try {
-                ExcelExporter.export(casesData, selectedFile.getAbsolutePath(), Extension.fromName(extensionName));
+                ExcelExporter.export(new CaseSearchRequest(), casesData, selectedFile.getAbsolutePath(), Extension.fromName(extensionName));
             } catch (IOException | UnsupportedExtensionException e) {
                 Dialogs.create().showException(e);
             }
