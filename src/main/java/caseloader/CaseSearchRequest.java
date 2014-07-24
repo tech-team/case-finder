@@ -111,7 +111,9 @@ public class CaseSearchRequest {
             String courtId = courtsJson.getString(i);
             courts.add(CourtsInfo.getCourtName(courtId));
         }
-        return (String[]) courts.toArray();
+
+        String[] courtsArray = new String[courts.size()];
+        return courts.toArray(courtsArray);
     }
 
     public String getDateFrom() {

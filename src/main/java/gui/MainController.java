@@ -110,7 +110,16 @@ public class MainController {
 
         if (selectedFile != null) {
             try {
-                ExcelExporter.export(new CaseSearchRequest(), casesData, selectedFile.getAbsolutePath(), Extension.fromName(extensionName));
+                CaseSearchRequest request = new CaseSearchRequest(
+                        new String[]{"courtName"},
+                        "10.10.2014",
+                        "20.20.2014",
+                        CaseSearchRequest.CaseType.A,
+                        true,
+                        100,
+                        200);
+
+                ExcelExporter.export(request, casesData, selectedFile.getAbsolutePath(), Extension.fromName(extensionName));
             } catch (IOException | UnsupportedExtensionException e) {
                 Dialogs.create().showException(e);
             }

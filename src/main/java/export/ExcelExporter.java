@@ -3,8 +3,8 @@ package export;
 import caseloader.CaseSearchRequest;
 import gui.casestable.CaseModel;
 import javafx.collections.ObservableList;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.ss.util.CellRangeAddress;
 import util.ResourceControl;
 
 import java.io.FileOutputStream;
@@ -18,7 +18,7 @@ public class ExcelExporter {
      * see http://poi.apache.org/spreadsheet/examples.html
      */
     private enum CellType {
-        REQUEST, TITLE, NORMAL
+        BOLD
     }
 
     public static void export(CaseSearchRequest request, ObservableList<CaseModel> data, String fileName, Extension extension) throws IOException, UnsupportedExtensionException {
@@ -69,7 +69,7 @@ public class ExcelExporter {
         for (Map.Entry<String, String> entry: CaseModel.FIELD_NAMES.entrySet()) {
             Cell titleCell = titleRow.createCell(i);
             titleCell.setCellValue(entry.getValue());
-            titleCell.setCellStyle(styles.get(CellType.TITLE));
+            titleCell.setCellStyle(styles.get(CellType.BOLD));
             ++i;
         }
     }
@@ -83,76 +83,56 @@ public class ExcelExporter {
 
         int rowId = 0;
 
-        //request row
-        Row requestRow = sheet.createRow(rowId++);
-        requestRow.setHeightInPoints(45);
-        Cell requestCell = requestRow.createCell(0);
-        requestCell.setCellValue(res.getString("requestTemplate"));
-        requestCell.setCellStyle(styles.get(CellType.REQUEST));
-        sheet.addMergedRegion(CellRangeAddress.valueOf("$A$1:$L$1"));
+        String[] courts = request.getCourts();
+        String courtsString = StringUtils.join(courts, ", ");
+        createKeyValueRow(sheet, styles, rowId++,
+                res.getString("requestCourt"), courtsString);
 
-        /*request.getCourts();
-        request.getCaseType();
-        request.isWithVKSInstances()
-        request.getDateFrom();
-        request.getDateTo()
-        request.getMinCost()
-        request.getSearchLimit()*/
+        String caseType = res.getString(request.getCaseType().toString());
+        createKeyValueRow(sheet, styles, rowId++,
+                res.getString("requestType"), caseType);
+
+        String withVKSInstances = request.isWithVKSInstances() ?
+                res.getString("yes") : res.getString("no");
+        createKeyValueRow(sheet, styles, rowId++,
+                res.getString("requestWithVksInstances"), withVKSInstances);
+
+        String dateFrom = request.getDateFrom();
+        createKeyValueRow(sheet, styles, rowId++,
+                res.getString("requestDateFrom"), dateFrom);
+
+        String dateTo = request.getDateTo();
+        createKeyValueRow(sheet, styles, rowId++,
+                res.getString("requestDateTo"), dateTo);
+
+        String minCost = Integer.toString(request.getMinCost());
+        createKeyValueRow(sheet, styles, rowId++,
+                res.getString("requestMinimalCost"), minCost);
+
+        String searchLimit = Integer.toString(request.getSearchLimit());
+        createKeyValueRow(sheet, styles, rowId,
+                res.getString("requestSearchLimit"), searchLimit);
+    }
+
+    private static void createKeyValueRow(Sheet sheet, Map<CellType, CellStyle> styles, int rowId, String key, String value) {
+        Row row = sheet.createRow(rowId);
+        Cell keyCell = row.createCell(0);
+        keyCell.setCellValue(key);
+        keyCell.setCellStyle(styles.get(CellType.BOLD));
+
+        Cell valueCell = row.createCell(1);
+        valueCell.setCellValue(value);
     }
 
     private static Map<CellType, CellStyle> createStyles(Workbook wb){
         Map<CellType, CellStyle> styles = new HashMap<>();
 
         CellStyle style;
-        Font titleFont = wb.createFont();
-        titleFont.setFontHeightInPoints((short)18);
-        titleFont.setBoldweight(Font.BOLDWEIGHT_BOLD);
+        Font boldFont = wb.createFont();
+        boldFont.setBoldweight(Font.BOLDWEIGHT_BOLD);
         style = wb.createCellStyle();
-        style.setAlignment(CellStyle.ALIGN_CENTER);
-        style.setVerticalAlignment(CellStyle.VERTICAL_CENTER);
-        style.setFont(titleFont);
-        styles.put(CellType.REQUEST, style);
-
-        Font monthFont = wb.createFont();
-        monthFont.setFontHeightInPoints((short)11);
-        monthFont.setColor(IndexedColors.WHITE.getIndex());
-        style = wb.createCellStyle();
-        style.setAlignment(CellStyle.ALIGN_CENTER);
-        style.setVerticalAlignment(CellStyle.VERTICAL_CENTER);
-        style.setFillForegroundColor(IndexedColors.GREY_50_PERCENT.getIndex());
-        style.setFillPattern(CellStyle.SOLID_FOREGROUND);
-        style.setFont(monthFont);
-        style.setWrapText(true);
-        styles.put(CellType.TITLE, style);
-
-        style = wb.createCellStyle();
-        style.setAlignment(CellStyle.ALIGN_CENTER);
-        style.setWrapText(true);
-        style.setBorderRight(CellStyle.BORDER_THIN);
-        style.setRightBorderColor(IndexedColors.BLACK.getIndex());
-        style.setBorderLeft(CellStyle.BORDER_THIN);
-        style.setLeftBorderColor(IndexedColors.BLACK.getIndex());
-        style.setBorderTop(CellStyle.BORDER_THIN);
-        style.setTopBorderColor(IndexedColors.BLACK.getIndex());
-        style.setBorderBottom(CellStyle.BORDER_THIN);
-        style.setBottomBorderColor(IndexedColors.BLACK.getIndex());
-        styles.put(CellType.NORMAL, style);
-
-        /*style = wb.createCellStyle();
-        style.setAlignment(CellStyle.ALIGN_CENTER);
-        style.setVerticalAlignment(CellStyle.VERTICAL_CENTER);
-        style.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
-        style.setFillPattern(CellStyle.SOLID_FOREGROUND);
-        style.setDataFormat(wb.createDataFormat().getFormat("0.00"));
-        styles.put("formula", style);
-
-        style = wb.createCellStyle();
-        style.setAlignment(CellStyle.ALIGN_CENTER);
-        style.setVerticalAlignment(CellStyle.VERTICAL_CENTER);
-        style.setFillForegroundColor(IndexedColors.GREY_40_PERCENT.getIndex());
-        style.setFillPattern(CellStyle.SOLID_FOREGROUND);
-        style.setDataFormat(wb.createDataFormat().getFormat("0.00"));
-        styles.put("formula_2", style);*/
+        style.setFont(boldFont);
+        styles.put(CellType.BOLD, style);
 
         return styles;
     }
