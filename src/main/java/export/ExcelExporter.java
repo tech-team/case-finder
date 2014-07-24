@@ -69,12 +69,12 @@ public class ExcelExporter {
 
         //title row
         Row titleRow = sheet.createRow(rowId++);
-        titleRow.setRowStyle(styles.get(CellType.BOLD));
 
         //get model titles
         int cellId = 0;
         for (Map.Entry<String, String> entry: CaseModel.FIELD_NAMES.entrySet()) {
             Cell titleCell = titleRow.createCell(cellId++);
+            titleCell.setCellStyle(styles.get(CellType.BOLD));
             titleCell.setCellValue(entry.getValue());
         }
 
@@ -106,22 +106,10 @@ public class ExcelExporter {
             catch (NoSuchFieldException|IllegalAccessException e) {
                 throw new ExportException(e);
             }
-
-            /*Cell cell = row.createCell(cellId++);
-            cell.setCellValue(caseModel.id.getValue().toString());
-
-            cell = row.createCell(cellId++);
-            cell.setCellValue(caseModel.createdDate.getValue().toString());
-
-            cell = row.createCell(cellId++);
-            cell.setCellValue(caseModel.plaintiff.getValue().toString());
-
-            cell = row.createCell(cellId++);
-            cell.setCellValue(caseModel.defendant.getValue().toString());
-
-            cell = row.createCell(cellId++);
-            cell.setCellValue(caseModel.cost.getValue().toString());*/
         }
+
+        for (int i = titleRow.getFirstCellNum(); i < titleRow.getLastCellNum(); ++i)
+            sheet.autoSizeColumn(i);
     }
 
     private static void saveRequest(Workbook wb, CaseSearchRequest request, ResourceBundle res, Map<CellType, CellStyle> styles) {
@@ -162,6 +150,9 @@ public class ExcelExporter {
         String searchLimit = Integer.toString(request.getSearchLimit());
         createKeyValueRow(sheet, styles, rowId,
                 res.getString("requestSearchLimit"), searchLimit);
+
+        sheet.autoSizeColumn(0);
+        sheet.autoSizeColumn(1);
     }
 
     private static void createKeyValueRow(Sheet sheet, Map<CellType, CellStyle> styles, int rowId, String key, String value) {
