@@ -1,176 +1,217 @@
 package util;
 
+import caseloader.kad.Urls;
 import exceptions.DataRetrievingError;
-import org.apache.http.HttpException;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import proxy.ProxyInfo;
+import proxy.ProxyList;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class HttpDownloader {
     public static final String USER_AGENT = "Test UserAgent 1.0";
-    private static HttpClient client =  HttpClientBuilder.create().build();
-    private static Map<String, Long> lastTimes = new HashMap<>();
-    private static final long WAIT_DELTA = 5 * 1000;
+    private static final int REQUEST_TIMEOUT = 5 * 1000;
+    private static final boolean USE_PROXY_DEFAULT = true;
+    //    private static HttpClient client =  HttpClientBuilder.create().build();
+    private static ConcurrentHashMap<String, Long> lastTimes = new ConcurrentHashMap<>();
+    private static final long WAIT_DELTA = 3 * 1000;
+    private static int retryCount = 0; // TODO: make it local
 
-    private static void checkTime(URL url) {
-        try {
-            Thread.sleep(WAIT_DELTA);
-        } catch (InterruptedException e) {
-            System.out.println("<------------Sleep interrupted");
-            e.printStackTrace();
-            System.exit(1);
+    private static void checkSleep(String hostname) {
+        Long lastTime = lastTimes.get(hostname);
+        if (lastTime != null) {
+            long time = System.currentTimeMillis();
+            long delta = time - lastTime;
+            if (delta < WAIT_DELTA) {
+                try {
+                    System.out.println("[" + Thread.currentThread().getName() + "] <------------Sleep in checkSleep. sleeping for " + (WAIT_DELTA - delta));
+                    Thread.sleep(WAIT_DELTA - delta);
+                    System.out.println("[" + Thread.currentThread().getName() + "] <------------Finished sleep");
+                } catch (InterruptedException e) {
+                    System.out.println("[" + Thread.currentThread().getName() + "] <------------Sleep interrupted");
+                    e.printStackTrace();
+                    System.exit(1);
+                }
+            }
         }
+        lastTimes.put(hostname, System.currentTimeMillis());
     }
 
-//    public static JSONObject post(String targetUrl, String data, Map<String, String> headers) {
-//        URL url;
-//        HttpURLConnection connection = null;
-//        try {
-//
-//            // Create connection
-//            url = new URL(targetUrl);
-//            checkTime(url);
-//            connection = (HttpURLConnection) url.openConnection();
-//            connection.setRequestMethod("POST");
-//
-//            if (headers != null) {
-//                for (String k : headers.keySet()) {
-//                    connection.setRequestProperty(k, headers.get(k));
-//                }
-//            }
-//            connection.setRequestProperty("Content-Length", Integer.toString(data.getBytes().length));
-//
-//            connection.setUseCaches(false);
-//            connection.setDoInput(true);
-//            connection.setDoOutput(true);
-//
-//            // Send request
-//            DataOutputStream wr = new DataOutputStream(connection.getOutputStream());
-//            wr.writeBytes(data);
-//            wr.flush();
-//            wr.close();
-//
-//            // Get Response
-//            InputStream is = connection.getInputStream();
-//            String response = IOUtils.streamToString(is);
-//            is.close();
-//
-//            lastTimes.put(url.getHost(), System.currentTimeMillis());
-//            return new JSONObject(response);
-//
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return null;
-//        } finally {
-//            if(connection != null) {
-//                connection.disconnect();
-//            }
-//        }
-//    }
-//
-//    public static String get(final String targetUrl, final Map<String, String> params, final Map<String, String> headers) {
-//        HttpURLConnection connection = null;
-//        try {
-//            String query = buildQuery(params);
-//
-//            URL url = new URL(targetUrl + "?" + query);
-//            checkTime(url);
-//            connection = (HttpURLConnection) url.openConnection();
-//            connection.setRequestProperty("Accept-Charset", "UTF-8");
-//
-//            if (headers != null) {
-//                for (String k : headers.keySet()) {
-//                    connection.setRequestProperty(k, headers.get(k));
-//                }
-//            }
-//
-//            InputStream is = connection.getInputStream();
-//            String response = IOUtils.streamToString(is);
-//            is.close();
-//
-//            lastTimes.put(url.getHost(), System.currentTimeMillis());
-//            return response;
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return null;
-//        } finally {
-//            if(connection != null) {
-//                connection.disconnect();
-//            }
-//        }
-//    }
-//
-//    public static String get(final String targetUrl) {
-//        return get(targetUrl, null, null);
-//    }
+    private static void updateTime(String hostname) {
+        lastTimes.put(hostname, System.currentTimeMillis());
+    }
+
+    public static String get(String url, boolean useProxy) throws IOException, DataRetrievingError {
+        return get(url, null, null, useProxy);
+    }
 
     public static String get(String url) throws IOException, DataRetrievingError {
-        return get(url, null, null);
+        return get(url, null, null, USE_PROXY_DEFAULT);
     }
 
     public static String get(String url, List<NameValuePair> params, Map<String, String> headers) throws IOException, DataRetrievingError {
-        URIBuilder uriBuilder = null;
-        try {
-             uriBuilder = new URIBuilder(url);
-        } catch (URISyntaxException e) {
-            throw new DataRetrievingError(e);
-        }
+        return get(url, params, headers, USE_PROXY_DEFAULT);
+    }
+
+    public static String get(String url, List<NameValuePair> params, Map<String, String> headers, boolean useProxy) throws IOException, DataRetrievingError {
+        URIBuilder uriBuilder = buildUriBuilder(url);
 
         if (params != null) {
             uriBuilder.setParameters(params);
         }
 
-        HttpGet request = null;
+        URI uri;
         try {
-            request = new HttpGet(uriBuilder.build());
-        } catch (URISyntaxException ignored) {
+            uri = uriBuilder.build();
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
         }
+
+
+
+        HttpGet request = new HttpGet(getPathAndQuery(uri));
+        if (useProxy)
+            request.setConfig(buildRequestConfig());
         setHeaders(request, headers);
 
-        HttpResponse response = client.execute(request);
-        return getResponse(response);
+        checkSleep(uriBuilder.getHost());
+
+        try (CloseableHttpClient client = HttpClientBuilder.create().build()) {
+            HttpResponse response = client.execute(buildTarget(uriBuilder), request);
+            updateTime(uriBuilder.getHost());
+            retryCount = 0;
+            return getResponse(response);
+        } catch (HttpHostConnectException | ConnectTimeoutException e) {
+            System.out.println("[" + Thread.currentThread().getName() + "] exception happened. retry #" + retryCount++);
+            if (retryCount < 3)
+                return get(url, params, headers, useProxy);
+            throw e;
+        }
+
     }
 
-    public static String post(String url, List<NameValuePair> formData, Map<String, String> headers) throws IOException {
-        HttpPost request = new HttpPost(url);
-        request.setEntity(new UrlEncodedFormEntity(formData, "UTF-8"));
-        setHeaders(request, headers);
+//    public static String post(String url, List<NameValuePair> formData, Map<String, String> headers) throws IOException, DataRetrievingError {
+//        return post(url, formData, headers, true);
+//    }
+//
+//    public static String post(String url, List<NameValuePair> formData, Map<String, String> headers, boolean useProxy) throws IOException, DataRetrievingError {
+//        URIBuilder uriBuilder;
+//        try {
+//            uriBuilder = new URIBuilder(url);
+//        } catch (URISyntaxException e) {
+//            throw new DataRetrievingError(e);
+//        }
+//
+//        assert formData != null;
+//
+//        HttpPost request = new HttpPost(uriBuilder.getPath());
+//        request.setEntity(new UrlEncodedFormEntity(formData, "UTF-8"));
+//        if (useProxy)
+//            request.setConfig(buildRequestConfig());
+//        setHeaders(request, headers);
+//
+//        try {
+//            HttpResponse response = client.execute(buildTarget(uriBuilder), request);
+//            updateTime(uriBuilder.getHost());
+//            retryCount = 0;
+//            return getResponse(response);
+//        } catch (HttpHostConnectException | ConnectTimeoutException e) {
+//            System.out.println("exception happened. retry #" + retryCount++);
+//            if (retryCount < 3)
+//                return post(url, formData, headers, useProxy);
+//            throw e;
+//        }
+//    }
 
-
-        HttpResponse response = client.execute(request);
-        return getResponse(response);
+    public static String post(String url, String data, Map<String, String> headers) throws IOException, DataRetrievingError {
+        return post(url, data, headers, USE_PROXY_DEFAULT);
     }
 
-    public static String post(String url, String data, Map<String, String> headers) throws IOException {
-        HttpPost request = new HttpPost(url);
+    public static String post(String url, String data, Map<String, String> headers, boolean useProxy) throws IOException, DataRetrievingError {
+        URIBuilder uriBuilder = buildUriBuilder(url);
+
+        assert data != null;
+
+        URI uri;
+        try {
+            uri = uriBuilder.build();
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+
+        HttpPost request = new HttpPost(getPathAndQuery(uri));
         request.setEntity(new StringEntity(data, "UTF-8"));
-        request.setHeader("Content-Type", "application/json");
+        if (useProxy)
+            request.setConfig(buildRequestConfig());
         setHeaders(request, headers);
 
-        HttpResponse response = client.execute(request);
-        return getResponse(response);
+        checkSleep(uriBuilder.getHost());
+
+        try (CloseableHttpClient client = HttpClientBuilder.create().build()) {
+            HttpResponse response = client.execute(buildTarget(uriBuilder), request);
+            updateTime(uriBuilder.getHost());
+            retryCount = 0;
+            return getResponse(response);
+        } catch (HttpHostConnectException | ConnectTimeoutException e) {
+            System.out.println("[" + Thread.currentThread().getName() + "] exception happened. retry #" + retryCount++);
+            if (retryCount < 3)
+                return post(url, data, headers, useProxy);
+            throw e;
+        }
     }
 
+    private static String getPathAndQuery(URI uri) {
+        String query = uri.getRawQuery() == null ? "" : uri.getRawQuery();
+        return uri.getPath() + "?" + query;
+    }
 
+    private static URIBuilder buildUriBuilder(String url) throws DataRetrievingError {
+        URIBuilder uriBuilder;
+        try {
+            uriBuilder = new URIBuilder(url);
+        } catch (URISyntaxException e) {
+            throw new DataRetrievingError(e);
+        }
+        uriBuilder.setCharset(Charset.forName("UTF-8"));
+        return uriBuilder;
+    }
+
+    private static HttpHost buildTarget(URIBuilder uriBuilder) {
+        return new HttpHost(uriBuilder.getHost(), uriBuilder.getPort(), uriBuilder.getScheme());
+    }
+
+    private static RequestConfig buildRequestConfig() {
+        ProxyInfo proxyInfo = ProxyList.getNext();
+        HttpHost proxy = new HttpHost(proxyInfo.getIp(), proxyInfo.getPort());
+        return RequestConfig.custom().setProxy(proxy).setConnectTimeout(REQUEST_TIMEOUT).build();
+    }
 
     private static String getResponse(HttpResponse response) throws IOException {
         BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
@@ -190,21 +231,11 @@ public abstract class HttpDownloader {
                 request.setHeader(key, headers.get(key));
             }
         }
+        request.setHeader("User-Agent", USER_AGENT);
     }
 
-
-    @Deprecated
-    private static String buildQuery(Map<String, String> params) {
-        if (params == null) {
-            return "";
-        }
-        String query = "";
-        for (String key : params.keySet()) {
-            try {
-                query += key + "=" + URLEncoder.encode(params.get(key), "UTF-8") + "&";
-            } catch (UnsupportedEncodingException ignored) {
-            }
-        }
-        return query.substring(0, query.length() - 1);
+    public static void main(String[] args) throws IOException, DataRetrievingError {
+        String res = HttpDownloader.get(Urls.KAD_HOME);
+        System.out.println(res);
     }
 }

@@ -8,6 +8,7 @@ import caseloader.credentials.CredentialsSearchRequest;
 import exceptions.DataRetrievingError;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONException;
 import org.json.JSONObject;
 import util.*;
 
@@ -31,7 +32,7 @@ public class KadWorker <CaseContainerType extends util.Appendable<CaseInfo> > im
 
     @Override
     public void run() {
-        System.out.println("[" + Thread.currentThread().getName() + "] Processing case = " + caseInfo.getCaseId());
+        System.out.println("[" + Thread.currentThread().getName() + "] Processing case = " + caseInfo.getCaseNumber());
 
         List<NameValuePair> params = new ArrayList<>();
         Map<String, String> headers = new HashMap<>();
@@ -40,10 +41,16 @@ public class KadWorker <CaseContainerType extends util.Appendable<CaseInfo> > im
         headers.put("Content-Type", "application/json");
         headers.put("Accept", "application/json, text/javascript, */*");
         JSONObject caseInfo = null;
+        String json = "";
         try {
-            caseInfo = new JSONObject(HttpDownloader.get(Urls.KAD_CARD, params, headers));
-        } catch (IOException | DataRetrievingError e) {
-            throw new RuntimeException(e);
+            json = HttpDownloader.get(Urls.KAD_CARD, params, headers);
+            caseInfo = new JSONObject(json);
+        } catch (IOException | DataRetrievingError | JSONException e) {
+            System.out.println("[" + Thread.currentThread().getName() + "] json=" + json);
+            System.out.println("[" + Thread.currentThread().getName() + "] Retrying");
+            run();
+            return;
+//            throw new RuntimeException(e);
         }
 
         if (JsonUtils.getBoolean(caseInfo, "Success")) {
@@ -53,6 +60,7 @@ public class KadWorker <CaseContainerType extends util.Appendable<CaseInfo> > im
                 if (cost != null && cost != 0 && cost >= minCost) {
                     this.caseInfo.setCost(cost);
 
+                    this.caseInfo.splitSides();
                     for (CaseSide defendant : this.caseInfo.getDefendants()) {
                         CredentialsSearchRequest credentialsSearchRequest =
                                 new CredentialsSearchRequest(defendant.getName(),
@@ -66,11 +74,13 @@ public class KadWorker <CaseContainerType extends util.Appendable<CaseInfo> > im
                         data.append(this.caseInfo);
                     }
                 }
-            } catch (NullPointerException ignored) {
-
+            } catch (NullPointerException e) {
+                System.err.println(e.getMessage());
             }
-        }
 
-        System.out.println("[" + Thread.currentThread().getName() + "] Finished case = " + this.caseInfo.getCaseId());
+            System.out.println("[" + Thread.currentThread().getName() + "] Finished case = " + this.caseInfo.getCaseNumber());
+        } else {
+            System.out.println("[" + Thread.currentThread().getName() + "] Case #" + this.caseInfo.getCaseNumber() + " failed");
+        }
     }
 }

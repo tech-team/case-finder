@@ -22,11 +22,11 @@ public class RusProfile extends WebSite {
 
     @Override
     public Credentials findCredentials(final CredentialsSearchRequest request, final Credentials credentials) throws IOException, DataRetrievingError {
-        if (request.getInn() != null) {
-            return findByInn(request, credentials);
-        } else if (request.getOgrn() != null) {
-            return findByOgrn(request, credentials);
-        }
+//        if (request.getInn() != null) {
+//            return findByInn(request, credentials);
+//        } else if (request.getOgrn() != null) {
+//            return findByOgrn(request, credentials);
+//        }
 
         Credentials res = new Credentials();
 

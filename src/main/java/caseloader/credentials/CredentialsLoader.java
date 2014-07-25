@@ -16,7 +16,7 @@ public class CredentialsLoader {
     private static final int WAIT_TIMEOUT = 5 * 60;
 
     private ExecutorService getExecutor() {
-        return Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
+        return Executors.newFixedThreadPool(2);
     }
 
     public CredentialsLoader() {
@@ -40,12 +40,17 @@ public class CredentialsLoader {
         executor.shutdown();
 
         while (!executor.isTerminated()) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
-        try {
-            executor.awaitTermination(WAIT_TIMEOUT, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            executor.awaitTermination(WAIT_TIMEOUT, TimeUnit.MILLISECONDS);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
 
         return credentials;
     }

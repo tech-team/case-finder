@@ -18,6 +18,7 @@ public class ProxyUpdater implements Runnable {
     }
 
     private static final int UPDATE_PERIOD = 30 * 60 * 1000; // 30 minutes
+    private static final int SLEEP_TIME = 100;
     private boolean doWork = false;
 
     @Override
@@ -32,11 +33,15 @@ public class ProxyUpdater implements Runnable {
             }
             ProxyList.loadNewList(newList);
 
-            try {
-                Thread.sleep(UPDATE_PERIOD);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-                break;
+            int sleepCount = 0;
+            while (doWork && sleepCount != (UPDATE_PERIOD / SLEEP_TIME)) {
+                try {
+                    Thread.sleep(SLEEP_TIME);
+                    sleepCount += 1;
+                } catch (InterruptedException e) {
+//                e.printStackTrace();
+                    break;
+                }
             }
         }
     }
@@ -94,14 +99,12 @@ public class ProxyUpdater implements Runnable {
             } catch (Exception e) {
                 System.out.println("<---Wrong line");
             }
-
-
         }
         return proxies;
     }
 
     private String retrieveRawData() throws IOException, DataRetrievingError {
-        return HttpDownloader.get(Urls.COOL_PROXY);
+        return HttpDownloader.get(Urls.COOL_PROXY, false);
     }
 
     public static void main(String[] args) {
