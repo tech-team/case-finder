@@ -27,8 +27,8 @@ import java.util.Random;
 import java.util.prefs.Preferences;
 
 public class MainController {
-    @FXML private MySpinner costSpinner;
-    @FXML private MySpinner searchLimitSpinner;
+    @FXML private MySpinner minCost;
+    @FXML private MySpinner searchLimit;
     @FXML private VBox searchPanel;
     @FXML private HBox rootNode;
     @FXML private TableView<CaseModel> casesTable;
