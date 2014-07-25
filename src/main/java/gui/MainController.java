@@ -24,6 +24,7 @@ import org.controlsfx.dialog.Dialogs;
 import java.io.File;
 import java.time.LocalDate;
 import java.util.Random;
+import java.util.prefs.Preferences;
 
 public class MainController {
     @FXML private MySpinner costSpinner;
@@ -36,6 +37,8 @@ public class MainController {
     @FXML private TableColumn<CaseModel, String> casesTable_plaintiff;
     @FXML private TableColumn<CaseModel, String> casesTable_defendant;
     @FXML private TableColumn<CaseModel, Double> casesTable_cost;
+
+    private final static String EXPORT_PATH_PROPERTY = "exportDirectory";
 
     private ObservableList<CaseModel> casesData = FXCollections.observableArrayList();
 
@@ -98,12 +101,17 @@ public class MainController {
     }
 
     public void exportCasesToExcel(ActionEvent actionEvent) {
-        //TODO: save initial folder
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Export to Excel");
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter(Extension.Excel.getName(), Extension.Excel.getValue()),
                 new FileChooser.ExtensionFilter(Extension.AncientExcel.getName(), Extension.AncientExcel.getValue()));
+
+        //get last export's directory
+        Preferences prefs = Preferences.userNodeForPackage(MainController.class);
+        String exportDirectory = prefs.get(EXPORT_PATH_PROPERTY, System.getProperty("user.dir"));
+        fileChooser.setInitialDirectory(new File(exportDirectory));
+
 
         File selectedFile = fileChooser.showSaveDialog(stage);
 
@@ -124,6 +132,9 @@ public class MainController {
             } catch (ExportException | UnsupportedExtensionException e) {
                 Dialogs.create().showException(e);
             }
+
+            //save last export's directory
+            prefs.put(EXPORT_PATH_PROPERTY, selectedFile.getParent());
         }
     }
 }
