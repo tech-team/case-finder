@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 
 public abstract class HttpDownloader {
     public static final String USER_AGENT = "Test UserAgent 1.0";
@@ -40,7 +41,8 @@ public abstract class HttpDownloader {
     //    private static HttpClient client =  HttpClientBuilder.create().build();
     private static ConcurrentHashMap<String, Long> lastTimes = new ConcurrentHashMap<>();
     private static final long WAIT_DELTA = 3 * 1000;
-    private static int retryCount = 0; // TODO: make it local
+    private static int retryCount = 1; // TODO: make it local
+    private static Logger logger = MyLogger.getLogger(HttpDownloader.class.toString());
 
     private static void checkSleep(String hostname) {
         Long lastTime = lastTimes.get(hostname);
@@ -49,11 +51,11 @@ public abstract class HttpDownloader {
             long delta = time - lastTime;
             if (delta < WAIT_DELTA) {
                 try {
-                    System.out.println("[" + Thread.currentThread().getName() + "] <------------Sleep in checkSleep. sleeping for " + (WAIT_DELTA - delta));
+                    logger.info("Sleeping for " + (WAIT_DELTA - delta));
                     Thread.sleep(WAIT_DELTA - delta);
-                    System.out.println("[" + Thread.currentThread().getName() + "] <------------Finished sleep");
+                    logger.info("Sleep finished");
                 } catch (InterruptedException e) {
-                    System.out.println("[" + Thread.currentThread().getName() + "] <------------Sleep interrupted");
+                    logger.severe("Sleep interrupted");
                     e.printStackTrace();
                     System.exit(1);
                 }
@@ -108,9 +110,10 @@ public abstract class HttpDownloader {
             retryCount = 0;
             return getResponse(response);
         } catch (HttpHostConnectException | ConnectTimeoutException e) {
-            System.out.println("[" + Thread.currentThread().getName() + "] exception happened. retry #" + retryCount++);
+            logger.warning("Exception happened. Retry #" + retryCount++);
             if (retryCount < 3)
                 return get(url, params, headers, useProxy);
+            logger.severe("Exception happened again after " + retryCount + "retries");
             throw e;
         }
 
@@ -180,9 +183,10 @@ public abstract class HttpDownloader {
             retryCount = 0;
             return getResponse(response);
         } catch (HttpHostConnectException | ConnectTimeoutException e) {
-            System.out.println("[" + Thread.currentThread().getName() + "] exception happened. retry #" + retryCount++);
+            logger.warning("Exception happened. Retry #" + retryCount++);
             if (retryCount < 3)
                 return post(url, data, headers, useProxy);
+            logger.severe("Exception happened again after " + retryCount + "retries");
             throw e;
         }
     }

@@ -17,14 +17,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 public class KadWorker <CaseContainerType extends util.Appendable<CaseInfo> > implements Runnable {
     private static final CredentialsLoader CREDENTIALS_LOADER = new CredentialsLoader();
+    private final int id;
     private final CaseInfo caseInfo;
     private final CaseContainerType data;
     private final int minCost;
+    private Logger logger = MyLogger.getLogger(this.getClass().toString());
 
-    public KadWorker(CaseInfo caseInfo, int minCost, CaseContainerType data) {
+    public KadWorker(int id, CaseInfo caseInfo, int minCost, CaseContainerType data) {
+        this.id = id;
         this.caseInfo = caseInfo;
         this.data = data;
         this.minCost = minCost;
@@ -32,7 +36,7 @@ public class KadWorker <CaseContainerType extends util.Appendable<CaseInfo> > im
 
     @Override
     public void run() {
-        System.out.println("[" + Thread.currentThread().getName() + "] Processing case = " + caseInfo.getCaseNumber());
+        logger.info(String.format("Processing case %d/%d = %s", id, KadLoader.TOTAL_COUNT, caseInfo.getCaseNumber()));
 
         List<NameValuePair> params = new ArrayList<>();
         Map<String, String> headers = new HashMap<>();
@@ -46,8 +50,7 @@ public class KadWorker <CaseContainerType extends util.Appendable<CaseInfo> > im
             json = HttpDownloader.get(Urls.KAD_CARD, params, headers);
             caseInfo = new JSONObject(json);
         } catch (IOException | DataRetrievingError | JSONException e) {
-            System.out.println("[" + Thread.currentThread().getName() + "] json=" + json);
-            System.out.println("[" + Thread.currentThread().getName() + "] Retrying");
+            logger.warning("Error retrieving case info. Retrying");
             run();
             return;
 //            throw new RuntimeException(e);
@@ -75,12 +78,12 @@ public class KadWorker <CaseContainerType extends util.Appendable<CaseInfo> > im
                     }
                 }
             } catch (NullPointerException e) {
-                System.err.println(e.getMessage());
+                logger.severe(e.getMessage());
             }
 
-            System.out.println("[" + Thread.currentThread().getName() + "] Finished case = " + this.caseInfo.getCaseNumber());
+            logger.info(String.format("Finished case %d/%d = %s", id, KadLoader.TOTAL_COUNT, this.caseInfo.getCaseNumber()));
         } else {
-            System.out.println("[" + Thread.currentThread().getName() + "] Case #" + this.caseInfo.getCaseNumber() + " failed");
+            logger.info(String.format("Case %d/%d = %s failed", id, KadLoader.TOTAL_COUNT, this.caseInfo.getCaseNumber()));
         }
     }
 }

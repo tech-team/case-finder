@@ -14,5 +14,8 @@ hs_err_pid*
 # idea
 .idea/workspace.xml
 
-#maven
+# maven
 target/
+
+# Log files
+log/*.log*

@@ -14,16 +14,19 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
     private ExecutorService executor = null;
     private static final int ITEMS_COUNT_PER_REQUEST = 100;
-    private static final int TOTAL_COUNT = 1000;
+    public static final int TOTAL_COUNT = 1000;
     private static final int WAIT_TIMEOUT = 5 * 60;
-    private int retryCount = 0;
+    private static final int CONCURRENCY_QUANTITY = 2;
+    private int retryCount = 1;
+    private Logger logger = MyLogger.getLogger(this.getClass().toString());
 
     private ExecutorService getExecutor() {
-        return Executors.newFixedThreadPool(2);
+        return Executors.newFixedThreadPool(CONCURRENCY_QUANTITY);
     }
 
     public KadLoader() {
@@ -73,14 +76,15 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
 
     private void processKadResponse(KadResponse resp, int minCost, CaseContainerType outData) {
         List<CaseInfo> items = resp.getItems();
-        for (CaseInfo item : items) {
-            executor.execute(new KadWorker<>(item, minCost, outData));
+        for (int i = 0; i < items.size(); ++i) {
+            CaseInfo item = items.get(i);
+            executor.execute(new KadWorker<>(i+1, item, minCost, outData));
 //            (new KadWorker<>(item, minCost, outData)).run();
         }
     }
 
     private KadResponse retrieveKadResponse(CaseSearchRequest request, int page) throws IOException, DataRetrievingError {
-        System.out.println("=== Getting page #" + page);
+        logger.info("Getting page #" + page);
         request.setPage(page);
 
         String json = request.toString();
@@ -92,9 +96,10 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
         try {
             JSONObject jsonObj = new JSONObject(resp);
             retryCount = 0;
+            logger.info("Got page #" + page);
             return KadResponse.fromJSON(jsonObj);
         } catch (JSONException e) {
-            System.out.println("Retrying #" + retryCount);
+            logger.warning("Retrying #" + retryCount);
             if (retryCount < 3) {
                 retryCount++;
                 return retrieveKadResponse(request, page);

@@ -3,6 +3,8 @@ package caseloader.credentials;
 import caseloader.credentials.websites.RusProfile;
 import caseloader.credentials.websites.WebSite;
 import exceptions.DataRetrievingError;
+import util.MyLogger;
+import util.Sleeper;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -10,10 +12,12 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 public class CredentialsLoader {
     private List<WebSite> webSites;
     private static final int WAIT_TIMEOUT = 5 * 60;
+    private Logger logger = MyLogger.getLogger(this.getClass().toString());
 
     private ExecutorService getExecutor() {
         return Executors.newFixedThreadPool(2);
@@ -40,11 +44,7 @@ public class CredentialsLoader {
         executor.shutdown();
 
         while (!executor.isTerminated()) {
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            Sleeper.sleep(100);
         }
 //        try {
 //            executor.awaitTermination(WAIT_TIMEOUT, TimeUnit.MILLISECONDS);
@@ -69,7 +69,7 @@ public class CredentialsLoader {
 
         @Override
         public void run() {
-            System.out.println("[" + Thread.currentThread().getName() + "] Working on: " + webSite.url());
+            logger.info("Working on url: " + webSite.url());
             Credentials found = null;
             try {
                 found = webSite.findCredentials(request, credentials);
@@ -81,7 +81,7 @@ public class CredentialsLoader {
                     credentials.merge(found);
                 }
             }
-            System.out.println("[" + Thread.currentThread().getName() + "] Finished: " + webSite.url());
+            logger.info("Finished url: " + webSite.url());
         }
     }
 }

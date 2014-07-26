@@ -6,16 +6,19 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import util.HttpDownloader;
+import util.MyLogger;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
 public abstract class CourtsInfo {
     private static Map<String, String> courts = new HashMap<>();
-
     public static DataEvent<Set<String>> courtsLoadedEvent = new DataEvent<>();
+
+    private static Logger logger = MyLogger.getLogger(CourtsInfo.class.toString());
 
     private static Set<String> retrieveCourts() throws IOException, DataRetrievingError {
         if (courts.size() == 0) {
@@ -30,7 +33,7 @@ public abstract class CourtsInfo {
 
     public static Thread retrieveCourtsAsync() {
         return new Thread(() -> {
-            System.out.println("--- Retrieving courts list ---");
+            logger.info("Retrieving courts list");
             Set<String> courts = null;
             try {
                 courts = retrieveCourts();
@@ -38,7 +41,7 @@ public abstract class CourtsInfo {
                 throw new RuntimeException(e);
             }
             courtsLoadedEvent.fire(courts);
-            System.out.println("--- Finished retrieving courts list ---");
+            logger.info("Finished retrieving courts list");
         });
     }
 

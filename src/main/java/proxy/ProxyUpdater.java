@@ -11,7 +11,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ProxyUpdater implements Runnable {
+public class ProxyUpdater extends Thread {
     class Urls {
         public static final String HIDE_MY_ASS = "http://proxylist.hidemyass.com/";
         public static final String COOL_PROXY = "http://www.cool-proxy.net/proxies/http_proxy_list/sort:download_speed_average/direction:desc/country_code:/port:/anonymous:1";
@@ -39,14 +39,14 @@ public class ProxyUpdater implements Runnable {
                     Thread.sleep(SLEEP_TIME);
                     sleepCount += 1;
                 } catch (InterruptedException e) {
-//                e.printStackTrace();
+                    e.printStackTrace();
                     break;
                 }
             }
         }
     }
 
-    public void stop() {
+    public void stopWork() {
         doWork = false;
     }
 
@@ -109,7 +109,6 @@ public class ProxyUpdater implements Runnable {
 
     public static void main(String[] args) {
         ProxyUpdater updater = new ProxyUpdater();
-        Thread th = new Thread(updater);
-        th.start();
+        updater.start();
     }
 }
