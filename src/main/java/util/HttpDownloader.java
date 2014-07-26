@@ -51,9 +51,9 @@ public abstract class HttpDownloader {
             long delta = time - lastTime;
             if (delta < WAIT_DELTA) {
                 try {
-                    logger.info("Sleeping for " + (WAIT_DELTA - delta));
+                    logger.fine("Sleeping for " + (WAIT_DELTA - delta));
                     Thread.sleep(WAIT_DELTA - delta);
-                    logger.info("Sleep finished");
+                    logger.fine("Sleep finished");
                 } catch (InterruptedException e) {
                     logger.severe("Sleep interrupted");
                     e.printStackTrace();

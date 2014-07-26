@@ -13,6 +13,7 @@ public abstract class MyLogger {
     public static final String LOGGER_NAME = "casefinder";
     public static final String LOG_PATH = "log";
     public static final String FILENAME = LOG_PATH + File.separator + LOGGER_NAME + ".log";
+    public static final Level DEFAULT_LEVEL = Level.INFO; // TODO: work on this
     public static final java.util.logging.Logger LOGGER = java.util.logging.Logger.getLogger(LOGGER_NAME);
 
     static {
@@ -35,7 +36,7 @@ public abstract class MyLogger {
             }
         }
         try {
-            fh = new FileHandler(FILENAME, true);
+            fh = new FileHandler(FILENAME, APPEND_BY_DEFAULT);
         } catch (SecurityException | IOException e) {
             e.printStackTrace();
         }
@@ -44,7 +45,13 @@ public abstract class MyLogger {
         MyFormatter formatter = new MyFormatter();
         ch.setFormatter(formatter);
         fh.setFormatter(formatter);
+
+        ch.setLevel(DEFAULT_LEVEL);
+        fh.setLevel(DEFAULT_LEVEL);
+
         LOGGER.setUseParentHandlers(false);
+
+        LOGGER.setLevel(DEFAULT_LEVEL);
 
         LOGGER.addHandler(ch);
         LOGGER.addHandler(fh);
