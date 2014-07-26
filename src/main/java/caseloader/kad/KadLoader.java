@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
     private ExecutorService executor = null;
     private static final int ITEMS_COUNT_PER_REQUEST = 100;
+    private static final int TOTAL_COUNT = 1000;
     private static final int WAIT_TIMEOUT = 5 * 60;
     private int retryCount = 0;
 
@@ -42,8 +43,9 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
 
         if (initial.isSuccess()) {
             processKadResponse(initial, minCost, data);
+            data.setTotalCount(TOTAL_COUNT);
 
-            int iterationsCount = 1000 / initial.getPageSize();
+            int iterationsCount = TOTAL_COUNT / initial.getPageSize();
             for (int i = 2; i <= iterationsCount; ++i) {
                 KadResponse resp = retrieveKadResponse(request, i);
                 if (resp.isSuccess()) {

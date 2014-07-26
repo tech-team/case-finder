@@ -29,5 +29,15 @@ public class CaseModelAppender implements Appendable<CaseInfo> {
         throw new RuntimeException("No getter for collection here");
     }
 
+    @Override
+    public void setTotalCount(int count) {
+        // TODO
+    }
+
+    @Override
+    public int getTotalCount() {
+        return 0; // TODO
+    }
+
 
 }
