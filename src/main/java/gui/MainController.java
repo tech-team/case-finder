@@ -9,21 +9,29 @@ import gui.casestable.CaseFieldNamesMismatchException;
 import gui.casestable.CaseModel;
 import gui.casestable.TextFlowCell;
 import gui.searchpanel.MySpinner;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import org.controlsfx.dialog.Dialogs;
+import util.ResourceControl;
 
 import java.io.File;
 import java.time.LocalDate;
 import java.util.Random;
+import java.util.ResourceBundle;
 import java.util.prefs.Preferences;
 
 public class MainController {
@@ -37,12 +45,23 @@ public class MainController {
     @FXML private TableColumn<CaseModel, String> casesTable_plaintiff;
     @FXML private TableColumn<CaseModel, String> casesTable_defendant;
     @FXML private TableColumn<CaseModel, Double> casesTable_cost;
+    @FXML private ProgressIndicator progressIndicator;
+    @FXML private Button searchButton;
 
     private final static String EXPORT_PATH_PROPERTY = "exportDirectory";
+
+    private ResourceBundle res = ResourceBundle.getBundle("properties.gui_strings", new ResourceControl("UTF-8"));
+
 
     private ObservableList<CaseModel> casesData = FXCollections.observableArrayList();
 
     private Stage stage;
+
+    private enum Mode {
+        DEFAULT, SEARCHING
+    }
+
+    private Mode mode = Mode.DEFAULT;
 
     public void setStage(Stage stage) {
         this.stage = stage;
@@ -62,6 +81,8 @@ public class MainController {
             System.exit(1);
         }
 
+        initializeProgressIndicator();
+
         casesTable_Id.setCellValueFactory(cellData -> cellData.getValue().id.asObject());
         casesTable_createdDate.setCellValueFactory(cellData -> cellData.getValue().createdDate);
         casesTable_plaintiff.setCellValueFactory(cellData -> cellData.getValue().plaintiff);
@@ -74,6 +95,15 @@ public class MainController {
         casesTable.setItems(casesData);
     }
 
+    private void initializeProgressIndicator() {
+        progressIndicator.progressProperty().addListener((ov, t, newValue) -> {
+            if (newValue.doubleValue() >= 1) {
+                Text text = (Text) progressIndicator.lookup(".percentage");
+                text.setText(res.getString("done"));
+            }
+        });
+    }
+
     public void casesSearchClick(ActionEvent actionEvent) {
         //test data
         Random random = new Random();
@@ -83,6 +113,28 @@ public class MainController {
         double cost = random.nextDouble() * 10000;
 
         casesData.add(new CaseModel(caseId, LocalDate.now().minusDays(days).toString(), "http://google.com", "Петя", cost));
+
+        mode = Mode.SEARCHING;
+        searchButton.setText(res.getString("searchButtonPressed"));
+        progressIndicator.setProgress(0);
+        progressIndicator.setVisible(true);
+        final double[] progress = {(double) 0};
+
+        Timeline fiveSecondsWonder = new Timeline(new KeyFrame(Duration.seconds(0.1), event -> {
+            progress[0] = progress[0] + 0.01;
+            progressIndicator.setProgress(progress[0]);
+        }));
+        fiveSecondsWonder.setCycleCount(100);
+        fiveSecondsWonder.play();
+
+
+        Timeline finishProgress = new Timeline(new KeyFrame(Duration.seconds(10), event -> {
+            mode = Mode.DEFAULT;
+            searchButton.setText(res.getString("searchButtonDefault"));
+        }));
+        finishProgress.setCycleCount(1);
+        finishProgress.play();
+
 
         // real data
 
