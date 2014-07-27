@@ -12,7 +12,6 @@
 
 <HBox fx:id="rootNode" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="756.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.MainController">
     <children>
-
         <VBox fx:id="searchPanel" layoutX="14.0" layoutY="57.0" minHeight="200.0" minWidth="200.0" prefHeight="200.0" prefWidth="200.0" spacing="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" HBox.hgrow="NEVER">
             <children>
                 <Label text="Суд:" />
@@ -34,10 +33,6 @@
                         <Label text="по:" GridPane.rowIndex="1" />
                         <DatePicker maxWidth="1.7976931348623157E308" prefHeight="31.0" prefWidth="82.0" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
                     </children>
-                    <rowConstraints>
-                        <RowConstraints />
-                        <RowConstraints />
-                    </rowConstraints>
                 </GridPane>
                 <Separator prefWidth="200.0" />
                 <Label text="Минимальная сумма:" />
@@ -67,8 +62,6 @@
                 <Insets />
             </HBox.margin>
         </VBox>
-
-
         <TableView fx:id="casesTable" layoutX="90.0" layoutY="51.0" prefHeight="609.0" prefWidth="540.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" HBox.hgrow="ALWAYS">
             <columns>
 
@@ -77,6 +70,5 @@
             <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
          </columnResizePolicy>
         </TableView>
-
     </children>
 </HBox>
