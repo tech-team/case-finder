@@ -11,7 +11,7 @@ import java.util.logging.*;
 public abstract class MyLogger {
     public static final boolean APPEND_BY_DEFAULT = false;
     public static final String LOGGER_NAME = "casefinder";
-    public static final String LOG_PATH = "log";
+    public static final String LOG_PATH = Settings.getLogLocation();
     public static final String FILENAME = LOG_PATH + File.separator + LOGGER_NAME + ".log";
     public static final Level DEFAULT_LEVEL = Settings.getLogLevel();
     public static final java.util.logging.Logger LOGGER = java.util.logging.Logger.getLogger(LOGGER_NAME);

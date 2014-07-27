@@ -1,5 +1,6 @@
 package util;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.logging.Level;
@@ -66,6 +67,7 @@ public abstract class Settings {
 
         // All default properties go here
         public static final Pair<Integer> LOG_LEVEL = new Pair<>("log_level", 3);
+        public static final Pair<String> LOG_LOCATION = new Pair<>("log_location", "log");
     }
 
     private static Map<String, Object> settings = new HashMap<>();
@@ -106,5 +108,13 @@ public abstract class Settings {
             default:
                 throw new RuntimeException("Unexpected value of log level");
         }
+    }
+
+    public static String getLogLocation() {
+        String location = (String) settings.get(Keys.LOG_LOCATION.getKey());
+        if (location.endsWith(File.separator)) {
+            location = location.substring(0, location.length() - 1);
+        }
+        return location;
     }
 }
