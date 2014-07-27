@@ -16,6 +16,7 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
@@ -27,6 +28,7 @@ import util.ResourceControl;
 
 import java.io.File;
 import java.time.LocalDate;
+import java.util.Map;
 import java.util.Random;
 import java.util.ResourceBundle;
 import java.util.prefs.Preferences;
@@ -37,18 +39,12 @@ public class MainController {
     @FXML private VBox searchPanel;
     @FXML private HBox rootNode;
     @FXML private TableView<CaseModel> casesTable;
-    @FXML private TableColumn<CaseModel, Integer> casesTable_Id;
-    @FXML private TableColumn<CaseModel, String> casesTable_createdDate;
-    @FXML private TableColumn<CaseModel, String> casesTable_plaintiff;
-    @FXML private TableColumn<CaseModel, String> casesTable_defendant;
-    @FXML private TableColumn<CaseModel, Double> casesTable_cost;
     @FXML private ProgressIndicator progressIndicator;
     @FXML private Button searchButton;
 
     private final static String EXPORT_PATH_PROPERTY = "exportDirectory";
 
     private ResourceBundle res = ResourceBundle.getBundle("properties.gui_strings", new ResourceControl("UTF-8"));
-
 
     private ObservableList<CaseModel> casesData = FXCollections.observableArrayList();
 
@@ -78,6 +74,7 @@ public class MainController {
         initializeTableView();
     }
 
+    @SuppressWarnings("unchecked")
     private void initializeTableView() {
         //disables cell height jitter
         casesTable.setRowFactory(table -> {
@@ -89,21 +86,15 @@ public class MainController {
             return row ;
         });
 
-        //set column data and render delegates
-        casesTable_Id.setCellValueFactory(cellData -> cellData.getValue().id.asObject());
-        casesTable_Id.setCellFactory(p -> new TextFlowCell<>());
+        for (Map.Entry<String, String> field: CaseModel.FIELD_NAMES.entrySet()) {
+            TableColumn col = new TableColumn();
+            col.setText(field.getValue());
 
-        casesTable_createdDate.setCellValueFactory(cellData -> cellData.getValue().createdDate);
-        casesTable_createdDate.setCellFactory(p -> new TextFlowCell<>());
+            col.setCellValueFactory(new PropertyValueFactory(field.getKey()));
+            col.setCellFactory(p -> new TextFlowCell<>());
 
-        casesTable_plaintiff.setCellValueFactory(cellData -> cellData.getValue().plaintiff);
-        casesTable_plaintiff.setCellFactory(p -> new TextFlowCell<>());
-
-        casesTable_defendant.setCellValueFactory(cellData -> cellData.getValue().defendant);
-        casesTable_defendant.setCellFactory(p -> new TextFlowCell<>());
-
-        casesTable_cost.setCellValueFactory(cellData -> cellData.getValue().cost.asObject());
-        casesTable_cost.setCellFactory(p -> new TextFlowCell<>());
+            casesTable.getColumns().add(col);
+        }
 
         casesTable.setItems(casesData);
     }
