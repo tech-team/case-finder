@@ -14,6 +14,7 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.HttpHostConnectException;
+import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -119,44 +120,23 @@ public abstract class HttpDownloader {
 
     }
 
-//    public static String post(String url, List<NameValuePair> formData, Map<String, String> headers) throws IOException, DataRetrievingError {
-//        return post(url, formData, headers, true);
-//    }
-//
-//    public static String post(String url, List<NameValuePair> formData, Map<String, String> headers, boolean useProxy) throws IOException, DataRetrievingError {
-//        URIBuilder uriBuilder;
-//        try {
-//            uriBuilder = new URIBuilder(url);
-//        } catch (URISyntaxException e) {
-//            throw new DataRetrievingError(e);
-//        }
-//
-//        assert formData != null;
-//
-//        HttpPost request = new HttpPost(uriBuilder.getPath());
-//        request.setEntity(new UrlEncodedFormEntity(formData, "UTF-8"));
-//        if (useProxy)
-//            request.setConfig(buildRequestConfig());
-//        setHeaders(request, headers);
-//
-//        try {
-//            HttpResponse response = client.execute(buildTarget(uriBuilder), request);
-//            updateTime(uriBuilder.getHost());
-//            retryCount = 0;
-//            return getResponse(response);
-//        } catch (HttpHostConnectException | ConnectTimeoutException e) {
-//            System.out.println("exception happened. retry #" + retryCount++);
-//            if (retryCount < 3)
-//                return post(url, formData, headers, useProxy);
-//            throw e;
-//        }
-//    }
+    public static String post(String url, List<NameValuePair> formData, Map<String, String> headers) throws IOException, DataRetrievingError {
+        return post(url, formData, headers, USE_PROXY_DEFAULT);
+    }
+
+    public static String post(String url, List<NameValuePair> formData, Map<String, String> headers, boolean useProxy) throws IOException, DataRetrievingError {
+        return post(url, new UrlEncodedFormEntity(formData, "UTF-8"), headers, useProxy);
+    }
 
     public static String post(String url, String data, Map<String, String> headers) throws IOException, DataRetrievingError {
         return post(url, data, headers, USE_PROXY_DEFAULT);
     }
 
     public static String post(String url, String data, Map<String, String> headers, boolean useProxy) throws IOException, DataRetrievingError {
+        return post(url, new StringEntity(data, "UTF-8"), headers, useProxy);
+    }
+
+    public static String post(String url, AbstractHttpEntity data, Map<String, String> headers, boolean useProxy) throws IOException, DataRetrievingError {
         URIBuilder uriBuilder = buildUriBuilder(url);
 
         assert data != null;
@@ -170,7 +150,7 @@ public abstract class HttpDownloader {
         }
 
         HttpPost request = new HttpPost(getPathAndQuery(uri));
-        request.setEntity(new StringEntity(data, "UTF-8"));
+        request.setEntity(data);
         if (useProxy)
             request.setConfig(buildRequestConfig());
         setHeaders(request, headers);

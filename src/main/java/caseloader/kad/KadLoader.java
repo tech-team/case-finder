@@ -13,13 +13,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
     private ExecutorService executor = null;
     private static final int ITEMS_COUNT_PER_REQUEST = 100;
-    public static final int TOTAL_COUNT = 1000;
+    public static final int TOTAL_MAX_COUNT = 1000;
     private static final int WAIT_TIMEOUT = 5 * 60;
     private static final int CONCURRENCY_QUANTITY = 2;
     private int retryCount = 1;
@@ -39,22 +38,29 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
         int minCost = request.getMinCost();
         int searchLimit = request.getSearchLimit();
 
-        int itemsCountToLoad = searchLimit != 0 && searchLimit < ITEMS_COUNT_PER_REQUEST ? searchLimit : ITEMS_COUNT_PER_REQUEST;
+        int itemsCountToLoad = searchLimit != 0 && searchLimit < TOTAL_MAX_COUNT ? searchLimit :
+                                                                                   TOTAL_MAX_COUNT;
 
-        request.setCount(itemsCountToLoad);
+        int totalCasesCount = 0;
+        request.setCount(ITEMS_COUNT_PER_REQUEST);
         KadResponse initial = retrieveKadResponse(request, 1);
 
         if (initial.isSuccess()) {
             processKadResponse(initial, minCost, data);
-            data.setTotalCount(TOTAL_COUNT);
+            totalCasesCount += initial.getItems().size();
+            request.setCount(initial.getPageSize());
 
-            int iterationsCount = TOTAL_COUNT / initial.getPageSize();
+            int iterationsCount = itemsCountToLoad / initial.getPageSize();
             for (int i = 2; i <= iterationsCount; ++i) {
                 KadResponse resp = retrieveKadResponse(request, i);
                 if (resp.isSuccess()) {
                     processKadResponse(resp, minCost, data);
+                    totalCasesCount += resp.getItems().size();
+                } else {
+                    logger.severe("Couldn't load page #" + i);
                 }
             }
+            data.setTotalCount(totalCasesCount);
         }
 
         executor.shutdown();

@@ -18,19 +18,17 @@ public abstract class ProxyList {
     private static final int RATING_THRESHOLD = 3;
     private static Logger logger = MyLogger.getLogger(ProxyList.class.toString());
 
-    public static void loadNewList(List<ProxyInfo> list) {
+    public static synchronized void loadNewList(List<ProxyInfo> list) {
         if (list != null) {
-            synchronized (proxiesMutex) {
-                proxies = list;
-                for (int i = proxies.size() - 1; i >= 0; --i) {
-                    if (proxies.get(i).getRating() < RATING_THRESHOLD) {
-                        proxies.remove(i);
-                    }
+            proxies = list;
+            for (int i = proxies.size() - 1; i >= 0; --i) {
+                if (proxies.get(i).getRating() < RATING_THRESHOLD) {
+                    proxies.remove(i);
                 }
-                logger.info("Proxies count: " + proxies.size());
-                currentId = 0;
-                proxiesLoaded = true;
             }
+            logger.info("Proxies count: " + proxies.size());
+            currentId = 0;
+            proxiesLoaded = true;
         }
     }
 
@@ -52,7 +50,7 @@ public abstract class ProxyList {
         }
     }
 
-    public static ProxyInfo getNext() {
+    public static synchronized ProxyInfo getNext() {
         waitForProxiesLoaded();
         logger.fine("currentProxyId = " + currentId);
         ProxyInfo proxyInfo = getAt(currentId);
@@ -67,10 +65,8 @@ public abstract class ProxyList {
 //        return getAt(0);
 //    }
 //
-    public static ProxyInfo getAt(int index) {
-        synchronized (proxiesMutex) {
-            return proxies.get(index);
-        }
+    public static synchronized ProxyInfo getAt(int index) {
+        return proxies.get(index);
     }
 //
 //    public static ProxyInfo getRandom() {

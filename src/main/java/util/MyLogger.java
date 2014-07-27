@@ -7,7 +7,6 @@ import java.io.StringWriter;
 import java.util.Date;
 import java.util.logging.*;
 
-// TODO: configure log path in a separate file
 public abstract class MyLogger {
     public static final boolean APPEND_BY_DEFAULT = false;
     public static final String LOGGER_NAME = "casefinder";
@@ -77,6 +76,7 @@ public abstract class MyLogger {
                 "[%1$tb %1$td, %1$tY %1$tl:%1$tM:%1$tS %1$Tp] [%2$s {%7$s}] %4$s: %5$s%6$s%n";
         private final Date dat = new Date();
 
+        @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
         public synchronized String format(LogRecord record) {
             dat.setTime(record.getMillis());
             String source;

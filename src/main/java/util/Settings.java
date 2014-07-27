@@ -94,8 +94,7 @@ public abstract class Settings {
         }
     }
 
-    public static Level getLogLevel() {
-        Integer level = (Integer) settings.get(Keys.LOG_LEVEL.getKey());
+    private static Level getLogLevel(int level) {
         switch (level) {
             case 0:
                 return Level.SEVERE;
@@ -106,8 +105,13 @@ public abstract class Settings {
             case 3:
                 return Level.ALL;
             default:
-                throw new RuntimeException("Unexpected value of log level");
+                return getLogLevel(Keys.LOG_LEVEL.getValue());
         }
+    }
+
+    public static Level getLogLevel() {
+        Integer level = (Integer) settings.get(Keys.LOG_LEVEL.getKey());
+        return getLogLevel(level);
     }
 
     public static String getLogLocation() {
