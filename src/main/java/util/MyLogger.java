@@ -13,7 +13,7 @@ public abstract class MyLogger {
     public static final String LOGGER_NAME = "casefinder";
     public static final String LOG_PATH = "log";
     public static final String FILENAME = LOG_PATH + File.separator + LOGGER_NAME + ".log";
-    public static final Level DEFAULT_LEVEL = Level.INFO; // TODO: work on this
+    public static final Level DEFAULT_LEVEL = Settings.getLogLevel();
     public static final java.util.logging.Logger LOGGER = java.util.logging.Logger.getLogger(LOGGER_NAME);
 
     static {
