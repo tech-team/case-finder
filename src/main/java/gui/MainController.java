@@ -64,10 +64,6 @@ public class MainController {
         this.stage = stage;
     }
 
-    /**
-     * Initializes the controller class. This method is automatically called
-     * after the fxml file has been loaded.
-     */
     @FXML
     private void initialize() {
         try {
@@ -78,6 +74,11 @@ public class MainController {
             System.exit(1);
         }
 
+        initializeProgressIndicator();
+        initializeTableView();
+    }
+
+    private void initializeTableView() {
         //disables cell height jitter
         casesTable.setRowFactory(table -> {
             TableRow<CaseModel> row = new TableRow<>();
@@ -88,8 +89,7 @@ public class MainController {
             return row ;
         });
 
-        initializeProgressIndicator();
-
+        //set column data and render delegates
         casesTable_Id.setCellValueFactory(cellData -> cellData.getValue().id.asObject());
         casesTable_Id.setCellFactory(p -> new TextFlowCell<>());
 
