@@ -1,9 +1,6 @@
 package util;
 
-/**
- * Created by Алексей on 18.07.2014.
- */
-class HypertextNode {
+public class HypertextNode {
     public enum Type {TEXT, LINK}
 
     private Type type;

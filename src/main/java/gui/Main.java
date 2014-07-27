@@ -17,8 +17,11 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws Exception {
         FXMLLoader loader = new FXMLLoader(Main.class.getResource("/fxml/main.fxml"));
         Parent root = loader.load();
+        Scene scene = new Scene(root, 1024, 768);
+        scene.getStylesheets().add("css/styles.css");
+
         primaryStage.setTitle("Case Finder");
-        primaryStage.setScene(new Scene(root, 1024, 768));
+        primaryStage.setScene(scene);
 
         MainController controller = loader.getController();
         controller.setStage(primaryStage);

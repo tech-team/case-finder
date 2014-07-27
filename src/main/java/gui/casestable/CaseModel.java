@@ -52,4 +52,65 @@ public class CaseModel {
         
         this.cost = new SimpleDoubleProperty(cost);
     }
+
+
+    public int getId() {
+        return id.get();
+    }
+
+    public IntegerProperty idProperty() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id.set(id);
+    }
+
+    public String getCreatedDate() {
+        return createdDate.get();
+    }
+
+    public StringProperty createdDateProperty() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(String createdDate) {
+        this.createdDate.set(createdDate);
+    }
+
+    public String getPlaintiff() {
+        return plaintiff.get();
+    }
+
+    public StringProperty plaintiffProperty() {
+        return plaintiff;
+    }
+
+    public void setPlaintiff(String plaintiff) {
+        this.plaintiff.set(plaintiff);
+    }
+
+    public String getDefendant() {
+        return defendant.get();
+    }
+
+    public StringProperty defendantProperty() {
+        return defendant;
+    }
+
+    public void setDefendant(String defendant) {
+        this.defendant.set(defendant);
+    }
+
+    public double getCost() {
+        return cost.get();
+    }
+
+    public DoubleProperty costProperty() {
+        return cost;
+    }
+
+    public void setCost(double cost) {
+        this.cost.set(cost);
+    }
 }

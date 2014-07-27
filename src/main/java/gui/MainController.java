@@ -15,10 +15,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.ProgressIndicator;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
@@ -81,16 +78,32 @@ public class MainController {
             System.exit(1);
         }
 
+        //disables cell height jitter
+        casesTable.setRowFactory(table -> {
+            TableRow<CaseModel> row = new TableRow<>();
+            row.setMinHeight(30);
+            row.setPrefHeight(30);
+            row.setMaxHeight(30);
+
+            return row ;
+        });
+
         initializeProgressIndicator();
 
         casesTable_Id.setCellValueFactory(cellData -> cellData.getValue().id.asObject());
-        casesTable_createdDate.setCellValueFactory(cellData -> cellData.getValue().createdDate);
-        casesTable_plaintiff.setCellValueFactory(cellData -> cellData.getValue().plaintiff);
+        casesTable_Id.setCellFactory(p -> new TextFlowCell<>());
 
+        casesTable_createdDate.setCellValueFactory(cellData -> cellData.getValue().createdDate);
+        casesTable_createdDate.setCellFactory(p -> new TextFlowCell<>());
+
+        casesTable_plaintiff.setCellValueFactory(cellData -> cellData.getValue().plaintiff);
         casesTable_plaintiff.setCellFactory(p -> new TextFlowCell<>());
 
         casesTable_defendant.setCellValueFactory(cellData -> cellData.getValue().defendant);
+        casesTable_defendant.setCellFactory(p -> new TextFlowCell<>());
+
         casesTable_cost.setCellValueFactory(cellData -> cellData.getValue().cost.asObject());
+        casesTable_cost.setCellFactory(p -> new TextFlowCell<>());
 
         casesTable.setItems(casesData);
     }

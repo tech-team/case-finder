@@ -77,6 +77,9 @@
                 <TableColumn fx:id="casesTable_defendant" prefWidth="75.0" text="Ответчик" />
                 <TableColumn fx:id="casesTable_cost" prefWidth="75.0" text="Сумма иска" />
             </columns>
+         <columnResizePolicy>
+            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+         </columnResizePolicy>
         </TableView>
 
     </children>
