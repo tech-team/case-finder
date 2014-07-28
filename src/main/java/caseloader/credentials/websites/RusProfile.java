@@ -21,7 +21,7 @@ public class RusProfile extends WebSite {
     }
 
     @Override
-    public Credentials findCredentials(final CredentialsSearchRequest request, final Credentials credentials) throws IOException, DataRetrievingError {
+    public Credentials findCredentials(final CredentialsSearchRequest request, final Credentials credentials) throws IOException, DataRetrievingError, InterruptedException {
 //        if (request.getInn() != null) {
 //            return findByInn(request, credentials);
 //        } else if (request.getOgrn() != null) {
@@ -33,7 +33,7 @@ public class RusProfile extends WebSite {
         return res;
     }
 
-    private Credentials findByInn(CredentialsSearchRequest request, Credentials credentials) throws IOException, DataRetrievingError {
+    private Credentials findByInn(CredentialsSearchRequest request, Credentials credentials) throws IOException, DataRetrievingError, InterruptedException {
         Element searchPage = downloadPage(Urls.SEARCH + request.getInn()).getElementsByTag("html").first();
         Element googleResults = searchPage.select(".gs-webResult .gs-result").first();
         return null;
@@ -43,7 +43,7 @@ public class RusProfile extends WebSite {
         return null;
     }
 
-    public static void main(String[] args) throws IOException, DataRetrievingError {
+    public static void main(String[] args) throws IOException, DataRetrievingError, InterruptedException {
         RusProfile rp = new RusProfile();
 
         CredentialsSearchRequest req = new CredentialsSearchRequest("БОГАТЫРЬ", "unknown", "1102017213", null);

@@ -20,7 +20,7 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
     private static final int ITEMS_COUNT_PER_REQUEST = 100;
     public static final int TOTAL_MAX_COUNT = 1000;
     private int retryCount = 1;
-    private ThreadPool pool = new ThreadPool();
+    private ThreadPool pool = null;
     private Logger logger = MyLogger.getLogger(this.getClass().toString());
 
     public KadLoader() {
@@ -28,35 +28,48 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
     }
 
     public CaseContainerType retrieveData(CaseSearchRequest request, CaseContainerType data) throws IOException, DataRetrievingError {
+        pool = new ThreadPool();
+
         int minCost = request.getMinCost();
         int searchLimit = request.getSearchLimit();
 
         int itemsCountToLoad = searchLimit != 0 && searchLimit < TOTAL_MAX_COUNT ? searchLimit :
                                                                                    TOTAL_MAX_COUNT;
 
-        int totalCasesCount = 0;
-        request.setCount(ITEMS_COUNT_PER_REQUEST);
-        KadResponse initial = retrieveKadResponse(request, 1);
+        try {
+            int totalCasesCount = 0;
+            request.setCount(ITEMS_COUNT_PER_REQUEST);
+            KadResponse initial = retrieveKadResponse(request, 1);
 
-        if (initial.isSuccess()) {
-            processKadResponse(initial, minCost, data);
-            totalCasesCount += initial.getItems().size();
-            request.setCount(initial.getPageSize());
-
-            int iterationsCount = itemsCountToLoad / initial.getPageSize();
-            for (int i = 2; i <= iterationsCount; ++i) {
-                KadResponse resp = retrieveKadResponse(request, i);
-                if (resp.isSuccess()) {
-                    processKadResponse(resp, minCost, data);
-                    totalCasesCount += resp.getItems().size();
-                } else {
-                    logger.severe("Couldn't load page #" + i);
+            if (initial.isSuccess()) {
+                if (Thread.interrupted()) {
+                    throw new InterruptedException();
                 }
-            }
-            data.setTotalCount(totalCasesCount);
-        }
+                processKadResponse(initial, minCost, data);
+                totalCasesCount += initial.getItems().size();
+                request.setCount(initial.getPageSize());
 
-        pool.waitForFinish();
+                int iterationsCount = itemsCountToLoad / initial.getPageSize();
+                for (int i = 2; i <= iterationsCount; ++i) {
+                    if (Thread.interrupted()) {
+                        throw new InterruptedException();
+                    }
+
+                    KadResponse resp = retrieveKadResponse(request, i);
+                    if (resp.isSuccess()) {
+                        processKadResponse(resp, minCost, data);
+                        totalCasesCount += resp.getItems().size();
+                    } else {
+                        logger.severe("Couldn't load page #" + i);
+                    }
+                }
+                data.setTotalCount(totalCasesCount);
+            }
+
+            pool.waitForFinish();
+        } catch (InterruptedException ignored) {
+            System.out.println("We are stopped");
+        }
 
         return data;
     }
@@ -65,11 +78,11 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
         List<CaseInfo> items = resp.getItems();
         for (int i = 0; i < items.size(); ++i) {
             CaseInfo item = items.get(i);
-            pool.execute(new KadWorker<>(i+1, item, minCost, outData));
+            pool.execute(new KadWorker<>(i + 1, item, minCost, outData));
         }
     }
 
-    private KadResponse retrieveKadResponse(CaseSearchRequest request, int page) throws IOException, DataRetrievingError {
+    private KadResponse retrieveKadResponse(CaseSearchRequest request, int page) throws IOException, DataRetrievingError, InterruptedException {
         logger.info("Getting page #" + page);
         request.setPage(page);
 
@@ -92,6 +105,11 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
             }
             throw e;
         }
+    }
+
+    public void stopExecution() {
+        pool.stopExecution();
+        KadWorker.stopExecution();
     }
 
 

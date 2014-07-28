@@ -47,21 +47,17 @@ public class ProxyList {
         return proxiesLoaded;
     }
 
-    public void waitForProxiesLoaded() {
+    public void waitForProxiesLoaded() throws InterruptedException {
         if (!proxiesLoaded()) {
             logger.info("Waiting for proxies to load");
             while (!proxiesLoaded()) {
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                Thread.sleep(100);
             }
             logger.info("Proxies loaded");
         }
     }
 
-    public synchronized ProxyInfo getNext() {
+    public synchronized ProxyInfo getNext() throws InterruptedException {
         waitForProxiesLoaded();
         logger.fine("currentProxyId = " + currentId);
         ProxyInfo proxyInfo = getAt(currentId);

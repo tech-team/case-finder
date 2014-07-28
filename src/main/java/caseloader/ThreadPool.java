@@ -40,4 +40,7 @@ public class ThreadPool {
     }
 
 
+    public void stopExecution() {
+        executor.shutdownNow();
+    }
 }

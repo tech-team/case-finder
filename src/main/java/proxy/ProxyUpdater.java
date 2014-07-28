@@ -36,6 +36,9 @@ class ProxyUpdater {
                         newList = retrieveProxyList();
                     } catch (IOException | DataRetrievingError e) {
                         throw new RuntimeException(e);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                        return;
                     }
                     proxyList.loadNewList(newList);
 
@@ -45,7 +48,6 @@ class ProxyUpdater {
                             Thread.sleep(SLEEP_TIME);
                             sleepCount += 1;
                         } catch (InterruptedException e) {
-                            e.printStackTrace();
                             break;
                         }
                     }
@@ -64,7 +66,7 @@ class ProxyUpdater {
     }
 
 
-    private List<ProxyInfo> retrieveProxyList() throws IOException, DataRetrievingError {
+    private List<ProxyInfo> retrieveProxyList() throws IOException, DataRetrievingError, InterruptedException {
         List<ProxyInfo> proxies = new ArrayList<>();
 
         Element page = Jsoup.parse(retrieveRawData()).body();
@@ -116,7 +118,7 @@ class ProxyUpdater {
         return proxies;
     }
 
-    private String retrieveRawData() throws IOException, DataRetrievingError {
+    private String retrieveRawData() throws IOException, DataRetrievingError, InterruptedException {
         return HttpDownloader.get(Urls.COOL_PROXY, false);
     }
 }

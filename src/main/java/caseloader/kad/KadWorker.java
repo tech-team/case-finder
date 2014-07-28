@@ -34,6 +34,10 @@ public class KadWorker <CaseContainerType extends util.Appendable<CaseInfo> > im
         this.minCost = minCost;
     }
 
+    public static void stopExecution() {
+        CREDENTIALS_LOADER.stopExecution();
+    }
+
     @Override
     public void run() {
         logger.info(String.format("Processing case %d/%d = %s", id, KadLoader.TOTAL_MAX_COUNT, caseInfo.getCaseNumber()));
@@ -54,6 +58,9 @@ public class KadWorker <CaseContainerType extends util.Appendable<CaseInfo> > im
             run();
             return;
 //            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            System.out.println("INTERRUPTED");
+            return;
         }
 
         if (JsonUtils.getBoolean(caseInfo, "Success")) {

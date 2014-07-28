@@ -20,7 +20,7 @@ public abstract class CourtsInfo {
 
     private static Logger logger = MyLogger.getLogger(CourtsInfo.class.toString());
 
-    private static Set<String> retrieveCourts() throws IOException, DataRetrievingError {
+    private static Set<String> retrieveCourts() throws IOException, DataRetrievingError, InterruptedException {
         if (courts.size() == 0) {
             String kadHtml = HttpDownloader.get(Urls.KAD_HOME);
             Document d = Jsoup.parse(kadHtml);
@@ -40,6 +40,9 @@ public abstract class CourtsInfo {
                     courts = retrieveCourts();
                 } catch (IOException | DataRetrievingError e) {
                     throw new RuntimeException(e);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    return;
                 }
                 courtsLoadedEvent.fire(courts);
                 logger.info("Finished retrieving courts list");
@@ -51,6 +54,8 @@ public abstract class CourtsInfo {
                 courtsLoadedEvent.fire(retrieveCourts());
             } catch (IOException | DataRetrievingError e) {
                 throw new RuntimeException(e);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
     }

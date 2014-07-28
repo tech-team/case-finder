@@ -45,21 +45,15 @@ public abstract class HttpDownloader {
     private static int retryCount = 1; // TODO: make it local
     private static Logger logger = MyLogger.getLogger(HttpDownloader.class.toString());
 
-    private static void checkSleep(String hostname) {
+    private static void checkSleep(String hostname) throws InterruptedException {
         Long lastTime = lastTimes.get(hostname);
         if (lastTime != null) {
             long time = System.currentTimeMillis();
             long delta = time - lastTime;
             if (delta < WAIT_DELTA) {
-                try {
-                    logger.fine("Sleeping for " + (WAIT_DELTA - delta));
-                    Thread.sleep(WAIT_DELTA - delta);
-                    logger.fine("Sleep finished");
-                } catch (InterruptedException e) {
-                    logger.severe("Sleep interrupted");
-                    e.printStackTrace();
-                    System.exit(1);
-                }
+                logger.fine("Sleeping for " + (WAIT_DELTA - delta));
+                Thread.sleep(WAIT_DELTA - delta);
+                logger.fine("Sleep finished");
             }
         }
         lastTimes.put(hostname, System.currentTimeMillis());
@@ -69,19 +63,19 @@ public abstract class HttpDownloader {
         lastTimes.put(hostname, System.currentTimeMillis());
     }
 
-    public static String get(String url, boolean useProxy) throws IOException, DataRetrievingError {
+    public static String get(String url, boolean useProxy) throws IOException, DataRetrievingError, InterruptedException {
         return get(url, null, null, useProxy);
     }
 
-    public static String get(String url) throws IOException, DataRetrievingError {
+    public static String get(String url) throws IOException, DataRetrievingError, InterruptedException {
         return get(url, null, null, USE_PROXY_DEFAULT);
     }
 
-    public static String get(String url, List<NameValuePair> params, Map<String, String> headers) throws IOException, DataRetrievingError {
+    public static String get(String url, List<NameValuePair> params, Map<String, String> headers) throws IOException, DataRetrievingError, InterruptedException {
         return get(url, params, headers, USE_PROXY_DEFAULT);
     }
 
-    public static String get(String url, List<NameValuePair> params, Map<String, String> headers, boolean useProxy) throws IOException, DataRetrievingError {
+    public static String get(String url, List<NameValuePair> params, Map<String, String> headers, boolean useProxy) throws IOException, DataRetrievingError, InterruptedException {
         URIBuilder uriBuilder = buildUriBuilder(url);
 
         if (params != null) {
@@ -112,31 +106,33 @@ public abstract class HttpDownloader {
             return getResponse(response);
         } catch (HttpHostConnectException | ConnectTimeoutException e) {
             logger.warning("Exception happened. Retry #" + retryCount++);
-            if (retryCount < 3)
+            if (retryCount < 3) {
+                updateTime(uriBuilder.getHost());
                 return get(url, params, headers, useProxy);
+            }
             logger.severe("Exception happened again after " + retryCount + "retries");
             throw e;
         }
 
     }
 
-    public static String post(String url, List<NameValuePair> formData, Map<String, String> headers) throws IOException, DataRetrievingError {
+    public static String post(String url, List<NameValuePair> formData, Map<String, String> headers) throws IOException, DataRetrievingError, InterruptedException {
         return post(url, formData, headers, USE_PROXY_DEFAULT);
     }
 
-    public static String post(String url, List<NameValuePair> formData, Map<String, String> headers, boolean useProxy) throws IOException, DataRetrievingError {
+    public static String post(String url, List<NameValuePair> formData, Map<String, String> headers, boolean useProxy) throws IOException, DataRetrievingError, InterruptedException {
         return post(url, new UrlEncodedFormEntity(formData, "UTF-8"), headers, useProxy);
     }
 
-    public static String post(String url, String data, Map<String, String> headers) throws IOException, DataRetrievingError {
+    public static String post(String url, String data, Map<String, String> headers) throws IOException, DataRetrievingError, InterruptedException {
         return post(url, data, headers, USE_PROXY_DEFAULT);
     }
 
-    public static String post(String url, String data, Map<String, String> headers, boolean useProxy) throws IOException, DataRetrievingError {
+    public static String post(String url, String data, Map<String, String> headers, boolean useProxy) throws IOException, DataRetrievingError, InterruptedException {
         return post(url, new StringEntity(data, "UTF-8"), headers, useProxy);
     }
 
-    public static String post(String url, AbstractHttpEntity data, Map<String, String> headers, boolean useProxy) throws IOException, DataRetrievingError {
+    public static String post(String url, AbstractHttpEntity data, Map<String, String> headers, boolean useProxy) throws IOException, DataRetrievingError, InterruptedException {
         URIBuilder uriBuilder = buildUriBuilder(url);
 
         assert data != null;
@@ -191,7 +187,7 @@ public abstract class HttpDownloader {
         return new HttpHost(uriBuilder.getHost(), uriBuilder.getPort(), uriBuilder.getScheme());
     }
 
-    private static RequestConfig buildRequestConfig() {
+    private static RequestConfig buildRequestConfig() throws InterruptedException {
         ProxyInfo proxyInfo = ProxyList.instance().getNext();
         HttpHost proxy = new HttpHost(proxyInfo.getIp(), proxyInfo.getPort());
         return RequestConfig.custom().setProxy(proxy).setConnectTimeout(REQUEST_TIMEOUT).build();
@@ -218,7 +214,7 @@ public abstract class HttpDownloader {
         request.setHeader("User-Agent", USER_AGENT);
     }
 
-    public static void main(String[] args) throws IOException, DataRetrievingError {
+    public static void main(String[] args) throws IOException, DataRetrievingError, InterruptedException {
         String res = HttpDownloader.get(Urls.KAD_HOME);
         System.out.println(res);
     }

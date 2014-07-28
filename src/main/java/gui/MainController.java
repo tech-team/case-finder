@@ -135,17 +135,21 @@ public class MainController {
 
     public void onClose(WindowEvent event) {
         System.out.println("onClose");
+        caseLoader.stopExecution();
     }
     
     public void casesSearchClick(ActionEvent actionEvent) {
-        //test data
+        if (mode == Mode.SEARCHING) {
+            caseLoader.stopExecution();
+            return;
+        }
         Random random = new Random();
         Integer caseId = random.nextInt(100);
         long days = random.nextInt(50);
 
         double cost = random.nextDouble() * 10000;
 
-        casesData.add(new CaseModel("А" + caseId, "http://google.com", LocalDate.now().minusDays(days).toString(), "Саша", "Петя", cost, "Административное", "Никита"));
+//        casesData.add(new CaseModel("А" + caseId, "http://google.com", LocalDate.now().minusDays(days).toString(), "Саша", "Петя", cost, "Административное", "Никита"));
 
         mode = Mode.SEARCHING;
         searchButton.setText(res.getString("searchButtonPressed"));
@@ -171,17 +175,14 @@ public class MainController {
 
         // real data
 
-//        CaseModelAppender caseModelAppender = new CaseModelAppender(casesData);
-//        casesData.clear();
-//
-//        CaseLoader<CaseModelAppender> caseLoader = new CaseLoader<>();
-//        caseLoader.casesLoaded.on((data) -> {
-//            // TODO: Probably react somehow
-//        });
-//
-//        Thread casesLoaderThread =
-//                caseLoader.retrieveDataAsync(new CaseSearchRequest(), caseModelAppender);
-//        casesLoaderThread.start();
+        CaseModelAppender caseModelAppender = new CaseModelAppender(casesData);
+        casesData.clear();
+
+        caseLoader.casesLoaded.on((data) -> {
+            // TODO: Probably react somehow
+        });
+
+        caseLoader.retrieveDataAsync(new CaseSearchRequest(), caseModelAppender);
 
     }
 
