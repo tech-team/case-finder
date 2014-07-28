@@ -12,7 +12,7 @@ public class CaseModelAppender implements Appendable<CaseInfo> {
     private ObservableList<CaseModel> casesData;
     private Integer totalCasesCount = 0;
 
-    public DataEvent<Integer> totalCasesCountObtained = new DataEvent<>();
+    public final DataEvent<Integer> totalCasesCountObtained = new DataEvent<>();
 
     public CaseModelAppender(ObservableList<CaseModel> casesData) {
         this.casesData = casesData;

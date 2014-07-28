@@ -2,6 +2,7 @@ package caseloader.kad;
 
 import caseloader.CaseInfo;
 import caseloader.CaseSearchRequest;
+import caseloader.ThreadPool;
 import exceptions.DataRetrievingError;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -16,25 +17,17 @@ import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
-    private ExecutorService executor = null;
     private static final int ITEMS_COUNT_PER_REQUEST = 100;
     public static final int TOTAL_MAX_COUNT = 1000;
-    private static final int WAIT_TIMEOUT = 5 * 60;
-    private static final int CONCURRENCY_QUANTITY = 2;
     private int retryCount = 1;
+    private ThreadPool pool = new ThreadPool();
     private Logger logger = MyLogger.getLogger(this.getClass().toString());
-
-    private ExecutorService getExecutor() {
-        return Executors.newFixedThreadPool(CONCURRENCY_QUANTITY);
-    }
 
     public KadLoader() {
 
     }
 
     public CaseContainerType retrieveData(CaseSearchRequest request, CaseContainerType data) throws IOException, DataRetrievingError {
-        executor = getExecutor();
-
         int minCost = request.getMinCost();
         int searchLimit = request.getSearchLimit();
 
@@ -63,19 +56,7 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
             data.setTotalCount(totalCasesCount);
         }
 
-        executor.shutdown();
-        while (!executor.isTerminated()) {
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-//        try {
-//            executor.awaitTermination(WAIT_TIMEOUT, TimeUnit.MILLISECONDS);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
+        pool.waitForFinish();
 
         return data;
     }
@@ -84,8 +65,7 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
         List<CaseInfo> items = resp.getItems();
         for (int i = 0; i < items.size(); ++i) {
             CaseInfo item = items.get(i);
-            executor.execute(new KadWorker<>(i+1, item, minCost, outData));
-//            (new KadWorker<>(item, minCost, outData)).run();
+            pool.execute(new KadWorker<>(i+1, item, minCost, outData));
         }
     }
 
@@ -101,7 +81,7 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
         String resp = HttpDownloader.post(Urls.KAD_SEARCH, json, headers);
         try {
             JSONObject jsonObj = new JSONObject(resp);
-            retryCount = 0;
+            retryCount = 1;
             logger.info("Got page #" + page);
             return KadResponse.fromJSON(jsonObj);
         } catch (JSONException e) {

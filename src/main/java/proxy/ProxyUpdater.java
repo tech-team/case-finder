@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ProxyUpdater {
+class ProxyUpdater {
     class Urls {
         public static final String HIDE_MY_ASS = "http://proxylist.hidemyass.com/";
         public static final String COOL_PROXY = "http://www.cool-proxy.net/proxies/http_proxy_list/sort:download_speed_average/direction:desc/country_code:/port:/anonymous:1";
@@ -110,7 +110,7 @@ public class ProxyUpdater {
                 proxies.add(new ProxyInfo(ip, port, country, rating, working, responseTime, downloadSpeed));
 
             } catch (Exception e) {
-                System.out.println("<---Wrong line");
+//                System.out.println("<---Wrong line");
             }
         }
         return proxies;

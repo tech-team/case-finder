@@ -16,7 +16,7 @@ public class ProxyList {
     private List<ProxyInfo> proxies = new ArrayList<>();
     private boolean proxiesLoaded = false;
     private int currentId = 0;
-    private Logger logger = MyLogger.getLogger(ProxyList.class.toString());
+    private Logger logger = MyLogger.getLogger(this.getClass().toString());
 
     private ProxyList() {
     }

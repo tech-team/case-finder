@@ -50,7 +50,7 @@ public class KadWorker <CaseContainerType extends util.Appendable<CaseInfo> > im
             json = HttpDownloader.get(Urls.KAD_CARD, params, headers);
             caseInfo = new JSONObject(json);
         } catch (IOException | DataRetrievingError | JSONException e) {
-            logger.warning("Error retrieving case info. Retrying");
+            logger.warning("Error retrieving case " + this.caseInfo.getCaseNumber() + ". Retrying");
             run();
             return;
 //            throw new RuntimeException(e);
@@ -70,7 +70,8 @@ public class KadWorker <CaseContainerType extends util.Appendable<CaseInfo> > im
                                         defendant.getAddress(),
                                         defendant.getInn(),
                                         defendant.getOgrn());
-                        Credentials defendantCredentials = CREDENTIALS_LOADER.retrieveCredentials(credentialsSearchRequest);
+                        Credentials defendantCredentials =
+                                CREDENTIALS_LOADER.retrieveCredentials(credentialsSearchRequest);
                         defendant.setCredentials(defendantCredentials);
                     }
                     synchronized (data) {
