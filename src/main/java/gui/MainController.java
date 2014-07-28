@@ -12,8 +12,6 @@ import gui.casestable.CaseModel;
 import gui.casestable.TextFlowCell;
 import gui.searchpanel.AutoCompleteComboBoxListener;
 import gui.searchpanel.MySpinner;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -26,15 +24,12 @@ import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
-import javafx.util.Duration;
 import org.controlsfx.dialog.Dialogs;
 import util.CaseModelAppender;
 import util.ResourceControl;
 
 import java.io.File;
-import java.time.LocalDate;
 import java.util.Map;
-import java.util.Random;
 import java.util.ResourceBundle;
 import java.util.prefs.Preferences;
 
@@ -141,9 +136,15 @@ public class MainController {
     public void casesSearchClick(ActionEvent actionEvent) {
         if (mode == Mode.SEARCHING) {
             caseLoader.stopExecution();
+            mode = Mode.DEFAULT;
+            searchButton.setText(res.getString("searchButtonDefault"));
             return;
         }
-        Random random = new Random();
+
+        mode = Mode.SEARCHING;
+        searchButton.setText(res.getString("searchButtonPressed"));
+
+        /*Random random = new Random();
         Integer caseId = random.nextInt(100);
         long days = random.nextInt(50);
 
@@ -170,7 +171,7 @@ public class MainController {
             searchButton.setText(res.getString("searchButtonDefault"));
         }));
         finishProgress.setCycleCount(1);
-        finishProgress.play();
+        finishProgress.play();*/
 
 
         // real data
