@@ -1,5 +1,6 @@
 package gui;
 
+import caseloader.CaseLoader;
 import caseloader.CaseSearchRequest;
 import caseloader.kad.CourtsInfo;
 import export.ExcelExporter;
@@ -9,6 +10,7 @@ import export.UnsupportedExtensionException;
 import gui.casestable.CaseFieldNamesMismatchException;
 import gui.casestable.CaseModel;
 import gui.casestable.TextFlowCell;
+import gui.searchpanel.AutoCompleteComboBoxListener;
 import gui.searchpanel.MySpinner;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -25,6 +27,8 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
+import org.controlsfx.dialog.Dialogs;
+import util.CaseModelAppender;
 import util.ResourceControl;
 
 import java.io.File;
@@ -33,8 +37,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.ResourceBundle;
 import java.util.prefs.Preferences;
-
-util.CaseModelAppender;
 
 public class MainController {
     @FXML private ComboBox<String> courtsChoiceBox;
