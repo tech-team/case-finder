@@ -111,12 +111,12 @@ public class MainController {
     public void casesSearchClick(ActionEvent actionEvent) {
         //test data
         Random random = new Random();
-        int caseId = random.nextInt(100);
+        Integer caseId = random.nextInt(100);
         long days = random.nextInt(50);
 
         double cost = random.nextDouble() * 10000;
 
-        casesData.add(new CaseModel(caseId, LocalDate.now().minusDays(days).toString(), "http://google.com", "Петя", cost));
+        casesData.add(new CaseModel("А" + caseId, "http://google.com", LocalDate.now().minusDays(days).toString(), "Саша", "Петя", cost, "Административное", "Никита"));
 
         mode = Mode.SEARCHING;
         searchButton.setText(res.getString("searchButtonPressed"));

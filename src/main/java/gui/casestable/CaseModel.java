@@ -33,37 +33,45 @@ public class CaseModel {
         }
     }
 
-    public final IntegerProperty id;
+    public final StringProperty number;
+    public final StringProperty url;
     public final StringProperty createdDate;
     public final StringProperty plaintiff;
     public final StringProperty defendant;
     public final DoubleProperty cost;
+    public final StringProperty caseType;
+    public final StringProperty court;
+
 
     public CaseModel() {
-        this(null, null, null, null, null);
+        this(null, null, null, null, null, null, null, null);
     }
 
-    public CaseModel(Integer id, String createdDate, String plaintiff, String defendant, Double cost) {
-        this.id = new SimpleIntegerProperty(id);
+    public CaseModel(String number, String url, String createdDate, String plaintiff, String defendant, Double cost, String caseType, String court) {
+        this.number = new SimpleStringProperty(number);
+        this.url = new SimpleStringProperty(url);
         this.createdDate = new SimpleStringProperty(createdDate);
         
         this.plaintiff = new SimpleStringProperty(plaintiff);
         this.defendant = new SimpleStringProperty(defendant);
         
         this.cost = new SimpleDoubleProperty(cost);
+
+        this.caseType = new SimpleStringProperty(caseType);
+        this.court = new SimpleStringProperty(court);
     }
 
 
-    public int getId() {
-        return id.get();
+    public String getNumber() {
+        return number.get();
     }
 
-    public IntegerProperty idProperty() {
-        return id;
+    public StringProperty numberProperty() {
+        return number;
     }
 
-    public void setId(int id) {
-        this.id.set(id);
+    public void setNumber(String number) {
+        this.number.set(number);
     }
 
     public String getCreatedDate() {
@@ -112,5 +120,42 @@ public class CaseModel {
 
     public void setCost(double cost) {
         this.cost.set(cost);
+    }
+
+
+    public String getCourt() {
+        return court.get();
+    }
+
+    public StringProperty courtProperty() {
+        return court;
+    }
+
+    public void setCourt(String court) {
+        this.court.set(court);
+    }
+
+    public String getCaseType() {
+        return caseType.get();
+    }
+
+    public StringProperty caseTypeProperty() {
+        return caseType;
+    }
+
+    public void setCaseType(String caseType) {
+        this.caseType.set(caseType);
+    }
+
+    public String getUrl() {
+        return url.get();
+    }
+
+    public StringProperty urlProperty() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url.set(url);
     }
 }

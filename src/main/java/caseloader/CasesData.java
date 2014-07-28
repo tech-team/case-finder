@@ -6,7 +6,7 @@ import java.util.List;
 
 public class CasesData implements util.Appendable<CaseInfo> {
     private List<CaseInfo> cases = new LinkedList<>();
-    private int totalCount = 0;
+    private Integer totalCount = null;
 
     @Override
     public void append(CaseInfo obj) {
@@ -19,12 +19,12 @@ public class CasesData implements util.Appendable<CaseInfo> {
     }
 
     @Override
-    public void setTotalCount(int count) {
+    public void setTotalCount(Integer count) {
         totalCount = count;
     }
 
     @Override
-    public int getTotalCount() {
+    public Integer getTotalCount() {
         return totalCount;
     }
 }

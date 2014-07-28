@@ -1,13 +1,18 @@
 package util;
 
 import caseloader.CaseInfo;
+import eventsystem.DataEvent;
 import gui.casestable.CaseModel;
 import javafx.collections.ObservableList;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
 
 public class CaseModelAppender implements Appendable<CaseInfo> {
     private ObservableList<CaseModel> casesData;
+    private Integer totalCasesCount = 0;
+
+    public DataEvent<Integer> totalCasesCountObtained = new DataEvent<>();
 
     public CaseModelAppender(ObservableList<CaseModel> casesData) {
         this.casesData = casesData;
@@ -15,13 +20,18 @@ public class CaseModelAppender implements Appendable<CaseInfo> {
 
     @Override
     public void append(CaseInfo caseInfo) {
-        CaseModel caseModelData = new CaseModel();
+        CaseModel caseModel = new CaseModel();
 
-        //TODO: copy all the data from caseInfo to caseData
-        //(add fields to Case if needed)
-        //Case class is a model for JavaFX and for export to Excel
+        caseModel.number.setValue(caseInfo.getCaseNumber());
+        caseModel.url.setValue(caseInfo.getUrl());
+        caseModel.createdDate.setValue(caseInfo.getDate());
+        caseModel.plaintiff.setValue(StringUtils.join(caseInfo.getPlaintiffs(), ", "));
+        caseModel.defendant.setValue(StringUtils.join(caseInfo.getDefendants(), ", "));
+        caseModel.cost.setValue(caseInfo.getCost());
+        caseModel.caseType.setValue(caseInfo.getCaseType());
+        caseModel.court.setValue(caseInfo.getCourt());
 
-        casesData.add(caseModelData);
+        casesData.add(caseModel);
     }
 
     @Override
@@ -30,14 +40,13 @@ public class CaseModelAppender implements Appendable<CaseInfo> {
     }
 
     @Override
-    public void setTotalCount(int count) {
-        // TODO
+    public void setTotalCount(Integer count) {
+        totalCasesCount = count;
+        totalCasesCountObtained.fire(totalCasesCount);
     }
 
     @Override
-    public int getTotalCount() {
-        return 0; // TODO
+    public Integer getTotalCount() {
+        return totalCasesCount;
     }
-
-
 }
