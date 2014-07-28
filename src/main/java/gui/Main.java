@@ -25,6 +25,7 @@ public class Main extends Application {
 
         MainController controller = loader.getController();
         controller.setStage(primaryStage);
+        primaryStage.setOnCloseRequest(controller::onClose);
 
         primaryStage.show();
     }

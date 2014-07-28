@@ -1,6 +1,5 @@
 package gui;
 
-import caseloader.CaseLoader;
 import caseloader.CaseSearchRequest;
 import caseloader.kad.CourtsInfo;
 import export.ExcelExporter;
@@ -10,6 +9,7 @@ import export.UnsupportedExtensionException;
 import gui.casestable.CaseFieldNamesMismatchException;
 import gui.casestable.CaseModel;
 import gui.casestable.TextFlowCell;
+import gui.searchpanel.AutoCompleteComboBoxListener;
 import gui.searchpanel.MySpinner;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -24,10 +24,9 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 import org.controlsfx.dialog.Dialogs;
-import proxy.ProxyUpdater;
-import util.CaseModelAppender;
 import util.ResourceControl;
 
 import java.io.File;
@@ -38,7 +37,7 @@ import java.util.ResourceBundle;
 import java.util.prefs.Preferences;
 
 public class MainController {
-    @FXML private ChoiceBox<String> courtsChoiceBox;
+    @FXML private ComboBox<String> courtsChoiceBox;
     @FXML private MySpinner minCost;
     @FXML private MySpinner searchLimit;
     @FXML private VBox searchPanel;
@@ -77,9 +76,11 @@ public class MainController {
     private void initializeCourtList() {
         courtsChoiceBox.setItems(courtsList);
 
+        new AutoCompleteComboBoxListener<>(courtsChoiceBox);
+
         CourtsInfo.courtsLoadedEvent.on(courts -> {
-            System.out.println("Got courts!!");
-            courtsList.setAll(courts);
+            courtsList.add("Любой");
+            courtsList.addAll(courts);
         });
 
         CourtsInfo.retrieveCourtsAsync();
@@ -127,6 +128,10 @@ public class MainController {
                 text.setText(res.getString("done"));
             }
         });
+    }
+
+    public void onClose(WindowEvent event) {
+        System.out.println("onClose");
     }
 
     public void casesSearchClick(ActionEvent actionEvent) {
