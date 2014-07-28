@@ -25,6 +25,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.controlsfx.dialog.Dialogs;
+import proxy.ProxyUpdater;
 import util.ResourceControl;
 
 import java.io.File;
@@ -77,6 +78,9 @@ public class MainController {
         CourtsInfo.courtsLoadedEvent.on(courts -> {
             courtsList.setAll(courts);
         });
+
+        ProxyUpdater proxyUpdater = new ProxyUpdater();
+        proxyUpdater.start();
 
         CourtsInfo.retrieveCourtsAsync().start();
     }
