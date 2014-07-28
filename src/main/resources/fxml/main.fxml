@@ -15,7 +15,7 @@
         <VBox fx:id="searchPanel" layoutX="14.0" layoutY="57.0" minHeight="200.0" minWidth="200.0" prefHeight="200.0" prefWidth="200.0" spacing="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" HBox.hgrow="NEVER">
             <children>
                 <Label text="Суд:" />
-                <ChoiceBox prefHeight="31.0" prefWidth="185.0" />
+                <ChoiceBox fx:id="courtsChoiceBox" prefHeight="31.0" prefWidth="185.0" />
                 <Separator prefWidth="200.0" />
                 <Label text="Тип дела:" />
                 <ChoiceBox prefHeight="31.0" prefWidth="191.0" />

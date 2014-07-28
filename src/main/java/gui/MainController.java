@@ -1,6 +1,7 @@
 package gui;
 
 import caseloader.CaseSearchRequest;
+import caseloader.kad.CourtsInfo;
 import export.ExcelExporter;
 import export.ExportException;
 import export.Extension;
@@ -34,6 +35,7 @@ import java.util.ResourceBundle;
 import java.util.prefs.Preferences;
 
 public class MainController {
+    @FXML private ChoiceBox<String> courtsChoiceBox;
     @FXML private MySpinner minCost;
     @FXML private MySpinner searchLimit;
     @FXML private VBox searchPanel;
@@ -47,6 +49,7 @@ public class MainController {
     private ResourceBundle res = ResourceBundle.getBundle("properties.gui_strings", new ResourceControl("UTF-8"));
 
     private ObservableList<CaseModel> casesData = FXCollections.observableArrayList();
+    private ObservableList<String> courtsList = FXCollections.observableArrayList();
 
     private Stage stage;
 
@@ -62,6 +65,23 @@ public class MainController {
 
     @FXML
     private void initialize() {
+        initializeCourtList();
+        initializeCaseModel();
+        initializeProgressIndicator();
+        initializeTableView();
+    }
+
+    private void initializeCourtList() {
+        courtsChoiceBox.setItems(courtsList);
+
+        CourtsInfo.courtsLoadedEvent.on(courts -> {
+            courtsList.setAll(courts);
+        });
+
+        CourtsInfo.retrieveCourtsAsync().start();
+    }
+
+    private void initializeCaseModel() {
         try {
             CaseModel.loadTitles();
         }
@@ -69,9 +89,6 @@ public class MainController {
             Dialogs.create().showException(e);
             System.exit(1);
         }
-
-        initializeProgressIndicator();
-        initializeTableView();
     }
 
     @SuppressWarnings("unchecked")
