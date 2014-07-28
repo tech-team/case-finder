@@ -192,7 +192,7 @@ public abstract class HttpDownloader {
     }
 
     private static RequestConfig buildRequestConfig() {
-        ProxyInfo proxyInfo = ProxyList.getNext();
+        ProxyInfo proxyInfo = ProxyList.instance().getNext();
         HttpHost proxy = new HttpHost(proxyInfo.getIp(), proxyInfo.getPort());
         return RequestConfig.custom().setProxy(proxy).setConnectTimeout(REQUEST_TIMEOUT).build();
     }

@@ -8,17 +8,28 @@ import java.util.PriorityQueue;
 import java.util.Random;
 import java.util.logging.Logger;
 
-public abstract class ProxyList {
-    private static List<ProxyInfo> proxies = new ArrayList<>();
-    private static final Object proxiesMutex = new Object();
-    private static boolean proxiesLoaded = false;
-    private static Random rnd = new Random();
-    private static int lastSliceBound = 0;
-    private static int currentId = 0;
+public class ProxyList {
+    private static ProxyList instance = null;
     private static final int RATING_THRESHOLD = 3;
-    private static Logger logger = MyLogger.getLogger(ProxyList.class.toString());
 
-    public static synchronized void loadNewList(List<ProxyInfo> list) {
+    private ProxyUpdater proxyUpdater = new ProxyUpdater();
+    private List<ProxyInfo> proxies = new ArrayList<>();
+    private boolean proxiesLoaded = false;
+    private int currentId = 0;
+    private Logger logger = MyLogger.getLogger(ProxyList.class.toString());
+
+    private ProxyList() {
+    }
+
+    public static ProxyList instance() {
+        if (instance == null) {
+            instance = new ProxyList();
+            instance.proxyUpdater.run(instance);
+        }
+        return instance;
+    }
+
+    public void loadNewList(List<ProxyInfo> list) {
         if (list != null) {
             proxies = list;
             for (int i = proxies.size() - 1; i >= 0; --i) {
@@ -32,14 +43,14 @@ public abstract class ProxyList {
         }
     }
 
-    public static boolean proxiesLoaded() {
+    public boolean proxiesLoaded() {
         return proxiesLoaded;
     }
 
-    public static void waitForProxiesLoaded() {
+    public void waitForProxiesLoaded() {
         if (!proxiesLoaded()) {
             logger.info("Waiting for proxies to load");
-            while (!ProxyList.proxiesLoaded()) {
+            while (!proxiesLoaded()) {
                 try {
                     Thread.sleep(100);
                 } catch (InterruptedException e) {
@@ -50,7 +61,7 @@ public abstract class ProxyList {
         }
     }
 
-    public static synchronized ProxyInfo getNext() {
+    public synchronized ProxyInfo getNext() {
         waitForProxiesLoaded();
         logger.fine("currentProxyId = " + currentId);
         ProxyInfo proxyInfo = getAt(currentId);
@@ -61,24 +72,8 @@ public abstract class ProxyList {
         return proxyInfo;
     }
 
-//    public static ProxyInfo getFirst() {
-//        return getAt(0);
-//    }
-//
-    public static synchronized ProxyInfo getAt(int index) {
+    public synchronized ProxyInfo getAt(int index) {
         return proxies.get(index);
     }
-//
-//    public static ProxyInfo getRandom() {
-//        return getAt(rnd.nextInt(proxies.size()));
-//    }
-//
-//    public static List<ProxyInfo> getBulk(int bulkSize) {
-//        synchronized (proxiesMutex) {
-//            int lastIndex = lastSliceBound + bulkSize + 1;
-//            List<ProxyInfo> bulk = proxies.subList(lastSliceBound, lastIndex);
-//            lastSliceBound = lastIndex;
-//            return bulk;
-//        }
-//    }
+
 }

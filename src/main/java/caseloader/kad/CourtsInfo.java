@@ -26,23 +26,33 @@ public abstract class CourtsInfo {
             Document d = Jsoup.parse(kadHtml);
             Elements courtsDOM = d.child(0).select("#Courts").first().children();
             courtsDOM.stream().filter(c -> c.hasText() && c.hasAttr("value"))
-                     .forEach(c -> courts.put(c.text(), c.attr("value")));
+                              .forEach(c -> courts.put(c.text(), c.attr("value")));
         }
         return courts.keySet();
     }
 
-    public static Thread retrieveCourtsAsync() {
-        return new Thread(() -> {
-            logger.info("Retrieving courts list");
-            Set<String> courts = null;
+    public static void retrieveCourtsAsync() {
+        if (courts.size() == 0) {
+            Thread th = new Thread(() -> {
+                logger.info("Retrieving courts list");
+                Set<String> courts = null;
+                try {
+                    courts = retrieveCourts();
+                } catch (IOException | DataRetrievingError e) {
+                    throw new RuntimeException(e);
+                }
+                courtsLoadedEvent.fire(courts);
+                logger.info("Finished retrieving courts list");
+            });
+            th.setDaemon(true);
+            th.start();
+        } else {
             try {
-                courts = retrieveCourts();
+                courtsLoadedEvent.fire(retrieveCourts());
             } catch (IOException | DataRetrievingError e) {
                 throw new RuntimeException(e);
             }
-            courtsLoadedEvent.fire(courts);
-            logger.info("Finished retrieving courts list");
-        });
+        }
     }
 
     public static String getCourtCode(String court) {

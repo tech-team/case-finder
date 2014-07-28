@@ -1,5 +1,6 @@
 package gui;
 
+import caseloader.CaseLoader;
 import caseloader.CaseSearchRequest;
 import caseloader.kad.CourtsInfo;
 import export.ExcelExporter;
@@ -26,6 +27,7 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.controlsfx.dialog.Dialogs;
 import proxy.ProxyUpdater;
+import util.CaseModelAppender;
 import util.ResourceControl;
 
 import java.io.File;
@@ -76,13 +78,11 @@ public class MainController {
         courtsChoiceBox.setItems(courtsList);
 
         CourtsInfo.courtsLoadedEvent.on(courts -> {
+            System.out.println("Got courts!!");
             courtsList.setAll(courts);
         });
 
-        ProxyUpdater proxyUpdater = new ProxyUpdater();
-        proxyUpdater.start();
-
-        CourtsInfo.retrieveCourtsAsync().start();
+        CourtsInfo.retrieveCourtsAsync();
     }
 
     private void initializeCaseModel() {

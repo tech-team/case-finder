@@ -5,13 +5,15 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import util.HttpDownloader;
+import util.MyLogger;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ProxyUpdater extends Thread {
+public class ProxyUpdater {
     class Urls {
         public static final String HIDE_MY_ASS = "http://proxylist.hidemyass.com/";
         public static final String COOL_PROXY = "http://www.cool-proxy.net/proxies/http_proxy_list/sort:download_speed_average/direction:desc/country_code:/port:/anonymous:1";
@@ -19,30 +21,41 @@ public class ProxyUpdater extends Thread {
 
     private static final int UPDATE_PERIOD = 30 * 60 * 1000; // 30 minutes
     private static final int SLEEP_TIME = 100;
+
     private boolean doWork = false;
+    private Logger logger = MyLogger.getLogger(this.getClass().toString());
 
-    @Override
-    public void run() {
-        doWork = true;
-        while (doWork) {
-            List<ProxyInfo> newList = null;
-            try {
-                newList = retrieveProxyList();
-            } catch (IOException | DataRetrievingError e) {
-                throw new RuntimeException(e);
-            }
-            ProxyList.loadNewList(newList);
+    public void run(ProxyList proxyList) {
+        if (!doWork) {
+            Thread th = new Thread(() -> {
+                logger.info("ProxyUpdater started");
+                doWork = true;
+                while (doWork) {
+                    List<ProxyInfo> newList = null;
+                    try {
+                        newList = retrieveProxyList();
+                    } catch (IOException | DataRetrievingError e) {
+                        throw new RuntimeException(e);
+                    }
+                    proxyList.loadNewList(newList);
 
-            int sleepCount = 0;
-            while (doWork && sleepCount != (UPDATE_PERIOD / SLEEP_TIME)) {
-                try {
-                    Thread.sleep(SLEEP_TIME);
-                    sleepCount += 1;
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                    break;
+                    int sleepCount = 0;
+                    while (doWork && sleepCount != (UPDATE_PERIOD / SLEEP_TIME)) {
+                        try {
+                            Thread.sleep(SLEEP_TIME);
+                            sleepCount += 1;
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                            break;
+                        }
+                    }
                 }
-            }
+                logger.info("ProxyUpdater finished");
+            });
+            th.setDaemon(true);
+            th.start();
+        } else {
+            throw new RuntimeException("ProxyUpdater is already running");
         }
     }
 
@@ -105,10 +118,5 @@ public class ProxyUpdater extends Thread {
 
     private String retrieveRawData() throws IOException, DataRetrievingError {
         return HttpDownloader.get(Urls.COOL_PROXY, false);
-    }
-
-    public static void main(String[] args) {
-        ProxyUpdater updater = new ProxyUpdater();
-        updater.start();
     }
 }

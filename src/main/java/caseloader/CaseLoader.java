@@ -50,11 +50,6 @@ public class CaseLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
         MyLogger.getGlobal().log(Level.INFO, "MAIN BEGIN");
         long beginTime = System.currentTimeMillis();
 
-        ProxyUpdater proxyUpdater = new ProxyUpdater();
-        proxyUpdater.start();
-        ProxyList.waitForProxiesLoaded();
-
-
         CaseLoader<CasesData> cl = new CaseLoader<>();
         CasesLoadedHandler handler = new CasesLoadedHandler<>(cl);
 
@@ -63,7 +58,6 @@ public class CaseLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
         th.start();
         try {
             th.join();
-            proxyUpdater.stopWork();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
