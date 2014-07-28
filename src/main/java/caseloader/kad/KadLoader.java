@@ -20,7 +20,7 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
     private static final int ITEMS_COUNT_PER_REQUEST = 100;
     public static final int TOTAL_MAX_COUNT = 1000;
     private int retryCount = 1;
-    private ThreadPool pool = null;
+    private ThreadPool pool = new ThreadPool();
     private Logger logger = MyLogger.getLogger(this.getClass().toString());
 
     public KadLoader() {
@@ -28,8 +28,6 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
     }
 
     public CaseContainerType retrieveData(CaseSearchRequest request, CaseContainerType data) throws IOException, DataRetrievingError {
-        pool = new ThreadPool();
-
         int minCost = request.getMinCost();
         int searchLimit = request.getSearchLimit();
 

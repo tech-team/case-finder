@@ -15,7 +15,7 @@ import java.util.logging.Logger;
 
 public class CredentialsLoader {
     private List<WebSite> webSites;
-    private ThreadPool pool = null;
+    private ThreadPool pool = new ThreadPool();
     private Logger logger = MyLogger.getLogger(this.getClass().toString());
 
     public CredentialsLoader() {
@@ -28,8 +28,6 @@ public class CredentialsLoader {
     }
 
     public Credentials retrieveCredentials(CredentialsSearchRequest request) {
-        pool = new ThreadPool();
-
         Credentials credentials = new Credentials();
         List<Future<Credentials>> founds = new LinkedList<>();
 
@@ -44,6 +42,7 @@ public class CredentialsLoader {
                 credentials.merge(found.get());
             } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
+                return null;
             }
         }
 
@@ -51,8 +50,7 @@ public class CredentialsLoader {
     }
 
     public void stopExecution() {
-        if (pool != null)
-            pool.stopExecution();
+        pool.stopExecution();
     }
 
 
