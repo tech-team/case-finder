@@ -44,23 +44,18 @@ public class CaseModel {
 
 
     public CaseModel() {
-        this(null, null, null, null, null, null, null, null);
+        this.number = new SimpleStringProperty();
+        this.url = new SimpleStringProperty();
+        this.createdDate = new SimpleStringProperty();
+
+        this.plaintiff = new SimpleStringProperty();
+        this.defendant = new SimpleStringProperty();
+
+        this.cost = new SimpleDoubleProperty();
+
+        this.caseType = new SimpleStringProperty();
+        this.court = new SimpleStringProperty();
     }
-
-    public CaseModel(String number, String url, String createdDate, String plaintiff, String defendant, Double cost, String caseType, String court) {
-        this.number = new SimpleStringProperty(number);
-        this.url = new SimpleStringProperty(url);
-        this.createdDate = new SimpleStringProperty(createdDate);
-        
-        this.plaintiff = new SimpleStringProperty(plaintiff);
-        this.defendant = new SimpleStringProperty(defendant);
-        
-        this.cost = new SimpleDoubleProperty(cost);
-
-        this.caseType = new SimpleStringProperty(caseType);
-        this.court = new SimpleStringProperty(court);
-    }
-
 
     public String getNumber() {
         return number.get();
