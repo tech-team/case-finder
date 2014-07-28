@@ -26,7 +26,6 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.controlsfx.dialog.Dialogs;
-import proxy.ProxyUpdater;
 import util.CaseModelAppender;
 import util.ResourceControl;
 
@@ -55,6 +54,7 @@ public class MainController {
     private ObservableList<String> courtsList = FXCollections.observableArrayList();
 
     private Stage stage;
+    private CaseLoader<CaseModelAppender> caseLoader = new CaseLoader<>();
 
     private enum Mode {
         DEFAULT, SEARCHING
@@ -163,18 +163,15 @@ public class MainController {
 
         // real data
 
-//        CaseModelAppender caseModelAppender = new CaseModelAppender(casesData);
-//        casesData.clear();
-//
-//        CaseLoader<CaseModelAppender> caseLoader = new CaseLoader<>();
-//        caseLoader.casesLoaded.on((data) -> {
-//            // TODO: Probably react somehow
-//        });
-//
-//        Thread casesLoaderThread =
-//                caseLoader.retrieveDataAsync(new CaseSearchRequest(), caseModelAppender);
-//        casesLoaderThread.start();
+        CaseModelAppender caseModelAppender = new CaseModelAppender(casesData);
+        casesData.clear();
 
+        CaseLoader<CaseModelAppender> caseLoader = new CaseLoader<>();
+        caseLoader.casesLoaded.on((data) -> {
+            // TODO: Probably react somehow
+        });
+
+        caseLoader.retrieveDataAsync(new CaseSearchRequest(), caseModelAppender);
     }
 
     public void exportCasesToExcel(ActionEvent actionEvent) {

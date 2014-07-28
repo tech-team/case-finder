@@ -1,5 +1,6 @@
 package caseloader.credentials;
 
+import caseloader.ThreadPool;
 import caseloader.credentials.websites.RusProfile;
 import caseloader.credentials.websites.WebSite;
 import exceptions.DataRetrievingError;
@@ -9,19 +10,13 @@ import util.Sleeper;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.logging.Logger;
 
 public class CredentialsLoader {
     private List<WebSite> webSites;
-    private static final int WAIT_TIMEOUT = 5 * 60;
+    private ThreadPool pool = new ThreadPool();
     private Logger logger = MyLogger.getLogger(this.getClass().toString());
-
-    private ExecutorService getExecutor() {
-        return Executors.newFixedThreadPool(2);
-    }
 
     public CredentialsLoader() {
         webSites = new LinkedList<>();
@@ -34,29 +29,27 @@ public class CredentialsLoader {
 
     public Credentials retrieveCredentials(CredentialsSearchRequest request) {
         Credentials credentials = new Credentials();
-
-        ExecutorService executor = getExecutor();
+        List<Future<Credentials>> founds = new LinkedList<>();
 
         for (WebSite webSite : webSites) {
-            executor.execute(new CredentialsWorker(webSite, request, credentials));
+            Future<Credentials> found =
+                    pool.submit(new CredentialsWorker(webSite, request, credentials));
+            founds.add(found);
         }
 
-        executor.shutdown();
-
-        while (!executor.isTerminated()) {
-            Sleeper.sleep(100);
+        for (Future<Credentials> found : founds) {
+            try {
+                credentials.merge(found.get());
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
         }
-//        try {
-//            executor.awaitTermination(WAIT_TIMEOUT, TimeUnit.MILLISECONDS);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
 
         return credentials;
     }
 
 
-    private class CredentialsWorker implements Runnable {
+    private class CredentialsWorker implements Callable<Credentials> {
         private final WebSite webSite;
         private final CredentialsSearchRequest request;
         private final Credentials credentials;
@@ -68,20 +61,26 @@ public class CredentialsLoader {
         }
 
         @Override
-        public void run() {
+        public Credentials call() {
             logger.info("Working on url: " + webSite.url());
+
             Credentials found = null;
             try {
                 found = webSite.findCredentials(request, credentials);
             } catch (IOException | DataRetrievingError e) {
                 throw new RuntimeException(e);
             }
-            if (found != null) {
-                synchronized (credentials) {
-                    credentials.merge(found);
-                }
-            }
             logger.info("Finished url: " + webSite.url());
+            return found;
         }
+    }
+
+
+    public static void main(String[] args) {
+//        CredentialsLoader credentialsLoader = new CredentialsLoader();
+//        Credentials creds =
+//                credentialsLoader.retrieveCredentials(new CredentialsSearchRequest("test", "test"));
+//
+//        ThreadPool.instance().waitForFinish();
     }
 }
