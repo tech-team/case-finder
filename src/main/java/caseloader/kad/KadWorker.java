@@ -36,7 +36,7 @@ public class KadWorker <CaseContainerType extends util.Appendable<CaseInfo> > im
 
     @Override
     public void run() {
-        logger.info(String.format("Processing case %d/%d = %s", id, KadLoader.TOTAL_COUNT, caseInfo.getCaseNumber()));
+        logger.info(String.format("Processing case %d/%d = %s", id, KadLoader.TOTAL_MAX_COUNT, caseInfo.getCaseNumber()));
 
         List<NameValuePair> params = new ArrayList<>();
         Map<String, String> headers = new HashMap<>();
@@ -81,9 +81,9 @@ public class KadWorker <CaseContainerType extends util.Appendable<CaseInfo> > im
                 logger.severe(e.getMessage());
             }
 
-            logger.info(String.format("Finished case %d/%d = %s", id, KadLoader.TOTAL_COUNT, this.caseInfo.getCaseNumber()));
+            logger.info(String.format("Finished case %d/%d = %s", id, KadLoader.TOTAL_MAX_COUNT, this.caseInfo.getCaseNumber()));
         } else {
-            logger.info(String.format("Case %d/%d = %s failed", id, KadLoader.TOTAL_COUNT, this.caseInfo.getCaseNumber()));
+            logger.info(String.format("Case %d/%d = %s failed", id, KadLoader.TOTAL_MAX_COUNT, this.caseInfo.getCaseNumber()));
         }
     }
 }

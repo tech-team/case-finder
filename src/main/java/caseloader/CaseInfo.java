@@ -1,5 +1,6 @@
 package caseloader;
 
+import caseloader.kad.Urls;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import util.JsonUtils;
@@ -164,6 +165,10 @@ public class CaseInfo {
 
     public void setCost(double cost) {
         this.cost = cost;
+    }
+
+    public String getUrl() {
+        return Urls.KAD_CARD + getCaseId();
     }
 
     public static CaseInfo fromJSON(JSONObject obj) {
