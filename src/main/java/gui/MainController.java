@@ -157,12 +157,14 @@ public class MainController {
 
             mode = Mode.DEFAULT;
             searchButton.setText(res.getString("searchButtonDefault"));
+            progressIndicator.setVisible(false);
             return;
         }
 
         mode = Mode.SEARCHING;
         searchButton.setText(res.getString("searchButtonPressed"));
         progressIndicator.setProgress(ProgressIndicator.INDETERMINATE_PROGRESS);
+        progressIndicator.setVisible(true);
 
         this.caseLoader = new CaseLoader<>();
         CaseModelAppender caseModelAppender = new CaseModelAppender(casesData);
