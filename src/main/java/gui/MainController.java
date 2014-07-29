@@ -103,7 +103,7 @@ public class MainController {
             row.setPrefHeight(30);
             row.setMaxHeight(30);
 
-            return row ;
+            return row;
         });
 
         for (Map.Entry<String, String> field: CaseModel.FIELD_NAMES.entrySet()) {
@@ -116,9 +116,11 @@ public class MainController {
             casesTable.getColumns().add(col);
         }
 
+        //testing TextFlow cells:
+        /*
         CaseModel caseModel = new CaseModel();
         caseModel.setNumber("some really long string");
-        caseModel.setUrl("some really long string");
+        caseModel.setUrl("http://google.com");
         caseModel.setCreatedDate("some really long string");
         caseModel.setPlaintiff("some really long string");
         caseModel.setDefendant("some really long string");
@@ -127,6 +129,7 @@ public class MainController {
         caseModel.setCost(100500.0);
 
         casesData.add(caseModel);
+        */
 
         casesTable.setItems(casesData);
     }
@@ -188,17 +191,17 @@ public class MainController {
 
 
         // real data
-
         this.caseLoader = new CaseLoader<>();
         CaseModelAppender caseModelAppender = new CaseModelAppender(casesData);
         casesData.clear();
 
         caseLoader.casesLoaded.on((data) -> {
-            // TODO: Probably react somehow
+            Dialogs.create()
+                    .message(res.getString("loadingFinished"))
+                    .showInformation();
         });
 
         caseLoader.retrieveDataAsync(new CaseSearchRequest(), caseModelAppender);
-
     }
 
     public void exportCasesToExcel(ActionEvent actionEvent) {

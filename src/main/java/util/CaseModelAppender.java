@@ -4,6 +4,7 @@ import caseloader.CaseInfo;
 import caseloader.CaseSide;
 import eventsystem.DataEvent;
 import gui.casestable.CaseModel;
+import javafx.application.Platform;
 import javafx.collections.ObservableList;
 
 import java.util.Collection;
@@ -42,7 +43,7 @@ public class CaseModelAppender implements Appendable<CaseInfo> {
         caseModel.caseType.setValue(caseInfo.getCaseType());
         caseModel.court.setValue(caseInfo.getCourt());
 
-        casesData.add(caseModel);
+        Platform.runLater(() -> casesData.add(caseModel));
     }
 
     @Override

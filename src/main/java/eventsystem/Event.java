@@ -4,22 +4,24 @@ import javafx.application.Platform;
 import java.util.ArrayList;
 
 public class Event {
-    ArrayList<EventHandler> handlers = new ArrayList<>();
+    ArrayList<EventContainer<EventHandler>> handlerContainers = new ArrayList<>();
 
     public void on(EventHandler handler) {
-        handlers.add(handler);
+        handlerContainers.add(
+                new EventContainer<>(handler, Thread.currentThread()));
     }
 
     public void off(EventHandler handler) {
-        handlers.remove(handler);
+        handlerContainers.removeIf(container -> container.getHandler() == handler);
     }
 
     public void fire() {
-        handlers.forEach(handler -> {
-            if (Platform.isFxApplicationThread())
-                handler.accept();
+        handlerContainers.forEach(handlerContainer -> {
+            if (Thread.currentThread() == handlerContainer.getThread()
+                    || Platform.isFxApplicationThread())
+                handlerContainer.getHandler().accept();
             else
-                Platform.runLater(handler::accept);
+                Platform.runLater(handlerContainer.getHandler()::accept);
         });
     }
 }
