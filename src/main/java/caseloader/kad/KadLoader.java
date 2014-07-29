@@ -4,6 +4,8 @@ import caseloader.CaseInfo;
 import caseloader.CaseSearchRequest;
 import caseloader.ThreadPool;
 import caseloader.credentials.CredentialsLoader;
+import eventsystem.DataEvent;
+import eventsystem.Event;
 import exceptions.DataRetrievingError;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -20,12 +22,18 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
     private static final int ITEMS_COUNT_PER_REQUEST = 100;
     public static final int TOTAL_MAX_COUNT = 1000;
     private int retryCount = 1;
+    private int casesProgressCount = 0;
     private ThreadPool pool = new ThreadPool();
     private final CredentialsLoader credentialsLoader = new CredentialsLoader();
+
+    private final DataEvent<Integer> totalCasesCountObtained;
+    private final Event caseProcessed;
+
     private Logger logger = MyLogger.getLogger(this.getClass().toString());
 
-    public KadLoader() {
-
+    public KadLoader(DataEvent<Integer> totalCasesCountObtained, Event caseProcessed) {
+        this.totalCasesCountObtained = totalCasesCountObtained;
+        this.caseProcessed = caseProcessed;
     }
 
     public CaseContainerType retrieveData(CaseSearchRequest request, CaseContainerType data) throws IOException, DataRetrievingError {
@@ -62,8 +70,7 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
                         logger.severe("Couldn't load page #" + i);
                     }
                 }
-                //TODO
-                //data.setTotalCount(totalCasesCount);
+                totalCasesCountObtained.fire(totalCasesCount);
             }
 
             pool.waitForFinish();
@@ -76,9 +83,8 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
 
     private void processKadResponse(KadResponse resp, int minCost, CaseContainerType outData) throws InterruptedException {
         List<CaseInfo> items = resp.getItems();
-        for (int i = 0; i < items.size(); ++i) {
-            CaseInfo item = items.get(i);
-            pool.execute(new KadWorker<>(i + 1, item, minCost, outData, credentialsLoader));
+        for (CaseInfo item : items) {
+            pool.execute(new KadWorker<>(++casesProgressCount, item, minCost, outData, credentialsLoader, caseProcessed));
         }
     }
 

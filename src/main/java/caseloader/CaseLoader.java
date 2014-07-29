@@ -1,6 +1,6 @@
 package caseloader;
 
-import caseloader.kad.KadLoader;
+import caseloader.kad.*;
 import eventsystem.DataEvent;
 import eventsystem.Event;
 import exceptions.DataRetrievingError;
@@ -12,11 +12,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class CaseLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
-    private KadLoader<CaseContainerType> kadLoader = new KadLoader<>();
-
     public final DataEvent<Integer> totalCasesCountObtained = new DataEvent<>();
-    public final Event caseLoaded = new Event();
+    public final Event caseProcessed = new Event();
     public final DataEvent<CaseContainerType> casesLoaded = new DataEvent<>();
+
+    private KadLoader<CaseContainerType> kadLoader = new KadLoader<>(totalCasesCountObtained, caseProcessed);
 
     private Thread thread = null;
     private Logger logger = MyLogger.getLogger(this.getClass().toString());

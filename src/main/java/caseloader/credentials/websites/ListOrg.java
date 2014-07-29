@@ -2,6 +2,9 @@ package caseloader.credentials.websites;
 
 import caseloader.credentials.Credentials;
 import caseloader.credentials.CredentialsSearchRequest;
+import exceptions.DataRetrievingError;
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
@@ -34,7 +37,7 @@ public class ListOrg extends WebSite {
     }
 
     @Override
-    public Credentials findCredentials(CredentialsSearchRequest request, Credentials credentials) {
+    public Credentials findCredentials(CredentialsSearchRequest request, Credentials credentials) throws InterruptedException, IOException, DataRetrievingError {
         if (request.getInn() == null)
             request.setInn(credentials.getInn());
         if (request.getOgrn() == null)
@@ -53,13 +56,7 @@ public class ListOrg extends WebSite {
 
         for (Elements results : searchResults) {
             if (results != null) {
-                Credentials creds = null;
-                try {
-                    creds = parseSearchResults(results, request, credentials);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    System.exit(1); // TODO
-                }
+                Credentials creds = parseSearchResults(results, request, credentials);
                 if (creds != null)
                     return creds;
             }
@@ -68,16 +65,14 @@ public class ListOrg extends WebSite {
         return null;
     }
 
-    private Credentials parseSearchResults(Elements results, CredentialsSearchRequest request, Credentials credentials) throws IOException {
+    private Credentials parseSearchResults(Elements results, CredentialsSearchRequest request, Credentials credentials) throws IOException, InterruptedException, DataRetrievingError {
         Map<Credentials, Double> relevances = new HashMap<>();
 
         for (Element result : results) {
             String companyUrl = Urls.MAIN_PAGE + result.getElementsByTag("a").attr("href");
 
-
-            Element company = Jsoup.connect(companyUrl)
-                                   .userAgent(HttpDownloader.USER_AGENT)
-                                   .get()
+            String resp = HttpDownloader.get(companyUrl);
+            Element company = Jsoup.parse(resp)
                                    .body()
                                    .select(".main .content")
                                    .first();
@@ -112,10 +107,10 @@ public class ListOrg extends WebSite {
 
         Credentials best = null;
         double bestRelevance = 0.0;
-        for (Credentials creds : relevances.keySet()) {
-            double relevance = relevances.get(creds);
+        for (Map.Entry<Credentials, Double> entry : relevances.entrySet()) {
+            double relevance = entry.getValue();
             if (best == null || relevance > bestRelevance) {
-                best = creds;
+                best = entry.getKey();
                 bestRelevance = relevance;
             }
         }
@@ -123,66 +118,60 @@ public class ListOrg extends WebSite {
         return best;
     }
 
-    private Elements executeSearch(Map<String, String> searchParams) {
-        try {
-            return Jsoup.connect(Urls.SEARCH)
-                        .data(searchParams)
-                        .userAgent(HttpDownloader.USER_AGENT)
-                        .get()
-                        .body()
-                        .select(".main .content p");
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(1); // TODO
-        }
-        return null;
+    private Elements executeSearch(List<NameValuePair> searchParams) throws InterruptedException, IOException, DataRetrievingError {
+        String resp = HttpDownloader.get(Urls.SEARCH, searchParams, null, false);
+        return Jsoup.parse(resp)
+                    .body()
+                    .select(".main .content p");
     }
 
-    private Elements findByName(CredentialsSearchRequest request) {
+    private Elements findByName(CredentialsSearchRequest request) throws InterruptedException, IOException, DataRetrievingError {
         String val = request.getCompanyName(); // TODO:  Probably preprocess
         if (val == null)
             return null;
-        Map<String, String> params = new HashMap<>();
-        params.put("type", By.NAME);
-        params.put("val", val);
+        List<NameValuePair> params = new ArrayList<>();
+        params.add(new BasicNameValuePair("type", By.NAME));
+        params.add(new BasicNameValuePair("val", val));
         return executeSearch(params);
     }
 
-    private Elements findByAddress(CredentialsSearchRequest request) {
+    private Elements findByAddress(CredentialsSearchRequest request) throws InterruptedException, IOException, DataRetrievingError {
         String val = request.getAddress(); // TODO:  Probably preprocess
         if (val == null)
             return null;
-        Map<String, String> params = new HashMap<>();
-        params.put("type", By.ADDRESS);
-        params.put("val", val);
+        List<NameValuePair> params = new ArrayList<>();
+        params.add(new BasicNameValuePair("type", By.ADDRESS));
+        params.add(new BasicNameValuePair("val", val));
         return executeSearch(params);
     }
 
-    private Elements findByInn(CredentialsSearchRequest request) {
+    private Elements findByInn(CredentialsSearchRequest request) throws InterruptedException, IOException, DataRetrievingError {
         String val = request.getInn();
         if (val == null)
             return null;
-        Map<String, String> params = new HashMap<>();
-        params.put("type", By.INN);
-        params.put("val", val);
+        List<NameValuePair> params = new ArrayList<>();
+        params.add(new BasicNameValuePair("type", By.INN));
+        params.add(new BasicNameValuePair("val", val));
         return executeSearch(params);
     }
 
-    private Elements findByOgrn(CredentialsSearchRequest request) {
+    private Elements findByOgrn(CredentialsSearchRequest request) throws InterruptedException, IOException, DataRetrievingError {
         String val = request.getOgrn();
         if (val == null)
             return null;
-        Map<String, String> params = new HashMap<>();
-        params.put("type", By.OGRN);
-        params.put("val", val);
+        List<NameValuePair> params = new ArrayList<>();
+        params.add(new BasicNameValuePair("type", By.OGRN));
+        params.add(new BasicNameValuePair("val", val));
         return executeSearch(params);
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException, IOException, DataRetrievingError {
+        String resp = HttpDownloader.get("http://list-org.com/company/292390", false);
+
         ListOrg lo = new ListOrg();
 
         CredentialsSearchRequest req = new CredentialsSearchRequest("БОГАТЫРЬ", "unknown", "1102017213", null);
         Credentials creds = new Credentials();
-        lo.findCredentials(req, creds);
+        Credentials res = lo.findCredentials(req, creds);
     }
 }
