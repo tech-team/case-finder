@@ -49,7 +49,9 @@ public class MainController {
 
     private ObservableList<CaseModel> casesData = FXCollections.observableArrayList();
     private ObservableList<String> courtsList = FXCollections.observableArrayList();
+
     private double casesLoadedCount = 0;
+    private int totalCasesCount = 0;
 
     private Stage stage;
     private CaseLoader<CaseModelAppender> caseLoader = null;
@@ -165,18 +167,25 @@ public class MainController {
         searchButton.setText(res.getString("searchButtonPressed"));
         progressIndicator.setProgress(ProgressIndicator.INDETERMINATE_PROGRESS);
         progressIndicator.setVisible(true);
+        totalCasesCount = 0;
+        casesLoadedCount = 0;
 
         this.caseLoader = new CaseLoader<>();
         CaseModelAppender caseModelAppender = new CaseModelAppender(casesData);
         casesData.clear();
 
         caseLoader.totalCasesCountObtained.on(totalCount -> {
-            progressIndicator.setProgress(0);
+            totalCasesCount = totalCount;
 
-            caseLoader.caseLoaded.on(() -> {
-                ++casesLoadedCount;
-                progressIndicator.setProgress(casesLoadedCount / totalCount);
-            });
+            if (totalCasesCount != 0)
+                progressIndicator.setProgress(casesLoadedCount / totalCasesCount);
+        });
+
+        caseLoader.caseLoaded.on(() -> {
+            ++casesLoadedCount;
+
+            if (totalCasesCount != 0)
+                progressIndicator.setProgress(casesLoadedCount / totalCasesCount);
         });
 
         caseLoader.casesLoaded.on((data) -> {
