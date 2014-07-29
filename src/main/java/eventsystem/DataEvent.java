@@ -1,11 +1,13 @@
 package eventsystem;
 
 import javafx.application.Platform;
-import java.util.ArrayList;
+
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Consumer;
 
 public class DataEvent<T> {
-    ArrayList<EventContainer<Consumer<T>>> handlerContainers = new ArrayList<>();
+    Set<EventContainer<Consumer<T>>> handlerContainers = new HashSet<>();
 
     public void on(Consumer<T> handler) {
         handlerContainers.add(

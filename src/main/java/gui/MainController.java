@@ -49,6 +49,7 @@ public class MainController {
 
     private ObservableList<CaseModel> casesData = FXCollections.observableArrayList();
     private ObservableList<String> courtsList = FXCollections.observableArrayList();
+    private double casesLoadedCount = 0;
 
     private Stage stage;
     private CaseLoader<CaseModelAppender> caseLoader = null;
@@ -151,7 +152,9 @@ public class MainController {
     
     public void casesSearchClick(ActionEvent actionEvent) {
         if (mode == Mode.SEARCHING) {
-            caseLoader.stopExecution();
+            if (caseLoader != null)
+                caseLoader.stopExecution();
+
             mode = Mode.DEFAULT;
             searchButton.setText(res.getString("searchButtonDefault"));
             return;
@@ -161,25 +164,6 @@ public class MainController {
         searchButton.setText(res.getString("searchButtonPressed"));
         progressIndicator.setProgress(ProgressIndicator.INDETERMINATE_PROGRESS);
 
-
-        /*
-        Timeline fiveSecondsWonder = new Timeline(new KeyFrame(Duration.seconds(0.1), event -> {
-            progress[0] = progress[0] + 0.01;
-            progressIndicator.setProgress(progress[0]);
-        }));
-        fiveSecondsWonder.setCycleCount(100);
-        fiveSecondsWonder.play();
-
-
-        Timeline finishProgress = new Timeline(new KeyFrame(Duration.seconds(10), event -> {
-            mode = Mode.DEFAULT;
-            searchButton.setText(res.getString("searchButtonDefault"));
-        }));
-        finishProgress.setCycleCount(1);
-        finishProgress.play();*/
-
-
-        // real data
         this.caseLoader = new CaseLoader<>();
         CaseModelAppender caseModelAppender = new CaseModelAppender(casesData);
         casesData.clear();
@@ -187,8 +171,9 @@ public class MainController {
         caseLoader.totalCasesCountObtained.on(totalCount -> {
             progressIndicator.setProgress(0);
 
-            caseLoader.caseLoaded.on(loadedCount -> {
-                progressIndicator.setProgress(((double) loadedCount) / totalCount);
+            caseLoader.caseLoaded.on(() -> {
+                ++casesLoadedCount;
+                progressIndicator.setProgress(casesLoadedCount / totalCount);
             });
         });
 
