@@ -1,7 +1,8 @@
 package caseloader;
 
-import caseloader.kad.*;
+import caseloader.kad.KadLoader;
 import eventsystem.DataEvent;
+import eventsystem.Event;
 import exceptions.DataRetrievingError;
 import util.MyLogger;
 
@@ -14,7 +15,7 @@ public class CaseLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
     private KadLoader<CaseContainerType> kadLoader = new KadLoader<>();
 
     public final DataEvent<Integer> totalCasesCountObtained = new DataEvent<>();
-    public final DataEvent<Integer> caseLoaded = new DataEvent<>();
+    public final Event caseLoaded = new Event();
     public final DataEvent<CaseContainerType> casesLoaded = new DataEvent<>();
 
     private Thread thread = null;
