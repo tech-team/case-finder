@@ -33,14 +33,10 @@ public class ThreadPool {
         }
     }
 
-    public void waitForFinish() {
+    public void waitForFinish() throws InterruptedException {
         executor.shutdown();
         while (!executor.isTerminated()) {
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            Thread.sleep(100);
         }
     }
 

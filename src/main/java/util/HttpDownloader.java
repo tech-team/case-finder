@@ -5,7 +5,6 @@ import exceptions.DataRetrievingError;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
@@ -26,9 +25,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.charset.Charset;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,14 +36,14 @@ public abstract class HttpDownloader {
     public static final String USER_AGENT = "Test UserAgent 1.0";
     private static final int REQUEST_TIMEOUT = 5 * 1000;
     private static final boolean USE_PROXY_DEFAULT = true;
-    //    private static HttpClient client =  HttpClientBuilder.create().build();
-    private static ConcurrentHashMap<String, Long> lastTimes = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, Long> LAST_TIMES = new ConcurrentHashMap<>();
     private static final long WAIT_DELTA = 3 * 1000;
-    private static int retryCount = 1; // TODO: make it local
+    private static int getRetryCount = 1;
+    private static int postRetryCount = 1;
     private static Logger logger = MyLogger.getLogger(HttpDownloader.class.toString());
 
     private static void checkSleep(String hostname) throws InterruptedException {
-        Long lastTime = lastTimes.get(hostname);
+        Long lastTime = LAST_TIMES.get(hostname);
         if (lastTime != null) {
             long time = System.currentTimeMillis();
             long delta = time - lastTime;
@@ -56,11 +53,11 @@ public abstract class HttpDownloader {
                 logger.fine("Sleep finished");
             }
         }
-        lastTimes.put(hostname, System.currentTimeMillis());
+        LAST_TIMES.put(hostname, System.currentTimeMillis());
     }
 
     private static void updateTime(String hostname) {
-        lastTimes.put(hostname, System.currentTimeMillis());
+        LAST_TIMES.put(hostname, System.currentTimeMillis());
     }
 
     public static String get(String url, boolean useProxy) throws IOException, DataRetrievingError, InterruptedException {
@@ -105,15 +102,15 @@ public abstract class HttpDownloader {
                 throw new InterruptedException("Thread is already stopped");
             }
             updateTime(uriBuilder.getHost());
-            retryCount = 0;
+            getRetryCount = 0;
             return getResponse(response);
         } catch (HttpHostConnectException | ConnectTimeoutException e) {
-            logger.warning("Exception happened. Retry #" + retryCount++);
-            if (retryCount < 3) {
+            logger.warning("Exception happened. Retry #" + getRetryCount++);
+            if (getRetryCount < 3) {
                 updateTime(uriBuilder.getHost());
                 return get(url, params, headers, useProxy);
             }
-            logger.severe("Exception happened again after " + retryCount + "retries");
+            logger.severe("Exception happened again after " + getRetryCount + "retries");
             throw e;
         }
 
@@ -162,13 +159,13 @@ public abstract class HttpDownloader {
                 throw new InterruptedException("Thread is already stopped");
             }
             updateTime(uriBuilder.getHost());
-            retryCount = 0;
+            postRetryCount = 0;
             return getResponse(response);
         } catch (HttpHostConnectException | ConnectTimeoutException e) {
-            logger.warning("Exception happened. Retry #" + retryCount++);
-            if (retryCount < 3)
+            logger.warning("Exception happened. Retry #" + postRetryCount++);
+            if (postRetryCount < 3)
                 return post(url, data, headers, useProxy);
-            logger.severe("Exception happened again after " + retryCount + "retries");
+            logger.severe("Exception happened again after " + postRetryCount + "retries");
             throw e;
         }
     }

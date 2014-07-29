@@ -5,7 +5,6 @@ import caseloader.credentials.websites.RusProfile;
 import caseloader.credentials.websites.WebSite;
 import exceptions.DataRetrievingError;
 import util.MyLogger;
-import util.Sleeper;
 
 import java.io.IOException;
 import java.util.LinkedList;
