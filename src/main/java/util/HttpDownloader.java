@@ -101,6 +101,9 @@ public abstract class HttpDownloader {
 
         try (CloseableHttpClient client = HttpClientBuilder.create().build()) {
             HttpResponse response = client.execute(buildTarget(uriBuilder), request);
+            if (Thread.currentThread().isInterrupted()) {
+                throw new InterruptedException("Thread is already stopped");
+            }
             updateTime(uriBuilder.getHost());
             retryCount = 0;
             return getResponse(response);
@@ -155,6 +158,9 @@ public abstract class HttpDownloader {
 
         try (CloseableHttpClient client = HttpClientBuilder.create().build()) {
             HttpResponse response = client.execute(buildTarget(uriBuilder), request);
+            if (Thread.currentThread().isInterrupted()) {
+                throw new InterruptedException("Thread is already stopped");
+            }
             updateTime(uriBuilder.getHost());
             retryCount = 0;
             return getResponse(response);
@@ -193,12 +199,15 @@ public abstract class HttpDownloader {
         return RequestConfig.custom().setProxy(proxy).setConnectTimeout(REQUEST_TIMEOUT).build();
     }
 
-    private static String getResponse(HttpResponse response) throws IOException {
+    private static String getResponse(HttpResponse response) throws IOException, InterruptedException {
         BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
 
         StringBuilder sb = new StringBuilder();
         String line;
         while ((line = rd.readLine()) != null) {
+            if (Thread.currentThread().isInterrupted()) {
+                throw new InterruptedException("Thread is already stopped");
+            }
             sb.append(line);
         }
         return sb.toString();

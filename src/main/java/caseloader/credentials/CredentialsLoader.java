@@ -27,7 +27,7 @@ public class CredentialsLoader {
         this.webSites = webSites;
     }
 
-    public Credentials retrieveCredentials(CredentialsSearchRequest request) {
+    public Credentials retrieveCredentials(CredentialsSearchRequest request) throws InterruptedException {
         Credentials credentials = new Credentials();
         List<Future<Credentials>> founds = new LinkedList<>();
 
@@ -40,7 +40,7 @@ public class CredentialsLoader {
         for (Future<Credentials> found : founds) {
             try {
                 credentials.merge(found.get());
-            } catch (InterruptedException | ExecutionException e) {
+            } catch (ExecutionException e) {
                 e.printStackTrace();
                 return null;
             }

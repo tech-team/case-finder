@@ -52,8 +52,8 @@ public class CaseLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
     }
 
     public void stopExecution() {
-        thread.interrupt();
         kadLoader.stopExecution();
+        thread.interrupt();
     }
 
 

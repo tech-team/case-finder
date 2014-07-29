@@ -3,6 +3,7 @@ package caseloader.kad;
 import caseloader.CaseInfo;
 import caseloader.CaseSearchRequest;
 import caseloader.ThreadPool;
+import caseloader.credentials.CredentialsLoader;
 import exceptions.DataRetrievingError;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -21,6 +22,7 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
     public static final int TOTAL_MAX_COUNT = 1000;
     private int retryCount = 1;
     private ThreadPool pool = new ThreadPool();
+    private final CredentialsLoader credentialsLoader = new CredentialsLoader();
     private Logger logger = MyLogger.getLogger(this.getClass().toString());
 
     public KadLoader() {
@@ -72,11 +74,11 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
         return data;
     }
 
-    private void processKadResponse(KadResponse resp, int minCost, CaseContainerType outData) {
+    private void processKadResponse(KadResponse resp, int minCost, CaseContainerType outData) throws InterruptedException {
         List<CaseInfo> items = resp.getItems();
         for (int i = 0; i < items.size(); ++i) {
             CaseInfo item = items.get(i);
-            pool.execute(new KadWorker<>(i + 1, item, minCost, outData));
+            pool.execute(new KadWorker<>(i + 1, item, minCost, outData, credentialsLoader));
         }
     }
 
@@ -106,8 +108,8 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
     }
 
     public void stopExecution() {
+        credentialsLoader.stopExecution();
         pool.stopExecution();
-        KadWorker.stopExecution();
     }
 
 
