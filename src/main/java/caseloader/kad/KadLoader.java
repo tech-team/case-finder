@@ -7,14 +7,13 @@ import caseloader.credentials.CredentialsLoader;
 import exceptions.DataRetrievingError;
 import org.json.JSONException;
 import org.json.JSONObject;
-import util.*;
+import util.HttpDownloader;
+import util.MyLogger;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
@@ -63,7 +62,8 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
                         logger.severe("Couldn't load page #" + i);
                     }
                 }
-                data.setTotalCount(totalCasesCount);
+                //TODO
+                //data.setTotalCount(totalCasesCount);
             }
 
             pool.waitForFinish();

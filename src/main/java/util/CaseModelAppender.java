@@ -2,7 +2,6 @@ package util;
 
 import caseloader.CaseInfo;
 import caseloader.CaseSide;
-import eventsystem.DataEvent;
 import gui.casestable.CaseModel;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
@@ -11,9 +10,6 @@ import java.util.Collection;
 
 public class CaseModelAppender implements Appendable<CaseInfo> {
     private ObservableList<CaseModel> casesData;
-    private Integer totalCasesCount = 0;
-
-    public final DataEvent<Integer> totalCasesCountObtained = new DataEvent<>();
 
     public CaseModelAppender(ObservableList<CaseModel> casesData) {
         this.casesData = casesData;
@@ -49,16 +45,5 @@ public class CaseModelAppender implements Appendable<CaseInfo> {
     @Override
     public Collection<CaseInfo> getCollection() {
         throw new RuntimeException("No getter for collection here");
-    }
-
-    @Override
-    public void setTotalCount(Integer count) {
-        totalCasesCount = count;
-        totalCasesCountObtained.fire(totalCasesCount);
-    }
-
-    @Override
-    public Integer getTotalCount() {
-        return totalCasesCount;
     }
 }
