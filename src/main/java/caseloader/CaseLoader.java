@@ -12,7 +12,10 @@ import java.util.logging.Logger;
 
 public class CaseLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
     private KadLoader<CaseContainerType> kadLoader = new KadLoader<>();
-    public DataEvent<CaseContainerType> casesLoaded = new DataEvent<>();
+
+    public final DataEvent<Integer> totalCasesCountObtained = new DataEvent<>();
+    public final DataEvent<Integer> caseLoaded = new DataEvent<>();
+    public final DataEvent<CaseContainerType> casesLoaded = new DataEvent<>();
 
     private Thread thread = null;
     private Logger logger = MyLogger.getLogger(this.getClass().toString());

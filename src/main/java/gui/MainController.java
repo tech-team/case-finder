@@ -159,21 +159,10 @@ public class MainController {
 
         mode = Mode.SEARCHING;
         searchButton.setText(res.getString("searchButtonPressed"));
+        progressIndicator.setProgress(ProgressIndicator.INDETERMINATE_PROGRESS);
 
-        /*Random random = new Random();
-        Integer caseId = random.nextInt(100);
-        long days = random.nextInt(50);
 
-        double cost = random.nextDouble() * 10000;
-
-//        casesData.add(new CaseModel("А" + caseId, "http://google.com", LocalDate.now().minusDays(days).toString(), "Саша", "Петя", cost, "Административное", "Никита"));
-
-        mode = Mode.SEARCHING;
-        searchButton.setText(res.getString("searchButtonPressed"));
-        progressIndicator.setProgress(0);
-        progressIndicator.setVisible(true);
-        final double[] progress = {(double) 0};
-
+        /*
         Timeline fiveSecondsWonder = new Timeline(new KeyFrame(Duration.seconds(0.1), event -> {
             progress[0] = progress[0] + 0.01;
             progressIndicator.setProgress(progress[0]);
@@ -194,6 +183,14 @@ public class MainController {
         this.caseLoader = new CaseLoader<>();
         CaseModelAppender caseModelAppender = new CaseModelAppender(casesData);
         casesData.clear();
+
+        caseLoader.totalCasesCountObtained.on(totalCount -> {
+            progressIndicator.setProgress(0);
+
+            caseLoader.caseLoaded.on(loadedCount -> {
+                progressIndicator.setProgress(((double) loadedCount) / totalCount);
+            });
+        });
 
         caseLoader.casesLoaded.on((data) -> {
             String message = String.format(res.getString("loadingFinished"), casesData.size());
