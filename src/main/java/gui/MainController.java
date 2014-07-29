@@ -181,7 +181,7 @@ public class MainController {
                 progressIndicator.setProgress(casesLoadedCount / totalCasesCount);
         });
 
-        caseLoader.caseLoaded.on(() -> {
+        caseLoader.caseProcessed.on(() -> {
             ++casesLoadedCount;
 
             if (totalCasesCount != 0)
