@@ -102,7 +102,7 @@ public abstract class HttpDownloader {
                 throw new InterruptedException("Thread is already stopped");
             }
             updateTime(uriBuilder.getHost());
-            getRetryCount = 0;
+            getRetryCount = 1;
             return getResponse(response);
         } catch (HttpHostConnectException | ConnectTimeoutException e) {
             logger.warning("Exception happened. Retry #" + getRetryCount++);
@@ -159,7 +159,7 @@ public abstract class HttpDownloader {
                 throw new InterruptedException("Thread is already stopped");
             }
             updateTime(uriBuilder.getHost());
-            postRetryCount = 0;
+            postRetryCount = 1;
             return getResponse(response);
         } catch (HttpHostConnectException | ConnectTimeoutException e) {
             logger.warning("Exception happened. Retry #" + postRetryCount++);
