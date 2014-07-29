@@ -191,17 +191,17 @@ public class MainController {
 
 
         // real data
-
         this.caseLoader = new CaseLoader<>();
         CaseModelAppender caseModelAppender = new CaseModelAppender(casesData);
         casesData.clear();
 
         caseLoader.casesLoaded.on((data) -> {
-            // TODO: Probably react somehow
+            Dialogs.create()
+                    .message(res.getString("loadingFinished"))
+                    .showInformation();
         });
 
         caseLoader.retrieveDataAsync(new CaseSearchRequest(), caseModelAppender);
-
     }
 
     public void exportCasesToExcel(ActionEvent actionEvent) {
