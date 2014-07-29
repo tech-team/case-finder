@@ -24,6 +24,8 @@ import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import org.controlsfx.control.action.Action;
+import org.controlsfx.dialog.Dialog;
 import org.controlsfx.dialog.Dialogs;
 import util.CaseModelAppender;
 import util.ResourceControl;
@@ -147,15 +149,60 @@ public class MainController {
     }
 
     public void onClose(WindowEvent event) {
-        System.out.println("onClose");
-        if (caseLoader != null)
-            caseLoader.stopExecution();
+        if (caseLoader != null) {
+            if (mode == Mode.SEARCHING) {
+                Action action = Dialogs.create()
+                        .message(res.getString("onStopDialog"))
+                        .actions(Dialog.Actions.YES, Dialog.Actions.NO)
+                        .showConfirm();
+
+                if (action == Dialog.Actions.YES)
+                    caseLoader.stopExecution();
+                else {
+                    event.consume();
+                    return;
+                }
+            }
+
+            Dialogs.CommandLink saveAction = new Dialogs.CommandLink(
+                    res.getString("saveAction"),
+                    res.getString("saveActionComment"));
+
+            Dialogs.CommandLink exitAction = new Dialogs.CommandLink(
+                    res.getString("exitAction"),
+                    res.getString("exitActionComment"));
+
+            Dialogs.CommandLink cancelAction = new Dialogs.CommandLink(
+                    res.getString("cancelAction"),
+                    res.getString("cancelActionComment"));
+            
+            Action action = Dialogs.create()
+                    .message(res.getString("onCloseDialog"))
+                    .showCommandLinks(saveAction, saveAction, exitAction, cancelAction);
+
+            if (action == saveAction) {
+                exportCasesToExcel(null);
+            }
+            else if (action != exitAction) {
+                //cancel or cross button
+                event.consume();
+            }
+        }
     }
     
     public void casesSearchClick(ActionEvent actionEvent) {
         if (mode == Mode.SEARCHING) {
-            if (caseLoader != null)
-                caseLoader.stopExecution();
+            if (caseLoader != null) {
+                Action action = Dialogs.create()
+                        .message(res.getString("onStopDialog"))
+                        .actions(Dialog.Actions.YES, Dialog.Actions.NO)
+                        .showConfirm();
+
+                if (action == Dialog.Actions.YES)
+                    caseLoader.stopExecution();
+                else
+                    return;
+            }
 
             mode = Mode.DEFAULT;
             searchButton.setText(res.getString("searchButtonDefault"));
