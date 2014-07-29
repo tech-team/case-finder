@@ -72,7 +72,7 @@ public class CredentialsLoader {
             try {
                 found = webSite.findCredentials(request, credentials);
             } catch (IOException | DataRetrievingError e) {
-                throw new RuntimeException(e);
+                throw new RuntimeException(e); // TODO: retrying
             } catch (InterruptedException e) {
                 return null;
             }

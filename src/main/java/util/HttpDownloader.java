@@ -33,7 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 public abstract class HttpDownloader {
-    public static final String USER_AGENT = "Test UserAgent 1.0";
+    public static final String USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.125 Safari/537.36";
     private static final int REQUEST_TIMEOUT = 5 * 1000;
     private static final boolean USE_PROXY_DEFAULT = true;
     private static final ConcurrentHashMap<String, Long> LAST_TIMES = new ConcurrentHashMap<>();

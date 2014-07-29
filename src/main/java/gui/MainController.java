@@ -170,10 +170,11 @@ public class MainController {
         CaseModelAppender caseModelAppender = new CaseModelAppender(casesData);
         casesData.clear();
 
+        casesLoadedCount = 0;
         caseLoader.totalCasesCountObtained.on(totalCount -> {
             progressIndicator.setProgress(0);
 
-            caseLoader.caseLoaded.on(() -> {
+            caseLoader.caseProcessed.on(() -> {
                 ++casesLoadedCount;
                 progressIndicator.setProgress(casesLoadedCount / totalCount);
             });

@@ -5,6 +5,7 @@ import caseloader.CaseSide;
 import caseloader.credentials.Credentials;
 import caseloader.credentials.CredentialsLoader;
 import caseloader.credentials.CredentialsSearchRequest;
+import eventsystem.Event;
 import exceptions.DataRetrievingError;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
@@ -25,14 +26,16 @@ public class KadWorker <CaseContainerType extends util.Appendable<CaseInfo> > im
     private final CaseContainerType data;
     private final int minCost;
     private final CredentialsLoader credentialsLoader;
+    private final Event caseProcessed;
     private Logger logger = MyLogger.getLogger(this.getClass().toString());
 
-    public KadWorker(int id, CaseInfo caseInfo, int minCost, CaseContainerType data, CredentialsLoader credentialsLoader) {
+    public KadWorker(int id, CaseInfo caseInfo, int minCost, CaseContainerType data, CredentialsLoader credentialsLoader, Event caseProcessed) {
         this.id = id;
         this.caseInfo = caseInfo;
         this.data = data;
         this.minCost = minCost;
         this.credentialsLoader = credentialsLoader;
+        this.caseProcessed = caseProcessed;
     }
 
     @Override
@@ -87,6 +90,7 @@ public class KadWorker <CaseContainerType extends util.Appendable<CaseInfo> > im
                     logger.severe(e.getMessage());
                 }
 
+                caseProcessed.fire();
                 logger.info(String.format("Finished case %d/%d = %s", id, KadLoader.TOTAL_MAX_COUNT, this.caseInfo.getCaseNumber()));
             } else {
                 logger.info(String.format("Case %d/%d = %s failed", id, KadLoader.TOTAL_MAX_COUNT, this.caseInfo.getCaseNumber()));
