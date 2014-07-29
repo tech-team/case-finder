@@ -51,7 +51,7 @@ public class MainController {
     private ObservableList<String> courtsList = FXCollections.observableArrayList();
 
     private Stage stage;
-    private CaseLoader<CaseModelAppender> caseLoader = new CaseLoader<>();
+    private CaseLoader<CaseModelAppender> caseLoader = null;
 
     private enum Mode {
         DEFAULT, SEARCHING
@@ -142,7 +142,8 @@ public class MainController {
 
     public void onClose(WindowEvent event) {
         System.out.println("onClose");
-        caseLoader.stopExecution();
+        if (caseLoader != null)
+            caseLoader.stopExecution();
     }
     
     public void casesSearchClick(ActionEvent actionEvent) {
@@ -188,6 +189,7 @@ public class MainController {
 
         // real data
 
+        this.caseLoader = new CaseLoader<>();
         CaseModelAppender caseModelAppender = new CaseModelAppender(casesData);
         casesData.clear();
 

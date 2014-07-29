@@ -20,22 +20,19 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 public class KadWorker <CaseContainerType extends util.Appendable<CaseInfo> > implements Runnable {
-    private static final CredentialsLoader CREDENTIALS_LOADER = new CredentialsLoader();
     private final int id;
     private final CaseInfo caseInfo;
     private final CaseContainerType data;
     private final int minCost;
+    private final CredentialsLoader credentialsLoader;
     private Logger logger = MyLogger.getLogger(this.getClass().toString());
 
-    public KadWorker(int id, CaseInfo caseInfo, int minCost, CaseContainerType data) {
+    public KadWorker(int id, CaseInfo caseInfo, int minCost, CaseContainerType data, CredentialsLoader credentialsLoader) {
         this.id = id;
         this.caseInfo = caseInfo;
         this.data = data;
         this.minCost = minCost;
-    }
-
-    public static void stopExecution() {
-        CREDENTIALS_LOADER.stopExecution();
+        this.credentialsLoader = credentialsLoader;
     }
 
     @Override
@@ -48,13 +45,13 @@ public class KadWorker <CaseContainerType extends util.Appendable<CaseInfo> > im
         headers.put("X-Requested-With", "XMLHttpRequest");
         headers.put("Content-Type", "application/json");
         headers.put("Accept", "application/json, text/javascript, */*");
-        JSONObject caseInfo = null;
+        JSONObject caseJson = null;
         String json = "";
         try {
             json = HttpDownloader.get(Urls.KAD_CARD, params, headers);
-            caseInfo = new JSONObject(json);
+            caseJson = new JSONObject(json);
         } catch (IOException | DataRetrievingError | JSONException e) {
-            logger.warning("Error retrieving case " + this.caseInfo.getCaseNumber() + ". Retrying");
+            logger.warning("Error retrieving case " + caseInfo.getCaseNumber() + ". Retrying");
             run();
             return;
 //            throw new RuntimeException(e);
@@ -63,35 +60,39 @@ public class KadWorker <CaseContainerType extends util.Appendable<CaseInfo> > im
             return;
         }
 
-        if (JsonUtils.getBoolean(caseInfo, "Success")) {
-            JSONObject result = JsonUtils.getJSONObject(caseInfo, "Result");
-            try {
-                Double cost = JsonUtils.getDouble(result, "ClaimSum");
-                if (cost != null && cost != 0 && cost >= minCost) {
-                    this.caseInfo.setCost(cost);
+        try {
+            if (JsonUtils.getBoolean(caseJson, "Success")) {
+                JSONObject result = JsonUtils.getJSONObject(caseJson, "Result");
+                try {
+                    Double cost = JsonUtils.getDouble(result, "ClaimSum");
+                    if (cost != null && cost != 0 && cost >= minCost) {
+                        caseInfo.setCost(cost);
 
-                    this.caseInfo.splitSides();
-                    for (CaseSide defendant : this.caseInfo.getDefendants()) {
-                        CredentialsSearchRequest credentialsSearchRequest =
-                                new CredentialsSearchRequest(defendant.getName(),
-                                        defendant.getAddress(),
-                                        defendant.getInn(),
-                                        defendant.getOgrn());
-                        Credentials defendantCredentials =
-                                CREDENTIALS_LOADER.retrieveCredentials(credentialsSearchRequest);
-                        defendant.setCredentials(defendantCredentials);
+                        caseInfo.splitSides();
+                        for (CaseSide defendant : caseInfo.getDefendants()) {
+                            CredentialsSearchRequest credentialsSearchRequest =
+                                    new CredentialsSearchRequest(defendant.getName(),
+                                            defendant.getAddress(),
+                                            defendant.getInn(),
+                                            defendant.getOgrn());
+                            Credentials defendantCredentials =
+                                    credentialsLoader.retrieveCredentials(credentialsSearchRequest);
+                            defendant.setCredentials(defendantCredentials);
+                        }
+                        synchronized (data) {
+                            data.append(caseInfo);
+                        }
                     }
-                    synchronized (data) {
-                        data.append(this.caseInfo);
-                    }
+                } catch (NullPointerException e) {
+                    logger.severe(e.getMessage());
                 }
-            } catch (NullPointerException e) {
-                logger.severe(e.getMessage());
-            }
 
-            logger.info(String.format("Finished case %d/%d = %s", id, KadLoader.TOTAL_MAX_COUNT, this.caseInfo.getCaseNumber()));
-        } else {
-            logger.info(String.format("Case %d/%d = %s failed", id, KadLoader.TOTAL_MAX_COUNT, this.caseInfo.getCaseNumber()));
+                logger.info(String.format("Finished case %d/%d = %s", id, KadLoader.TOTAL_MAX_COUNT, this.caseInfo.getCaseNumber()));
+            } else {
+                logger.info(String.format("Case %d/%d = %s failed", id, KadLoader.TOTAL_MAX_COUNT, this.caseInfo.getCaseNumber()));
+            }
+        } catch (InterruptedException e) {
+            System.out.println("INTERRUPTED");
         }
     }
 }

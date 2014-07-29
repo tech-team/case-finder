@@ -1,9 +1,6 @@
 package caseloader;
 
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 public class ThreadPool {
     private static final int WAIT_TIMEOUT = 5 * 60;
@@ -20,12 +17,20 @@ public class ThreadPool {
         executor = Executors.newFixedThreadPool(threadsCount);
     }
 
-    public void execute(Runnable command) {
-        executor.execute(command);
+    public void execute(Runnable command) throws InterruptedException {
+        try {
+            executor.execute(command);
+        } catch (RejectedExecutionException e) {
+            throw new InterruptedException("Execution rejected due to stopped thread pool");
+        }
     }
 
-    public <T> Future<T> submit(Callable<T> task) {
-        return executor.submit(task);
+    public <T> Future<T> submit(Callable<T> task) throws InterruptedException {
+        try {
+            return executor.submit(task);
+        } catch (RejectedExecutionException e) {
+            throw new InterruptedException("Execution rejected due to stopped thread pool");
+        }
     }
 
     public void waitForFinish() {
