@@ -10,12 +10,13 @@ import util.MyLogger;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
 public abstract class CourtsInfo {
-    private static Map<String, String> courts = new HashMap<>();
+    private static Map<String, String> courts = new LinkedHashMap<>();
     public static DataEvent<Set<String>> courtsLoadedEvent = new DataEvent<>();
 
     private static Logger logger = MyLogger.getLogger(CourtsInfo.class.toString());
@@ -41,7 +42,7 @@ public abstract class CourtsInfo {
                 } catch (IOException | DataRetrievingError e) {
                     throw new RuntimeException(e);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    logger.info("Retrieving courts has been interrupted");
                     return;
                 }
                 courtsLoadedEvent.fire(courts);
@@ -55,7 +56,7 @@ public abstract class CourtsInfo {
             } catch (IOException | DataRetrievingError e) {
                 throw new RuntimeException(e);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                logger.info("Retrieving courts has been interrupted");
             }
         }
     }

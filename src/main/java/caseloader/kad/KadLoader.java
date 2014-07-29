@@ -67,7 +67,7 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
             }
 
             pool.waitForFinish();
-        } catch (InterruptedException ignored) {
+        } catch (InterruptedException e) {
             System.out.println("We are stopped");
         }
 

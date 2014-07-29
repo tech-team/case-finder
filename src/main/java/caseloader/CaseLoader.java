@@ -43,12 +43,8 @@ public class CaseLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
         thread.start();
     }
 
-    public void waitForRetrieval() {
-        try {
-            thread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+    public void waitForRetrieval() throws InterruptedException {
+        thread.join();
     }
 
     public void stopExecution() {

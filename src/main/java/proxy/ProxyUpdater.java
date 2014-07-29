@@ -37,7 +37,7 @@ class ProxyUpdater {
                     } catch (IOException | DataRetrievingError e) {
                         throw new RuntimeException(e);
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        logger.info("ProxyUpdater has been interrupted");
                         return;
                     }
                     proxyList.loadNewList(newList);
@@ -48,7 +48,8 @@ class ProxyUpdater {
                             Thread.sleep(SLEEP_TIME);
                             sleepCount += 1;
                         } catch (InterruptedException e) {
-                            break;
+                            logger.info("ProxyUpdater has been interrupted");
+                            return;
                         }
                     }
                 }
