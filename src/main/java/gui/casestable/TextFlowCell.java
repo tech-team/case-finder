@@ -9,6 +9,7 @@ import javafx.scene.control.Hyperlink;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableRow;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import javafx.scene.text.TextFlow;
 import util.HypertextNode;
 import util.HypertextParser;
@@ -56,7 +57,8 @@ public class TextFlowCell<S, T> extends TableCell<S, T> {
             textFlow.getChildren().clear();
             textFlow.setMaxWidth(Double.MAX_VALUE);
             textFlow.setPrefWidth(Double.MAX_VALUE);
-            //textFlow.setMinWidth(Double.MAX_VALUE);
+            textFlow.setMinWidth(Double.MAX_VALUE);
+            textFlow.setTextAlignment(TextAlignment.LEFT);
 
             List<HypertextNode> nodes = HypertextParser.parse(value);
             for (HypertextNode node: nodes) {
@@ -72,6 +74,7 @@ public class TextFlowCell<S, T> extends TableCell<S, T> {
                 }
                 else {
                     Text text = new Text(node.getValue());
+                    text.setTextAlignment(TextAlignment.LEFT);
                     text.setWrappingWidth(Double.MAX_VALUE);
                     textFlow.getChildren().add(text);
                 }

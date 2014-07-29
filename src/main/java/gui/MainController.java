@@ -116,6 +116,18 @@ public class MainController {
             casesTable.getColumns().add(col);
         }
 
+        CaseModel caseModel = new CaseModel();
+        caseModel.setNumber("some really long string");
+        caseModel.setUrl("some really long string");
+        caseModel.setCreatedDate("some really long string");
+        caseModel.setPlaintiff("some really long string");
+        caseModel.setDefendant("some really long string");
+        caseModel.setCaseType("some really long string");
+        caseModel.setCourt("some really long string");
+        caseModel.setCost(100500.0);
+
+        casesData.add(caseModel);
+
         casesTable.setItems(casesData);
     }
 
