@@ -196,8 +196,10 @@ public class MainController {
         casesData.clear();
 
         caseLoader.casesLoaded.on((data) -> {
+            String message = String.format(res.getString("loadingFinished"), casesData.size());
+
             Dialogs.create()
-                    .message(res.getString("loadingFinished"))
+                    .message(message)
                     .showInformation();
         });
 
