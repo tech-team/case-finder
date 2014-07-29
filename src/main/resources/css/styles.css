@@ -1,0 +1,7 @@
+.hyperlink {
+    -fx-border-insets: 0;
+    -fx-border-width: 0;
+    -fx-position-shape: true;
+    -fx-border-style: none;
+    -fx-translate-y: -3;
+}

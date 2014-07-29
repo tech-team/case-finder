@@ -23,26 +23,13 @@ public class TextFlowCell<S, T> extends TableCell<S, T> {
     public TextFlowCell() {
         this.textFlow = new TextFlow();
 
-        setAlignment(Pos.CENTER);
+        setAlignment(Pos.CENTER_LEFT);
         setGraphic(textFlow);
     }
 
     @Override
     public void updateItem(T item, boolean empty) {
         super.updateItem(item, empty);
-
-        //wait for row to be initialized
-        if (tableRow == null && getTableRow() != null) {
-            tableRow = getTableRow();
-            tableRow.selectedProperty().addListener((ob, oldValue, newValue) -> {
-                for (Node node: textFlow.getChildren()) {
-                    if (newValue)
-                        node.setStyle("-fx-text-fill:white;-fx-fill:white");
-                    else
-                        node.setStyle("");
-                }
-            });
-        }
 
         if (empty) {
             setText(null);
@@ -55,10 +42,9 @@ public class TextFlowCell<S, T> extends TableCell<S, T> {
             String value = ov.getValue().toString();
 
             textFlow.getChildren().clear();
-            textFlow.setMaxWidth(Double.MAX_VALUE);
-            textFlow.setPrefWidth(Double.MAX_VALUE);
-            textFlow.setMinWidth(Double.MAX_VALUE);
-            textFlow.setTextAlignment(TextAlignment.LEFT);
+            textFlow.setMaxWidth(Integer.MAX_VALUE);
+            textFlow.setPrefWidth(Integer.MAX_VALUE);
+            textFlow.setMinWidth(Integer.MAX_VALUE);
 
             List<HypertextNode> nodes = HypertextParser.parse(value);
             for (HypertextNode node: nodes) {
@@ -79,6 +65,27 @@ public class TextFlowCell<S, T> extends TableCell<S, T> {
                     textFlow.getChildren().add(text);
                 }
             }
+
+            //wait for row to be initialized
+            //and set handler once
+            if (tableRow == null && (tableRow = getTableRow()) != null) {
+                tableRow.selectedProperty().addListener((ob, oldValue, newValue) -> {
+                    updateColor(newValue);
+                });
+            }
+
+            //update every time
+            if (tableRow != null)
+                updateColor(tableRow.selectedProperty().get());
+        }
+    }
+
+    private void updateColor(boolean selected) {
+        for (Node node: textFlow.getChildren()) {
+            if (selected)
+                node.setStyle("-fx-text-fill:white;-fx-fill:white");
+            else
+                node.setStyle("");
         }
     }
 }
