@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
+
+<fx:root type="javafx.scene.layout.VBox" xmlns:fx="http://javafx.com/fxml">
+    <children>
+        <ProgressIndicator fx:id="progressIndicator" prefHeight="93.0" prefWidth="125.0" style="-fx-fill: null;" />
+        <Label fx:id="progressLabel" alignment="CENTER" contentDisplay="CENTER" maxWidth="1.7976931348623157E308" styleClass="progress-label" text="Label" textAlignment="CENTER" />
+    </children>
+</fx:root>

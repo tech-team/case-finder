@@ -11,7 +11,9 @@ import gui.casestable.CaseFieldNamesMismatchException;
 import gui.casestable.CaseModel;
 import gui.casestable.TextFlowCell;
 import gui.searchpanel.AutoCompleteComboBoxListener;
+import gui.searchpanel.MyProgressIndicator;
 import gui.searchpanel.MySpinner;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -20,7 +22,6 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
@@ -42,7 +43,7 @@ public class MainController {
     @FXML private VBox searchPanel;
     @FXML private HBox rootNode;
     @FXML private TableView<CaseModel> casesTable;
-    @FXML private ProgressIndicator progressIndicator;
+    @FXML private MyProgressIndicator progressIndicator;
     @FXML private Button searchButton;
 
     private final static String EXPORT_PATH_PROPERTY = "exportDirectory";
@@ -51,9 +52,6 @@ public class MainController {
 
     private ObservableList<CaseModel> casesData = FXCollections.observableArrayList();
     private ObservableList<String> courtsList = FXCollections.observableArrayList();
-
-    private double casesLoadedCount = 0;
-    private int totalCasesCount = 0;
 
     private Stage stage;
     private CaseLoader<CaseModelAppender> caseLoader = null;
@@ -72,8 +70,11 @@ public class MainController {
     private void initialize() {
         initializeCourtList();
         initializeCaseModel();
-        initializeProgressIndicator();
         initializeTableView();
+
+        //not in fxml because of JavaFX bug
+        //http://stackoverflow.com/questions/22992458/javafx-thread-with-progressindicator-not-spinning-work-done-in-non-fxthread
+        Platform.runLater(() -> progressIndicator.setVisible(false));
     }
 
     private void initializeCourtList() {
@@ -139,15 +140,6 @@ public class MainController {
         casesTable.setItems(casesData);
     }
 
-    private void initializeProgressIndicator() {
-        progressIndicator.progressProperty().addListener((ov, t, newValue) -> {
-            if (newValue.doubleValue() >= 1) {
-                Text text = (Text) progressIndicator.lookup(".percentage");
-                text.setText(res.getString("done"));
-            }
-        });
-    }
-
     public void onClose(WindowEvent event) {
         if (caseLoader != null) {
             if (mode == Mode.SEARCHING) {
@@ -164,28 +156,29 @@ public class MainController {
                 }
             }
 
-            Dialogs.CommandLink saveAction = new Dialogs.CommandLink(
-                    res.getString("saveAction"),
-                    res.getString("saveActionComment"));
+            if (!casesData.isEmpty()) {
+                Dialogs.CommandLink saveAction = new Dialogs.CommandLink(
+                        res.getString("saveAction"),
+                        res.getString("saveActionComment"));
 
-            Dialogs.CommandLink exitAction = new Dialogs.CommandLink(
-                    res.getString("exitAction"),
-                    res.getString("exitActionComment"));
+                Dialogs.CommandLink exitAction = new Dialogs.CommandLink(
+                        res.getString("exitAction"),
+                        res.getString("exitActionComment"));
 
-            Dialogs.CommandLink cancelAction = new Dialogs.CommandLink(
-                    res.getString("cancelAction"),
-                    res.getString("cancelActionComment"));
-            
-            Action action = Dialogs.create()
-                    .message(res.getString("onCloseDialog"))
-                    .showCommandLinks(saveAction, saveAction, exitAction, cancelAction);
+                Dialogs.CommandLink cancelAction = new Dialogs.CommandLink(
+                        res.getString("cancelAction"),
+                        res.getString("cancelActionComment"));
 
-            if (action == saveAction) {
-                exportCasesToExcel(null);
-            }
-            else if (action != exitAction) {
-                //cancel or cross button
-                event.consume();
+                Action action = Dialogs.create()
+                        .message(res.getString("onCloseDialog"))
+                        .showCommandLinks(saveAction, saveAction, exitAction, cancelAction);
+
+                if (action == saveAction) {
+                    exportCasesToExcel(null);
+                } else if (action != exitAction) {
+                    //cancel or cross button
+                    event.consume();
+                }
             }
         }
     }
@@ -212,30 +205,23 @@ public class MainController {
 
         mode = Mode.SEARCHING;
         searchButton.setText(res.getString("searchButtonPressed"));
-        progressIndicator.setProgress(ProgressIndicator.INDETERMINATE_PROGRESS);
+        progressIndicator.reset();
         progressIndicator.setVisible(true);
-        totalCasesCount = 0;
-        casesLoadedCount = 0;
 
         this.caseLoader = new CaseLoader<>();
         CaseModelAppender caseModelAppender = new CaseModelAppender(casesData);
         casesData.clear();
 
-        caseLoader.totalCasesCountObtained.on(totalCount -> {
-            totalCasesCount = totalCount;
-
-            if (totalCasesCount != 0)
-                progressIndicator.setProgress(casesLoadedCount / totalCasesCount);
-        });
+        caseLoader.totalCasesCountObtained.on(progressIndicator::setLimit);
 
         caseLoader.caseProcessed.on(() -> {
-            ++casesLoadedCount;
-
-            if (totalCasesCount != 0)
-                progressIndicator.setProgress(casesLoadedCount / totalCasesCount);
+            progressIndicator.add(1);
         });
 
         caseLoader.casesLoaded.on((data) -> {
+            mode = Mode.DEFAULT;
+            searchButton.setText(res.getString("searchButtonDefault"));
+
             String message = String.format(res.getString("loadingFinished"), casesData.size());
 
             Dialogs.create()

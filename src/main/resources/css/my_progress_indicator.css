@@ -1,0 +1,8 @@
+.progress-indicator .percentage {
+    -fx-fill: null;
+    -fx-text-background-color: red;
+}
+
+.progress-label {
+    -fx-translate-y: -20;
+}
