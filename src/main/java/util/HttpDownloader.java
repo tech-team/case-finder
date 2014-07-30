@@ -5,6 +5,7 @@ import exceptions.DataRetrievingError;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
+import org.apache.http.NoHttpResponseException;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
@@ -104,7 +105,7 @@ public abstract class HttpDownloader {
             updateTime(uriBuilder.getHost());
             getRetryCount = 1;
             return getResponse(response);
-        } catch (HttpHostConnectException | ConnectTimeoutException e) {
+        } catch (HttpHostConnectException | ConnectTimeoutException | NoHttpResponseException e) {
             logger.warning("Exception happened. Retry #" + getRetryCount++);
             if (getRetryCount < 3) {
                 updateTime(uriBuilder.getHost());
@@ -161,7 +162,7 @@ public abstract class HttpDownloader {
             updateTime(uriBuilder.getHost());
             postRetryCount = 1;
             return getResponse(response);
-        } catch (HttpHostConnectException | ConnectTimeoutException e) {
+        } catch (HttpHostConnectException | ConnectTimeoutException | NoHttpResponseException e) {
             logger.warning("Exception happened. Retry #" + postRetryCount++);
             if (postRetryCount < 3)
                 return post(url, data, headers, useProxy);

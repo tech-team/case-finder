@@ -16,14 +16,16 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
     private static final int ITEMS_COUNT_PER_REQUEST = 100;
     public static final int TOTAL_MAX_COUNT = 1000;
     private int retryCount = 1;
-    private int casesProgressCount = 0;
+    private AtomicInteger casesProgressCount = new AtomicInteger(0);
     private ThreadPool pool = new ThreadPool();
+    private KadWorkerFactory<CaseContainerType> kadWorkerFactory = null;
     private final CredentialsLoader credentialsLoader = new CredentialsLoader();
 
     private final DataEvent<Integer> totalCasesCountObtained;
@@ -40,6 +42,8 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
         int minCost = request.getMinCost();
         int searchLimit = request.getSearchLimit();
 
+        kadWorkerFactory = new KadWorkerFactory<>(minCost, data, credentialsLoader, caseProcessed);
+
         int itemsCountToLoad = searchLimit != 0 && searchLimit < TOTAL_MAX_COUNT ? searchLimit :
                                                                                    TOTAL_MAX_COUNT;
 
@@ -52,7 +56,7 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
                 if (Thread.interrupted()) {
                     throw new InterruptedException();
                 }
-                processKadResponse(initial, minCost, data);
+                processKadResponse(initial);
                 totalCasesCount += initial.getItems().size();
                 request.setCount(initial.getPageSize());
 
@@ -64,10 +68,11 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
 
                     KadResponse resp = retrieveKadResponse(request, i);
                     if (resp.isSuccess()) {
-                        processKadResponse(resp, minCost, data);
+                        processKadResponse(resp);
                         totalCasesCount += resp.getItems().size();
                     } else {
-                        logger.severe("Couldn't load page #" + i);
+                        logger.warning("Couldn't load page #" + i + ". Retrying.");
+                        i -= 1;
                     }
                 }
                 totalCasesCountObtained.fire(totalCasesCount);
@@ -81,10 +86,11 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
         return data;
     }
 
-    private void processKadResponse(KadResponse resp, int minCost, CaseContainerType outData) throws InterruptedException {
+    private void processKadResponse(KadResponse resp) throws InterruptedException {
         List<CaseInfo> items = resp.getItems();
         for (CaseInfo item : items) {
-            pool.execute(new KadWorker<>(++casesProgressCount, item, minCost, outData, credentialsLoader, caseProcessed));
+            casesProgressCount.incrementAndGet();
+            pool.execute(kadWorkerFactory.buildWorker(casesProgressCount.get(), item));
         }
     }
 
@@ -107,6 +113,7 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
             logger.warning("Retrying #" + retryCount);
             if (retryCount < 3) {
                 retryCount++;
+                Thread.sleep(50);
                 return retrieveKadResponse(request, page);
             }
             throw e;
