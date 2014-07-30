@@ -1,14 +1,15 @@
-package util;
+package gui.casestable;
 
 import caseloader.CaseInfo;
 import caseloader.CaseSide;
 import gui.casestable.CaseModel;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
+import util.*;
 
 import java.util.Collection;
 
-public class CaseModelAppender implements Appendable<CaseInfo> {
+public class CaseModelAppender implements util.Appendable<CaseInfo> {
     private ObservableList<CaseModel> casesData;
 
     public CaseModelAppender(ObservableList<CaseModel> casesData) {

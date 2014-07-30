@@ -6,19 +6,19 @@ import exceptions.DataRetrievingError;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import org.jsoup.nodes.Element;
 import util.HttpDownloader;
+import util.MyLogger;
 
 import java.io.IOException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.logging.Logger;
 
 public class ListOrg extends WebSite {
+    private static final int THRESHOLD = 5;
+    private Logger logger = MyLogger.getLogger(this.getClass().toString());
+
     abstract class Urls {
         private static final String MAIN_PAGE = "http://www.list-org.com";
         private static final String SEARCH = "http://www.list-org.com/search.php";
@@ -66,19 +66,24 @@ public class ListOrg extends WebSite {
     }
 
     private Credentials parseSearchResults(Elements results, CredentialsSearchRequest request, Credentials credentials) throws IOException, InterruptedException, DataRetrievingError {
-        Map<Credentials, Double> relevances = new HashMap<>();
+
+        if (results.size() >= THRESHOLD) {
+            logger.warning("Too many results. Skipping.");
+            return null;
+        }
+
+        Map<RelevanceInput, Double> relevances = new HashMap<>();
 
         for (Element result : results) {
             String companyUrl = Urls.MAIN_PAGE + result.getElementsByTag("a").attr("href");
 
-            String resp = HttpDownloader.get(companyUrl);
+            String resp = HttpDownloader.get(companyUrl, false);
             Element company = Jsoup.parse(resp)
                                    .body()
                                    .select(".main .content")
                                    .first();
 
             Credentials creds = new Credentials();
-            double relevance = 0;
 
             // Finding director
             String director = company.getElementsByTag("table").first()
@@ -87,36 +92,44 @@ public class ListOrg extends WebSite {
                                      .text();
             creds.addDirector(Urls.MAIN_PAGE, director);
 
+            // Finding other stuff
+            String name = "";
+            String address = "";
             Elements paragraphs = company.getElementsByTag("p");
             for (Element p : paragraphs) {
                 Element i = p.getElementsByTag("i").first();
-                if (i != null && i.text().equals("Телефон:")) {
-                    if (!p.ownText().equals("")) {
-                        String[] telephones = p.ownText().split("\\s+");
-                        for (String tel : telephones) {
-                            creds.addTelephone(Urls.MAIN_PAGE, tel);
-                        }
+                if (i != null) {
+                    switch (i.text()) {
+                        case "Полное юридическое наименование:":
+                            name = p.getElementsByTag("a").first().text();
+                            break;
+                        case "Телефон:":
+                            if (!p.ownText().equals("")) {
+                                String[] telephones = p.ownText().split("\\s+");
+                                for (String tel : telephones) {
+                                    creds.addTelephone(Urls.MAIN_PAGE, tel);
+                                }
+                            }
+                            break;
+                        case "Адрес:":
+                            if (!p.ownText().equals("")) {
+                                address = p.ownText();
+                            }
+                        default:
+                            break;
                     }
                     break;
                 }
             }
 
-            relevances.put(creds, relevance);
-
+            RelevanceInput input = new RelevanceInput(creds, name, address, request, credentials);
+            relevances.put(input, countRelevance(input));
         }
 
-        Credentials best = null;
-        double bestRelevance = 0.0;
-        for (Map.Entry<Credentials, Double> entry : relevances.entrySet()) {
-            double relevance = entry.getValue();
-            if (best == null || relevance > bestRelevance) {
-                best = entry.getKey();
-                bestRelevance = relevance;
-            }
-        }
-
-        return best;
+        return findWithBestRelevance(relevances);
     }
+
+
 
     private Elements executeSearch(List<NameValuePair> searchParams) throws InterruptedException, IOException, DataRetrievingError {
         String resp = HttpDownloader.get(Urls.SEARCH, searchParams, null, false);
@@ -165,9 +178,9 @@ public class ListOrg extends WebSite {
         return executeSearch(params);
     }
 
-    public static void main(String[] args) throws InterruptedException, IOException, DataRetrievingError {
-        String resp = HttpDownloader.get("http://list-org.com/company/292390", false);
 
+
+    public static void main(String[] args) throws InterruptedException, IOException, DataRetrievingError {
         ListOrg lo = new ListOrg();
 
         CredentialsSearchRequest req = new CredentialsSearchRequest("БОГАТЫРЬ", "unknown", "1102017213", null);

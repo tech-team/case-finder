@@ -45,6 +45,7 @@ public abstract class CourtsInfo {
                     logger.info("Retrieving courts has been interrupted");
                     return;
                 }
+                // TODO: NullPointerException
                 courtsLoadedEvent.fire(courts);
                 logger.info("Finished retrieving courts list");
             });

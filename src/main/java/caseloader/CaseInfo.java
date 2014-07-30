@@ -59,7 +59,7 @@ public class CaseInfo {
 
     public void splitSides() {
         if (sides == null) {
-            return; // TODO: throw an exception
+            return;
         }
 
         defendants = new LinkedList<>();

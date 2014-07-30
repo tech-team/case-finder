@@ -66,18 +66,23 @@ public class CredentialsLoader {
 
         @Override
         public Credentials call() {
-            logger.info("Working on url: " + webSite.url());
+            for (int retry = 1; retry <= 3; ++retry) {
+                logger.info("Working on url: " + webSite.url());
 
-            Credentials found = null;
-            try {
-                found = webSite.findCredentials(request, credentials);
-            } catch (IOException | DataRetrievingError e) {
-                throw new RuntimeException(e); // TODO: retrying
-            } catch (InterruptedException e) {
-                return null;
+                Credentials found = null;
+                try {
+                    found = webSite.findCredentials(request, credentials);
+                } catch (IOException | DataRetrievingError e) {
+                    logger.warning("Error retrieving credentials. Retrying");
+                    continue;
+                } catch (InterruptedException e) {
+                    return null;
+                }
+                logger.info("Finished url: " + webSite.url());
+                return found;
             }
-            logger.info("Finished url: " + webSite.url());
-            return found;
+            logger.severe("Couldn't retrieve credentials. Breaking");
+            return null;
         }
     }
 

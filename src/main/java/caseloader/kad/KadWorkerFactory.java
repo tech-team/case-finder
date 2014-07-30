@@ -36,8 +36,8 @@ public class KadWorkerFactory<CaseContainerType extends util.Appendable<CaseInfo
     public Runnable buildWorker(final int id, final CaseInfo caseInfo) {
         return () -> {
             Logger logger = MyLogger.getLogger(this.getClass().toString());
-            final boolean[] retrying = {false};
-            do {
+
+            for (int retry = 1; retry <=3 ; ++retry) {
                 logger.info(String.format("Processing case %d/%d = %s", id, KadLoader.TOTAL_MAX_COUNT, caseInfo.getCaseNumber()));
 
                 List<NameValuePair> params = new ArrayList<>();
@@ -52,10 +52,8 @@ public class KadWorkerFactory<CaseContainerType extends util.Appendable<CaseInfo
                     json = HttpDownloader.get(Urls.KAD_CARD, params, headers);
                     caseJson = new JSONObject(json);
                 } catch (IOException | DataRetrievingError | JSONException e) {
-                    logger.warning("Error retrieving case " + caseInfo.getCaseNumber() + ". Retrying");
-                    retrying[0] = true;
+                    logger.warning("Error retrieving case " + caseInfo.getCaseNumber() + ". Retrying #" + retry);
                     continue;
-//            throw new RuntimeException(e);
                 } catch (InterruptedException e) {
                     System.out.println("INTERRUPTED");
                     return;
@@ -98,7 +96,9 @@ public class KadWorkerFactory<CaseContainerType extends util.Appendable<CaseInfo
                     System.out.println("INTERRUPTED");
                     return;
                 }
-            } while (retrying[0]);
+            }
+
+            logger.warning("Couldn't retrieve case " + caseInfo.getCaseNumber() + ". Breaking");
         };
     }
 }

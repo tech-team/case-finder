@@ -1,7 +1,9 @@
 package caseloader.credentials;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Credentials {
     private class Pair {
@@ -65,6 +67,28 @@ public class Credentials {
 
     public void setOgrn(String ogrn) {
         this.ogrn = ogrn;
+    }
+
+    public List<String> getDirectors(String website) {
+        List<String> websiteDirectors
+                            = directors.stream()
+                                       .filter(d -> d.getWebsite().equals(website))
+                                       .map(Pair::getValue)
+                                       .collect(Collectors.toCollection(LinkedList::new));
+//        String[] res = new String[websiteDirectors.size()];
+//        return websiteDirectors.toArray(res);
+        return websiteDirectors;
+    }
+
+    public List<String> getTelephones(String website) {
+        List<String> websiteTelephones
+                = telephones.stream()
+                .filter(d -> d.getWebsite().equals(website))
+                .map(Pair::getValue)
+                .collect(Collectors.toCollection(LinkedList::new));
+//        String[] res = new String[websiteTelephones.size()];
+//        return websiteTelephones.toArray(res);
+        return websiteTelephones;
     }
 
     public void merge(final Credentials found) {

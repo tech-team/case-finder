@@ -29,7 +29,7 @@ import javafx.stage.WindowEvent;
 import org.controlsfx.control.action.Action;
 import org.controlsfx.dialog.Dialog;
 import org.controlsfx.dialog.Dialogs;
-import util.CaseModelAppender;
+import gui.casestable.CaseModelAppender;
 import util.ResourceControl;
 
 import java.io.File;
