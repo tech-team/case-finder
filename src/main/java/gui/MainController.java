@@ -22,6 +22,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
@@ -102,6 +103,9 @@ public class MainController {
 
     @SuppressWarnings("unchecked")
     private void initializeTableView() {
+        //localize placeholder
+        casesTable.setPlaceholder(new Text(res.getString("casesTablePlaceholder")));
+
         //disables cell height jitter
         casesTable.setRowFactory(table -> {
             TableRow<CaseModel> row = new TableRow<>();
