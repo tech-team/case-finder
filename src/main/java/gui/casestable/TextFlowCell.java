@@ -2,7 +2,6 @@ package gui.casestable;
 
 import com.sun.deploy.uitoolkit.impl.fx.HostServicesFactory;
 import gui.Main;
-import javafx.beans.value.ObservableValue;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Hyperlink;
@@ -38,8 +37,7 @@ public class TextFlowCell<S, T> extends TableCell<S, T> {
         else {
             setGraphic(textFlow);
 
-            ObservableValue<T> ov = getTableColumn().getCellObservableValue(getIndex());
-            String value = ov.getValue().toString();
+            String value = item.toString();
 
             textFlow.getChildren().clear();
             textFlow.setMaxWidth(Integer.MAX_VALUE);
