@@ -9,14 +9,14 @@
     <children>
         <TextField fx:id="textField" />
 
-        <VBox maxHeight="30.0" maxWidth="30.0" minHeight="30.0" minWidth="30.0" prefHeight="30.0" prefWidth="30.0">
+        <VBox fx:id="buttonsBox" style="-fx-snap-to-pixel: false">
             <children>
                 <StackPane>
-                    <Button fx:id="buttonUp" onAction="#buttonUpAction" maxWidth="1.7976931348623157E308" minHeight="14.0" />
+                    <Button fx:id="buttonUp" onAction="#buttonUpAction" maxWidth="1.7976931348623157E308" minHeight="0" />
                     <Path fx:id="arrowUpPath" />
                 </StackPane>
                 <StackPane>
-                    <Button fx:id="buttonDown" onAction="#buttonDownAction" maxWidth="1.7976931348623157E308" minHeight="14.0" />
+                    <Button fx:id="buttonDown" onAction="#buttonDownAction" maxWidth="1.7976931348623157E308" minHeight="0" />
                     <Path fx:id="arrowDownPath" />
                 </StackPane>
             </children>

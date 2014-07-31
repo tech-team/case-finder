@@ -1,6 +1,7 @@
 package gui.searchpanel;
 
 import gui.Main;
+import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -14,6 +15,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.shape.LineTo;
 import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
@@ -24,6 +26,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MySpinner extends HBox {
+    @FXML private VBox buttonsBox;
     @FXML private Path arrowUpPath;
     @FXML private Path arrowDownPath;
     @FXML private TextField textField;
@@ -50,6 +53,22 @@ public class MySpinner extends HBox {
 
     @FXML
     private void initialize() {
+        textField.heightProperty().addListener((ob, oldValue, newValue) -> {
+            double newSize = newValue.doubleValue();
+
+            Platform.runLater(() -> {
+                buttonsBox.setMinHeight(newSize);
+                buttonsBox.setPrefHeight(newSize);
+                buttonsBox.setMaxHeight(newSize);
+
+                buttonsBox.setMinWidth(newSize);
+                buttonsBox.setPrefWidth(newSize);
+                buttonsBox.setMaxWidth(newSize);
+
+                //buttonsBox.spacingProperty().setValue(newSize % 2);
+            });
+        });
+
         textField.addEventFilter(KeyEvent.KEY_PRESSED, keyEvent -> {
             if (keyEvent.getCode() == KeyCode.DOWN) {
                 decrement();
@@ -60,7 +79,6 @@ public class MySpinner extends HBox {
                 keyEvent.consume();
             }
         });
-
 
         textField.setText(value.getValue().toString());
 
