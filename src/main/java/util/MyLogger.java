@@ -56,6 +56,12 @@ public abstract class MyLogger {
         LOGGER.addHandler(fh);
     }
 
+    public static void close() {
+        for(Handler h : LOGGER.getHandlers()) {
+            h.close();
+        }
+    }
+
     public static java.util.logging.Logger getLogger(String name) {
         java.util.logging.Logger logger = java.util.logging.Logger.getLogger(name);
         logger.setParent(LOGGER);

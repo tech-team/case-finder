@@ -31,6 +31,7 @@ import org.controlsfx.control.MyCheckComboBox;
 import org.controlsfx.control.action.Action;
 import org.controlsfx.dialog.Dialog;
 import org.controlsfx.dialog.Dialogs;
+import util.MyLogger;
 import util.ResourceControl;
 
 import java.io.File;
@@ -194,6 +195,7 @@ public class MainController {
                 }
             }
         }
+        MyLogger.close();
     }
     
     public void casesSearchClick(ActionEvent actionEvent) {

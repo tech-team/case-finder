@@ -92,15 +92,17 @@ public class Credentials {
     }
 
     public void merge(final Credentials found) {
-        directors.addAll(found.directors);
-        telephones.addAll(found.telephones);
+        if (found != null) {
+            directors.addAll(found.directors);
+            telephones.addAll(found.telephones);
 
-        if (!hasInn()) {
-            setInn(found.getInn());
-        }
+            if (!hasInn()) {
+                setInn(found.getInn());
+            }
 
-        if (!hasOgrn()) {
-            setOgrn(found.getOgrn());
+            if (!hasOgrn()) {
+                setOgrn(found.getOgrn());
+            }
         }
     }
 }

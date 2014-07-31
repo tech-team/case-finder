@@ -10,6 +10,7 @@ import org.jsoup.select.Elements;
 import org.jsoup.nodes.Element;
 import util.HttpDownloader;
 import util.MyLogger;
+import util.StringUtils;
 
 import java.io.IOException;
 import java.util.*;
@@ -55,7 +56,7 @@ public class ListOrg extends WebSite {
         }
 
         for (Elements results : searchResults) {
-            if (results != null) {
+            if (results != null && results.size() != 0) {
                 Credentials creds = parseSearchResults(results, request, credentials);
                 if (creds != null)
                     return creds;
@@ -183,8 +184,9 @@ public class ListOrg extends WebSite {
     public static void main(String[] args) throws InterruptedException, IOException, DataRetrievingError {
         ListOrg lo = new ListOrg();
 
-        CredentialsSearchRequest req = new CredentialsSearchRequest("БОГАТЫРЬ", "unknown", "1102017213", null);
+        CredentialsSearchRequest req = new CredentialsSearchRequest("ООО СТРОИТЕЛЬНАЯ КОМПАНИЯ НОВОСТРОЙ ИНЖИНИРИНГ", "unknown", null, null);
         Credentials creds = new Credentials();
         Credentials res = lo.findCredentials(req, creds);
+
     }
 }

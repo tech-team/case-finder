@@ -7,8 +7,9 @@ public abstract class StringUtils {
     }
 
     public static String removeNonLetters(String str) {
-        String nonLettersRegex = "[^a-zA-Zа-яА-Я]";
-        return str.replaceAll(nonLettersRegex, "");
+        String nonLettersRegex = "[^a-zA-Zа-яА-Я ]";
+        String s = str.replaceAll(nonLettersRegex, "");
+        return s.trim().toLowerCase();
     }
 
     public static int levenshteinDistance(String s0, String s1) {

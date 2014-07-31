@@ -9,10 +9,7 @@ import util.HttpDownloader;
 import util.StringUtils;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class WebSite {
@@ -57,7 +54,8 @@ public abstract class WebSite {
         List<String> globalDirectors = input.getTotalCreds().getDirectors(url()).stream().map(StringUtils::removeNonLetters).collect(Collectors.toCollection(LinkedList::new));
         List<String> globalTelephones = input.getTotalCreds().getTelephones(url()).stream().map(StringUtils::removeNonLetters).collect(Collectors.toCollection(LinkedList::new));
 
-        if (reqInn.equals(foundInn) || reqOgrn.equals(foundOgrn))
+        if (reqInn != null && reqInn.equals(foundInn)
+                || reqOgrn != null && reqOgrn.equals(foundOgrn))
             return 1;
 
         double[] similarities = {
@@ -101,22 +99,54 @@ public abstract class WebSite {
     private static double similarity(String s1, String s2) {
         String[] tokens1 = s1.split("\\s+");
         String[] tokens2 = s2.split("\\s+");
+        int minSize = Math.min(tokens1.length, tokens2.length);
+        int maxSize = Math.max(tokens1.length, tokens2.length);
 
-        Arrays.sort(tokens1);
-        Arrays.sort(tokens2);
+        // TODO: not sure
+//        Arrays.sort(tokens1);
+//        Arrays.sort(tokens2);
 
         int distanceThreshold = 3; // TODO: Why wouldn't it be 3?
 
-        int size = Math.max(tokens1.length, tokens2.length);
-        for (int i = 0; i < size; ++i) {
+        // TODO: can be optimized
+        double[][] simMatrix = new double[tokens1.length][tokens2.length];
 
-            int d = StringUtils.levenshteinDistance(tokens1[i], tokens2[i]);
-
-
+        // TODO
+        for (int i = 0; i < tokens1.length; ++i) {
+            String t1 = tokens1[i];
+            for (int j = 0; j < tokens2.length; ++j) {
+                String t2 = tokens2[j];
+                double d = StringUtils.levenshteinDistance(t1, t2);
+                double maxLength = Math.max(t1.length(), t2.length());
+                simMatrix[i][j] = 1.0 - d / maxLength;
+            }
         }
 
+        double avg = 0.0;
+        if (tokens1.length > tokens2.length) {
+            for (int i = 0; i < tokens1.length; ++i) {
+                double max = 0.0;
+                for (int j = 0; j < tokens2.length; ++j) {
+                    double s = simMatrix[i][j];
+                    if (s > max)
+                        max = s;
+                }
+                avg += max;
+            }
+        } else {
+            for (int j = 0; j < tokens2.length; ++j) {
+                double max = 0.0;
+                for (int i = 0; i < tokens1.length; ++i) {
+                    double s = simMatrix[i][j];
+                    if (s > max)
+                        max = s;
+                }
+                avg += max;
+            }
+        }
+        avg /= maxSize;
 
-        return 0;
+        return avg;
     }
 
 
