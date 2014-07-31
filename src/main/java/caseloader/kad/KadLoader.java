@@ -41,11 +41,10 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
     public CaseContainerType retrieveData(CaseSearchRequest request, CaseContainerType data) throws IOException, DataRetrievingError {
         long minCost = request.getMinCost();
         int searchLimit = request.getSearchLimit();
-
-        kadWorkerFactory = new KadWorkerFactory<>(minCost, data, credentialsLoader, caseProcessed);
-
         int itemsCountToLoad = searchLimit != 0 && searchLimit < TOTAL_MAX_COUNT ? searchLimit :
                                                                                    TOTAL_MAX_COUNT;
+
+        kadWorkerFactory = new KadWorkerFactory<>(itemsCountToLoad, minCost, data, credentialsLoader, caseProcessed);
 
         try {
             int totalCasesCount = 0;
@@ -53,7 +52,7 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
             KadResponse initial = retrieveKadResponse(request, 1);
 
             if (initial.isSuccess()) {
-                if (Thread.interrupted()) {
+                if (Thread.currentThread().isInterrupted()) {
                     throw new InterruptedException();
                 }
                 processKadResponse(initial);
@@ -62,7 +61,7 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
 
                 int iterationsCount = itemsCountToLoad / initial.getPageSize();
                 for (int i = 2; i <= iterationsCount; ++i) {
-                    if (Thread.interrupted()) {
+                    if (Thread.currentThread().isInterrupted()) {
                         throw new InterruptedException();
                     }
 
