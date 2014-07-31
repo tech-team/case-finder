@@ -28,6 +28,7 @@ import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import org.controlsfx.control.MyCheckComboBox;
 import org.controlsfx.control.action.Action;
 import org.controlsfx.dialog.Dialog;
 import org.controlsfx.dialog.Dialogs;
@@ -39,6 +40,7 @@ import java.util.ResourceBundle;
 import java.util.prefs.Preferences;
 
 public class MainController {
+    @FXML private MyCheckComboBox<String> courtComboCheckBox;
     @FXML private ComboBox<String> courtsChoiceBox;
     @FXML private ComboBox<CaseTypeModel> caseType;
     @FXML private CheckBox withVKSInstances;
@@ -86,11 +88,12 @@ public class MainController {
 
     private void initializeCourtList() {
         courtsChoiceBox.setItems(courtsList);
+        courtComboCheckBox.setItems(courtsList);
 
         new AutoCompleteComboBoxListener<>(courtsChoiceBox);
 
+        courtsList.add("Любой");
         CourtsInfo.courtsLoadedEvent.on(courts -> {
-            courtsList.add("Любой");
             courtsList.addAll(courts);
         });
 
