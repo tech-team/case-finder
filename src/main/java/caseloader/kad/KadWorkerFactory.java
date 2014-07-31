@@ -22,11 +22,11 @@ import java.util.logging.Logger;
 
 public class KadWorkerFactory<CaseContainerType extends util.Appendable<CaseInfo> > {
     private final CaseContainerType data;
-    private final int minCost;
+    private final long minCost;
     private final CredentialsLoader credentialsLoader;
     private final Event caseProcessed;
 
-    public KadWorkerFactory(int minCost, CaseContainerType data, CredentialsLoader credentialsLoader, Event caseProcessed) {
+    public KadWorkerFactory(long minCost, CaseContainerType data, CredentialsLoader credentialsLoader, Event caseProcessed) {
         this.minCost = minCost;
         this.data = data;
         this.credentialsLoader = credentialsLoader;
@@ -64,7 +64,7 @@ public class KadWorkerFactory<CaseContainerType extends util.Appendable<CaseInfo
                         JSONObject result = JsonUtils.getJSONObject(caseJson, "Result");
                         try {
                             Double cost = JsonUtils.getDouble(result, "ClaimSum");
-                            if (cost != null && cost != 0 && cost >= minCost) {
+                            if (minCost == 0 || (cost != null && cost >= minCost)) {
                                 caseInfo.setCost(cost);
 
                                 caseInfo.splitSides();

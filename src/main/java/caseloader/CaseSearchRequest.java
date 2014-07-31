@@ -29,7 +29,7 @@ public class CaseSearchRequest {
         public static final String WITH_VKS_INSTANCES = "WithVKSInstances";
     }
     private JSONObject kadJson = new JSONObject();
-    private int minCost = 0;
+    private long minCost = 0;
     private int searchLimit = 0;
 
     public CaseSearchRequest() {
@@ -54,7 +54,7 @@ public class CaseSearchRequest {
                            /*final String[] judgesIds,
                              final String[] sides,
                              final String[] cases*/
-                             final int minCost,
+                             final long minCost,
                              final int searchLimit) {
         this();
 
@@ -130,7 +130,7 @@ public class CaseSearchRequest {
         return JsonUtils.getBoolean(kadJson, Keys.WITH_VKS_INSTANCES);
     }
 
-    public int getMinCost() {
+    public long getMinCost() {
         return minCost;
     }
 

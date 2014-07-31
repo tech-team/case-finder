@@ -11,7 +11,6 @@ import gui.casestable.CaseFieldNamesMismatchException;
 import gui.casestable.CaseModel;
 import gui.casestable.CaseModelAppender;
 import gui.casestable.TextFlowCell;
-import gui.searchpanel.AutoCompleteComboBoxListener;
 import gui.searchpanel.CaseTypeModel;
 import gui.searchpanel.MyProgressIndicator;
 import gui.searchpanel.MySpinner;
@@ -35,15 +34,18 @@ import org.controlsfx.dialog.Dialogs;
 import util.ResourceControl;
 
 import java.io.File;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.prefs.Preferences;
 
 public class MainController {
     @FXML private MyCheckComboBox<String> courtComboCheckBox;
-    @FXML private ComboBox<String> courtsChoiceBox;
+    //@FXML private ComboBox<String> courtsChoiceBox;
     @FXML private ComboBox<CaseTypeModel> caseType;
     @FXML private CheckBox withVKSInstances;
+    @FXML private DatePicker dateFrom;
+    @FXML private DatePicker dateTo;
     @FXML private MySpinner minCost;
     @FXML private MySpinner searchLimit;
     @FXML private VBox searchPanel;
@@ -61,6 +63,7 @@ public class MainController {
 
     private Stage stage;
     private CaseLoader<CaseModelAppender> caseLoader = null;
+    private CaseSearchRequest currentRequest = null;
 
     private enum Mode {
         DEFAULT, SEARCHING
@@ -87,15 +90,12 @@ public class MainController {
     }
 
     private void initializeCourtList() {
-        courtsChoiceBox.setItems(courtsList);
+        //courtsChoiceBox.setItems(courtsList);
         courtComboCheckBox.setItems(courtsList);
 
-        new AutoCompleteComboBoxListener<>(courtsChoiceBox);
+        //new AutoCompleteComboBoxListener<>(courtsChoiceBox);
 
-        courtsList.add("Любой");
-        CourtsInfo.courtsLoadedEvent.on(courts -> {
-            courtsList.addAll(courts);
-        });
+        CourtsInfo.courtsLoadedEvent.on(courtsList::addAll);
 
         CourtsInfo.retrieveCourtsAsync();
     }
@@ -213,36 +213,76 @@ public class MainController {
             mode = Mode.DEFAULT;
             searchButton.setText(res.getString("searchButtonDefault"));
             progressIndicator.setVisible(false);
-            return;
+        } else {
+            if (prepareRequest()) {
+                mode = Mode.SEARCHING;
+                searchButton.setText(res.getString("searchButtonPressed"));
+                progressIndicator.reset();
+                progressIndicator.setVisible(true);
+
+                this.caseLoader = new CaseLoader<>();
+                CaseModelAppender caseModelAppender = new CaseModelAppender(casesData);
+                casesData.clear();
+
+                caseLoader.totalCasesCountObtained.on(progressIndicator::setLimit);
+
+                caseLoader.caseProcessed.on(() -> {
+                    progressIndicator.add(1);
+                });
+
+                caseLoader.casesLoaded.on((data) -> {
+                    mode = Mode.DEFAULT;
+                    searchButton.setText(res.getString("searchButtonDefault"));
+
+                    String message = String.format(res.getString("loadingFinished"), casesData.size());
+
+                    Dialogs.create()
+                            .message(message)
+                            .showInformation();
+                });
+
+                caseLoader.retrieveDataAsync(currentRequest, caseModelAppender);
+            }
         }
+    }
 
-        mode = Mode.SEARCHING;
-        searchButton.setText(res.getString("searchButtonPressed"));
-        progressIndicator.reset();
-        progressIndicator.setVisible(true);
+    private boolean prepareRequest() {
+        currentRequest = null;
 
-        this.caseLoader = new CaseLoader<>();
-        CaseModelAppender caseModelAppender = new CaseModelAppender(casesData);
-        casesData.clear();
+        String courts[] = new String[courtComboCheckBox.getCheckModel().getSelectedItems().size()];
+        courtComboCheckBox.getCheckModel().getSelectedItems().toArray(courts);
+        //validate user input if one occurred (for ComboBox with editable=true)
 
-        caseLoader.totalCasesCountObtained.on(progressIndicator::setLimit);
+        String dateFromStr = null;
+        String dateToStr = null;
 
-        caseLoader.caseProcessed.on(() -> {
-            progressIndicator.add(1);
-        });
+        if (dateFrom.getValue() != null)
+            dateFromStr =
+                    dateFrom.getValue().format(DateTimeFormatter.ISO_DATE)
+                    + "T00:00:00";
 
-        caseLoader.casesLoaded.on((data) -> {
-            mode = Mode.DEFAULT;
-            searchButton.setText(res.getString("searchButtonDefault"));
+        if (dateTo.getValue() != null)
+            dateToStr =
+                    dateTo.getValue().format(DateTimeFormatter.ISO_DATE)
+                    + "T23:59:59";
 
-            String message = String.format(res.getString("loadingFinished"), casesData.size());
+        CaseSearchRequest.CaseType caseTypeValue = caseType.getValue().getType();
+        boolean withVKSInstancesValue = withVKSInstances.isSelected();
 
-            Dialogs.create()
-                    .message(message)
-                    .showInformation();
-        });
+        long minCostValue = minCost.getValue().longValue();
 
-        caseLoader.retrieveDataAsync(new CaseSearchRequest(), caseModelAppender);
+        int searchLimitValue = searchLimit.getValue().intValue();
+
+        currentRequest = new CaseSearchRequest(
+                courts,
+                dateFromStr,
+                dateToStr,
+                caseTypeValue,
+                withVKSInstancesValue,
+                minCostValue,
+                searchLimitValue);
+
+        return true;
     }
 
     public void exportCasesToExcel(ActionEvent actionEvent) {

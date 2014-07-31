@@ -16,7 +16,7 @@
         <VBox fx:id="searchPanel" layoutX="14.0" layoutY="57.0" minHeight="200.0" minWidth="200.0" prefHeight="200.0" prefWidth="200.0" spacing="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" HBox.hgrow="NEVER">
             <children>
                 <Label text="Суд:" />
-                <ComboBox fx:id="courtsChoiceBox" editable="true" prefHeight="31.0" prefWidth="185.0" promptText="Любой" />
+                <!--<ComboBox fx:id="courtsChoiceBox" editable="true" prefHeight="31.0" prefWidth="185.0" promptText="Любой" />-->
                 <MyCheckComboBox fx:id="courtComboCheckBox" />
                 <Separator prefWidth="200.0" />
                 <Label text="Тип дела:" />
@@ -31,9 +31,9 @@
                     </columnConstraints>
                     <children>
                         <Label text="с:" />
-                        <DatePicker maxWidth="1.7976931348623157E308" prefHeight="31.0" prefWidth="116.0" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.vgrow="ALWAYS" />
+                        <DatePicker fx:id="dateFrom" maxWidth="1.7976931348623157E308" prefHeight="31.0" prefWidth="116.0" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.vgrow="ALWAYS" />
                         <Label text="по:" GridPane.rowIndex="1" />
-                        <DatePicker maxWidth="1.7976931348623157E308" prefHeight="31.0" prefWidth="82.0" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
+                        <DatePicker fx:id="dateTo" maxWidth="1.7976931348623157E308" prefHeight="31.0" prefWidth="82.0" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
                     </children>
                <rowConstraints>
                   <RowConstraints />

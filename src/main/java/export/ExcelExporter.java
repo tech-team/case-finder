@@ -143,7 +143,7 @@ public class ExcelExporter {
         createKeyValueRow(sheet, styles, rowId++,
                 res.getString("requestDateTo"), dateTo);
 
-        String minCost = Integer.toString(request.getMinCost());
+        String minCost = Long.toString(request.getMinCost());
         createKeyValueRow(sheet, styles, rowId++,
                 res.getString("requestMinimalCost"), minCost);
 

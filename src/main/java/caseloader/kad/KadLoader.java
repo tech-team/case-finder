@@ -39,7 +39,7 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
     }
 
     public CaseContainerType retrieveData(CaseSearchRequest request, CaseContainerType data) throws IOException, DataRetrievingError {
-        int minCost = request.getMinCost();
+        long minCost = request.getMinCost();
         int searchLimit = request.getSearchLimit();
 
         kadWorkerFactory = new KadWorkerFactory<>(minCost, data, credentialsLoader, caseProcessed);
