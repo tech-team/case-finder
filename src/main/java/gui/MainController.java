@@ -9,8 +9,10 @@ import export.Extension;
 import export.UnsupportedExtensionException;
 import gui.casestable.CaseFieldNamesMismatchException;
 import gui.casestable.CaseModel;
+import gui.casestable.CaseModelAppender;
 import gui.casestable.TextFlowCell;
 import gui.searchpanel.AutoCompleteComboBoxListener;
+import gui.searchpanel.CaseTypeModel;
 import gui.searchpanel.MyProgressIndicator;
 import gui.searchpanel.MySpinner;
 import javafx.application.Platform;
@@ -29,7 +31,6 @@ import javafx.stage.WindowEvent;
 import org.controlsfx.control.action.Action;
 import org.controlsfx.dialog.Dialog;
 import org.controlsfx.dialog.Dialogs;
-import gui.casestable.CaseModelAppender;
 import util.ResourceControl;
 
 import java.io.File;
@@ -39,6 +40,8 @@ import java.util.prefs.Preferences;
 
 public class MainController {
     @FXML private ComboBox<String> courtsChoiceBox;
+    @FXML private ComboBox<CaseTypeModel> caseType;
+    @FXML private CheckBox withVKSInstances;
     @FXML private MySpinner minCost;
     @FXML private MySpinner searchLimit;
     @FXML private VBox searchPanel;
@@ -72,6 +75,9 @@ public class MainController {
         initializeCourtList();
         initializeCaseModel();
         initializeTableView();
+
+        caseType.setItems(CaseTypeModel.getCollection());
+        caseType.setValue(CaseTypeModel.getCollection().get(0));
 
         //not in fxml because of JavaFX bug
         //http://stackoverflow.com/questions/22992458/javafx-thread-with-progressindicator-not-spinning-work-done-in-non-fxthread

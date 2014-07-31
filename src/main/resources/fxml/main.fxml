@@ -18,8 +18,8 @@
                 <ComboBox fx:id="courtsChoiceBox" editable="true" prefHeight="31.0" prefWidth="185.0" promptText="Любой" />
                 <Separator prefWidth="200.0" />
                 <Label text="Тип дела:" />
-                <ComboBox prefHeight="31.0" prefWidth="191.0" promptText="Любой" />
-                <CheckBox mnemonicParsing="false" text="Судебные поручения" />
+                <ComboBox fx:id="caseType" prefHeight="31.0" prefWidth="191.0" />
+                <CheckBox fx:id="withVKSInstances" mnemonicParsing="false" text="Судебные поручения" />
                 <Separator prefWidth="200.0" />
                 <Label text="Дата регистрации:" />
                 <GridPane vgap="10.0">
