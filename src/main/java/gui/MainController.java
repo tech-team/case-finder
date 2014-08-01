@@ -162,13 +162,13 @@ public class MainController {
                         .actions(Dialog.Actions.YES, Dialog.Actions.NO)
                         .showConfirm();
 
-                if (action == Dialog.Actions.YES)
-                    caseLoader.stopExecution();
-                else {
+                if (action != Dialog.Actions.YES) {
                     event.consume();
                     return;
                 }
             }
+
+            caseLoader.stopExecution();
 
             if (!casesData.isEmpty()) {
                 Dialogs.CommandLink saveAction = new Dialogs.CommandLink(
