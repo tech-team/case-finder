@@ -13,6 +13,7 @@ import javafx.scene.text.TextFlow;
 import util.HypertextNode;
 import util.HypertextParser;
 
+import java.text.DecimalFormat;
 import java.util.List;
 
 public class TextFlowCell<S, T> extends TableCell<S, T> {
@@ -38,6 +39,15 @@ public class TextFlowCell<S, T> extends TableCell<S, T> {
             setGraphic(textFlow);
 
             String value = item.toString();
+            if (item instanceof Double) {
+                //remove scientific notation
+                Double doubleValue = (Double) item;
+
+                DecimalFormat df = new DecimalFormat("#");
+                df.setMinimumFractionDigits(2);
+                df.setMaximumFractionDigits(2);
+                value = df.format(doubleValue);
+            }
 
             textFlow.getChildren().clear();
             textFlow.setMaxWidth(Integer.MAX_VALUE);
@@ -51,7 +61,7 @@ public class TextFlowCell<S, T> extends TableCell<S, T> {
 
                     link.setOnAction(actionEvent -> {
                         HostServicesFactory.getInstance(Main.instance)
-                                .showDocument(value);
+                                .showDocument(item.toString());
                     });
 
                     textFlow.getChildren().add(link);
