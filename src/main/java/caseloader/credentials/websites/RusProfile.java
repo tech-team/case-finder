@@ -10,6 +10,8 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 
 public class RusProfile extends WebSite {
+    private static final int PRIORITY = 0;
+
     abstract class Urls {
         private static final String MAIN_PAGE = "http://www.rusprofile.ru/";
         private static final String SEARCH = "http://www.google.ru/cse?cx=partner-pub-2023889461799885%3A1217393034&cof=FORID%3A10&ie=UTF-8&ad=n9&num=10&gsc.page=1&q=";
@@ -31,6 +33,11 @@ public class RusProfile extends WebSite {
         Credentials res = new Credentials();
 
         return res;
+    }
+
+    @Override
+    public int getPriority() {
+        return PRIORITY;
     }
 
     private Credentials findByInn(CredentialsSearchRequest request, Credentials credentials) throws IOException, DataRetrievingError, InterruptedException {

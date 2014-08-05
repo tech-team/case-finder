@@ -7,12 +7,14 @@ public abstract class StringUtils {
     }
 
     public static String removeNonLetters(String str) {
+        if (str == null)
+            return null;
         String nonLettersRegex = "[^a-zA-Zа-яА-Я ]";
-        String s = str.replaceAll(nonLettersRegex, "");
+        String s = str.replaceAll(nonLettersRegex, " "); // TODO: replace several spaces
         return s.trim().toLowerCase();
     }
 
-    public static int levenshteinDistance(String s0, String s1) {
+    public static int levensteinDistance(String s0, String s1) {
         int len0 = s0.length() + 1;
         int len1 = s1.length() + 1;
 

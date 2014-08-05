@@ -39,6 +39,7 @@ public abstract class HttpDownloader {
     private static final boolean USE_PROXY_DEFAULT = true;
     private static final ConcurrentHashMap<String, Long> LAST_TIMES = new ConcurrentHashMap<>();
     private static final long WAIT_DELTA = 3 * 1000;
+    private static final String DEFAULT_ENCODING = "UTF-8";
     private static int getRetryCount = 1;
     private static int postRetryCount = 1;
     private static Logger logger = MyLogger.getLogger(HttpDownloader.class.toString());
@@ -62,19 +63,27 @@ public abstract class HttpDownloader {
     }
 
     public static String get(String url, boolean useProxy) throws IOException, DataRetrievingError, InterruptedException {
-        return get(url, null, null, useProxy);
+        return get(url, null, null, useProxy, DEFAULT_ENCODING);
     }
 
     public static String get(String url) throws IOException, DataRetrievingError, InterruptedException {
-        return get(url, null, null, USE_PROXY_DEFAULT);
+        return get(url, null, null, USE_PROXY_DEFAULT, DEFAULT_ENCODING);
+    }
+
+    public static String get(String url, String encoding) throws IOException, DataRetrievingError, InterruptedException {
+        return get(url, null, null, USE_PROXY_DEFAULT, encoding);
     }
 
     public static String get(String url, List<NameValuePair> params, Map<String, String> headers) throws IOException, DataRetrievingError, InterruptedException {
-        return get(url, params, headers, USE_PROXY_DEFAULT);
+        return get(url, params, headers, USE_PROXY_DEFAULT, DEFAULT_ENCODING);
     }
 
     public static String get(String url, List<NameValuePair> params, Map<String, String> headers, boolean useProxy) throws IOException, DataRetrievingError, InterruptedException {
-        URIBuilder uriBuilder = buildUriBuilder(url);
+        return get(url, params, headers, useProxy, DEFAULT_ENCODING);
+    }
+
+    public static String get(String url, List<NameValuePair> params, Map<String, String> headers, boolean useProxy, String encoding) throws IOException, DataRetrievingError, InterruptedException {
+        URIBuilder uriBuilder = buildUriBuilder(url, encoding);
 
         if (params != null) {
             uriBuilder.setParameters(params);
@@ -104,12 +113,12 @@ public abstract class HttpDownloader {
             }
             updateTime(uriBuilder.getHost());
             getRetryCount = 1;
-            return getResponse(response);
+            return getResponse(response, encoding);
         } catch (HttpHostConnectException | ConnectTimeoutException | NoHttpResponseException e) {
             logger.warning("Exception happened. Retry #" + getRetryCount++);
             if (getRetryCount < 3) {
                 updateTime(uriBuilder.getHost());
-                return get(url, params, headers, useProxy);
+                return get(url, params, headers, useProxy, encoding);
             }
             logger.severe("Exception happened again after " + getRetryCount + "retries");
             throw e;
@@ -161,7 +170,7 @@ public abstract class HttpDownloader {
             }
             updateTime(uriBuilder.getHost());
             postRetryCount = 1;
-            return getResponse(response);
+            return getResponse(response, DEFAULT_ENCODING);
         } catch (HttpHostConnectException | ConnectTimeoutException | NoHttpResponseException e) {
             logger.warning("Exception happened. Retry #" + postRetryCount++);
             if (postRetryCount < 3)
@@ -180,13 +189,17 @@ public abstract class HttpDownloader {
     }
 
     private static URIBuilder buildUriBuilder(String url) throws DataRetrievingError {
+        return buildUriBuilder(url, DEFAULT_ENCODING);
+    }
+
+    public static URIBuilder buildUriBuilder(String url, String encoding) throws DataRetrievingError {
         URIBuilder uriBuilder;
         try {
             uriBuilder = new URIBuilder(url);
         } catch (URISyntaxException e) {
             throw new DataRetrievingError(e);
         }
-        uriBuilder.setCharset(Charset.forName("UTF-8"));
+        uriBuilder.setCharset(Charset.forName(encoding));
         return uriBuilder;
     }
 
@@ -200,8 +213,8 @@ public abstract class HttpDownloader {
         return RequestConfig.custom().setProxy(proxy).setConnectTimeout(REQUEST_TIMEOUT).build();
     }
 
-    private static String getResponse(HttpResponse response) throws IOException, InterruptedException {
-        BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+    private static String getResponse(HttpResponse response, String encoding) throws IOException, InterruptedException {
+        BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), encoding));
 
         StringBuilder sb = new StringBuilder();
         String line;
