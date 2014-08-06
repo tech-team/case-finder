@@ -71,7 +71,8 @@ public class CaseLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
         });
 
         CasesData data = new CasesData();
-        cl.retrieveDataAsync(new CaseSearchRequest(), data);
+        CaseSearchRequest req = new CaseSearchRequest(null, null, null, null, null, 0, 100);
+        cl.retrieveDataAsync(req, data);
 
         cl.waitForRetrieval();
 

@@ -16,6 +16,7 @@ public abstract class WebSite implements Comparable<WebSite> {
     public abstract String url();
     public abstract Credentials findCredentials(final CredentialsSearchRequest request, final Credentials credentials) throws IOException, DataRetrievingError, InterruptedException;
     public abstract int getPriority();
+    private static final double RELEVANCE_THRESHOLD = 0.5;
 
     @Override
     public int compareTo(WebSite site) {
@@ -30,7 +31,7 @@ public abstract class WebSite implements Comparable<WebSite> {
 
     protected Credentials findWithBestRelevance(Map<RelevanceInput, Double> relevances) {
         RelevanceInput best = null;
-        double bestRelevance = 0.0;
+        double bestRelevance = RELEVANCE_THRESHOLD;
         for (Map.Entry<RelevanceInput, Double> entry : relevances.entrySet()) {
             double relevance = entry.getValue();
             if (best == null || relevance > bestRelevance) {
@@ -47,7 +48,7 @@ public abstract class WebSite implements Comparable<WebSite> {
         String reqInn = input.getRequest().getInn();
         String reqOgrn = input.getRequest().getOgrn();
         String reqName = StringUtils.removeNonLetters(input.getRequest().getCompanyName());
-        String reqAddress = StringUtils.removeNonLetters(input.getRequest().getAddress());
+        String reqAddress = StringUtils.removeNonLetters(input.getRequest().getAddress().getRaw());
 
         String foundName = StringUtils.removeNonLetters(input.getName());
         String foundAddress = StringUtils.removeNonLetters(input.getAddress());

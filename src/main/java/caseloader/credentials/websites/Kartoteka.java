@@ -1,6 +1,5 @@
 package caseloader.credentials.websites;
 
-import caseloader.CaseSearchRequest;
 import caseloader.credentials.Credentials;
 import caseloader.credentials.CredentialsSearchRequest;
 import exceptions.DataRetrievingError;
@@ -10,6 +9,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import util.HttpDownloader;
+import caseloader.util.RegionHelper;
 import util.StringUtils;
 
 import java.io.IOException;
@@ -26,9 +26,15 @@ public class Kartoteka extends WebSite {
         private static final String SEARCH = "http://www.kartoteka.ru/poisk_po_rekvizitam/";
     }
 
+    abstract class Countries {
+        private static final String RUSSIA = "643";
+    }
+
     private static final String ENCODING = "cp1251";
     private static final int COUNT_TO_PARSE = 3;
     private static final int PRIORITY = 2;
+    private static final String COUNTRY_KEY = "oksm[]";
+    private static final String REGION_KEY = "regions[]";
 
 
     @Override
@@ -40,8 +46,12 @@ public class Kartoteka extends WebSite {
     public Credentials findCredentials(CredentialsSearchRequest request, Credentials credentials) throws IOException, DataRetrievingError, InterruptedException {
         String companyName = StringUtils.removeNonLetters(request.getCompanyName());
 
+        String city = request.getAddress().getCity();
+
         List<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair("query", companyName));
+        params.add(new BasicNameValuePair(COUNTRY_KEY, Countries.RUSSIA));
+        params.add(new BasicNameValuePair(REGION_KEY, RegionHelper.byCity(city)));
 
         String resp = HttpDownloader.get(Urls.SEARCH, params, null, true, ENCODING);
         return parsePage(resp, request, credentials);

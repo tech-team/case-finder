@@ -155,7 +155,7 @@ public class ListOrg extends WebSite {
     }
 
     private Elements findByAddress(CredentialsSearchRequest request) throws InterruptedException, IOException, DataRetrievingError {
-        String val = preprocessAddress(request.getAddress());
+        String val = preprocessAddress(request.getAddress().getRaw());
         if (val == null)
             return null;
         List<NameValuePair> params = new ArrayList<>();
