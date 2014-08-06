@@ -54,6 +54,7 @@ public class MainController {
     @FXML private TableView<CaseModel> casesTable;
     @FXML private MyProgressIndicator progressIndicator;
     @FXML private Button searchButton;
+    @FXML private Button exportButton;
 
     private final static String EXPORT_PATH_PROPERTY = "exportDirectory";
 
@@ -219,6 +220,7 @@ public class MainController {
             if (prepareRequest()) {
                 mode = Mode.SEARCHING;
                 searchButton.setText(res.getString("searchButtonPressed"));
+                exportButton.setDisable(false);
                 progressIndicator.reset();
                 progressIndicator.setVisible(true);
 
@@ -288,6 +290,14 @@ public class MainController {
     }
 
     public void exportCasesToExcel(ActionEvent actionEvent) {
+        Action action = Dialogs.create()
+                .message(res.getString("onExportWhenSearching"))
+                .actions(Dialog.Actions.YES, Dialog.Actions.NO)
+                .showConfirm();
+
+        if (action != Dialog.Actions.YES)
+            return;
+
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Export to Excel");
         fileChooser.getExtensionFilters().addAll(
@@ -306,17 +316,8 @@ public class MainController {
             String extensionName = fileChooser.getSelectedExtensionFilter().getDescription();
 
             try {
-                CaseSearchRequest request = new CaseSearchRequest(
-                        new String[]{"courtName"},
-                        "10.10.2014",
-                        "20.20.2014",
-                        CaseSearchRequest.CaseType.A,
-                        true,
-                        100,
-                        200);
-
                 ExcelExporter exporter = new ExcelExporter(Extension.fromName(extensionName));
-                exporter.export(request, casesData, selectedFile.getAbsolutePath());
+                exporter.export(currentRequest, casesData, selectedFile.getAbsolutePath());
             } catch (ExportException | UnsupportedExtensionException e) {
                 Dialogs.create().showException(e);
             }
