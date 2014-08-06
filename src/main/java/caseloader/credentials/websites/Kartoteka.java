@@ -10,7 +10,6 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import util.HttpDownloader;
 import caseloader.util.RegionHelper;
-import util.ResourceControl;
 import util.StringUtils;
 
 import java.io.IOException;
@@ -24,6 +23,12 @@ public class Kartoteka extends WebSite {
         private static final String SEARCH = "http://www.kartoteka.ru/poisk_po_rekvizitam/";
     }
 
+    abstract class QueryKeys {
+        private static final String QUERY = "query";
+        private static final String COUNTRY = "oksm[]";
+        private static final String REGION = "regions[]";
+    }
+
     abstract class Countries {
         private static final String RUSSIA = "643";
     }
@@ -31,8 +36,8 @@ public class Kartoteka extends WebSite {
     private static final String ENCODING = "cp1251";
     private static final int COUNT_TO_PARSE = 3;
     private static final int PRIORITY = 2;
-    private static final String COUNTRY_KEY = "oksm[]";
-    private static final String REGION_KEY = "regions[]";
+
+    private static int count = 0;
 
 
     @Override
@@ -47,12 +52,14 @@ public class Kartoteka extends WebSite {
         String city = request.getAddress().getCity();
 
         List<NameValuePair> params = new ArrayList<>();
-        params.add(new BasicNameValuePair("query", companyName));
-        params.add(new BasicNameValuePair(COUNTRY_KEY, Countries.RUSSIA));
-        params.add(new BasicNameValuePair(REGION_KEY, RegionHelper.regionIdByCity(city)));
+        params.add(new BasicNameValuePair(QueryKeys.QUERY, companyName));
+//        params.add(new BasicNameValuePair(QueryKeys.COUNTRY, Countries.RUSSIA));
+//        params.add(new BasicNameValuePair(QueryKeys.REGION, RegionHelper.regionIdByCity(city)));
 
         String resp = HttpDownloader.get(Urls.SEARCH, params, null, true, ENCODING);
-        return parsePage(resp, request, credentials);
+        Credentials creds = parsePage(resp, request, credentials);
+        System.out.println(++count + ") " + request.getCompanyName() + " kartoteka found creds. Inn = " + (creds == null ? null : creds.getInn()));
+        return creds;
     }
 
     @Override

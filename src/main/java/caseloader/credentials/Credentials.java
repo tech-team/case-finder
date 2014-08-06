@@ -30,11 +30,23 @@ public class Credentials {
     private String ogrn = null;
 
     public void addDirector(String website, String director) {
-        directors.add(new Pair(website, director));
+        if (director != null) {
+            directors.add(new Pair(website, director));
+        }
     }
 
     public void addTelephone(String website, String telephone) {
-        telephones.add(new Pair(website, telephone));
+        if (telephone != null) {
+            telephones.add(new Pair(website, telephone));
+        }
+    }
+
+    public void addTelephones(String website, String[] telephones) {
+        if (telephones != null) {
+            for (String t : telephones) {
+                addTelephone(website, t);
+            }
+        }
     }
 
     public boolean hasDirector() {
@@ -54,7 +66,9 @@ public class Credentials {
     }
 
     public void setInn(String inn) {
-        this.inn = inn;
+        if (inn != null && inn.length() >= 3) {
+            this.inn = inn;
+        }
     }
 
     public boolean hasOgrn() {
@@ -66,7 +80,9 @@ public class Credentials {
     }
 
     public void setOgrn(String ogrn) {
-        this.ogrn = ogrn;
+        if (ogrn != null && ogrn.length() >= 3) {
+            this.ogrn = ogrn;
+        }
     }
 
     public List<String> getDirectors(String website) {

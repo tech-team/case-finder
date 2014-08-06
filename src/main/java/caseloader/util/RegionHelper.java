@@ -5,7 +5,7 @@ import util.ResourceControl;
 import java.util.ResourceBundle;
 
 public class RegionHelper {
-    private static ResourceBundle cityToRegion = ResourceBundle.getBundle("properties.cityToRegion", new ResourceControl("UTF-8"));
+    private static ResourceBundle cityToRegion = ResourceBundle.getBundle("properties.cityToRegionDB", new ResourceControl("UTF-8"));
     private static ResourceBundle regionToID = ResourceBundle.getBundle("properties.regionsDB", new ResourceControl("UTF-8"));
 
     public static String regionByCity(String city) {
