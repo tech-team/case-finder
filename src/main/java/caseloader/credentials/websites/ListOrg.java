@@ -18,6 +18,7 @@ import java.util.logging.Logger;
 
 public class ListOrg extends WebSite {
     private static final int THRESHOLD = 5;
+    private static final int PRIORITY = 1;
     private Logger logger = MyLogger.getLogger(this.getClass().toString());
 
     abstract class Urls {
@@ -64,6 +65,11 @@ public class ListOrg extends WebSite {
         }
 
         return null;
+    }
+
+    @Override
+    public int getPriority() {
+        return PRIORITY;
     }
 
     private Credentials parseSearchResults(Elements results, CredentialsSearchRequest request, Credentials credentials) throws IOException, InterruptedException, DataRetrievingError {
@@ -119,7 +125,6 @@ public class ListOrg extends WebSite {
                         default:
                             break;
                     }
-                    break;
                 }
             }
 
@@ -140,7 +145,7 @@ public class ListOrg extends WebSite {
     }
 
     private Elements findByName(CredentialsSearchRequest request) throws InterruptedException, IOException, DataRetrievingError {
-        String val = request.getCompanyName(); // TODO:  Probably preprocess
+        String val = StringUtils.removeNonLetters(request.getCompanyName()); // TODO:  Probably preprocess
         if (val == null)
             return null;
         List<NameValuePair> params = new ArrayList<>();
@@ -150,13 +155,19 @@ public class ListOrg extends WebSite {
     }
 
     private Elements findByAddress(CredentialsSearchRequest request) throws InterruptedException, IOException, DataRetrievingError {
-        String val = request.getAddress(); // TODO:  Probably preprocess
+        String val = preprocessAddress(request.getAddress().getRaw());
         if (val == null)
             return null;
         List<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair("type", By.ADDRESS));
         params.add(new BasicNameValuePair("val", val));
         return executeSearch(params);
+    }
+
+    // TODO
+    private String preprocessAddress(String address) {
+        String res = StringUtils.removeNonLetters(address);
+        return res;
     }
 
     private Elements findByInn(CredentialsSearchRequest request) throws InterruptedException, IOException, DataRetrievingError {

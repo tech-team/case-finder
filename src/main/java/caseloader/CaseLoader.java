@@ -66,12 +66,13 @@ public class CaseLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
         CaseLoader<CasesData> cl = new CaseLoader<>();
 
         cl.casesLoaded.on((data) -> {
-            List<CaseInfo> cases = (List<CaseInfo>) data.getCollection();
+            List<CaseInfo> cases = data.getCollection();
             System.out.println("Cases loaded successfully");
         });
 
         CasesData data = new CasesData();
-        cl.retrieveDataAsync(new CaseSearchRequest(), data);
+        CaseSearchRequest req = new CaseSearchRequest(null, null, null, null, null, 0, 100);
+        cl.retrieveDataAsync(req, data);
 
         cl.waitForRetrieval();
 
@@ -82,5 +83,6 @@ public class CaseLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
         MyLogger.getGlobal().log(Level.INFO, "MAIN ENDED");
         MyLogger.getGlobal().log(Level.INFO, "Time elapsed: time=" + time);
         MyLogger.getGlobal().log(Level.INFO, "Time elapsed: h=" + h + " m=" + m + " s=" + s);
+        MyLogger.close();
     }
 }

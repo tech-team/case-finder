@@ -12,9 +12,17 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public abstract class WebSite {
+public abstract class WebSite implements Comparable<WebSite> {
     public abstract String url();
     public abstract Credentials findCredentials(final CredentialsSearchRequest request, final Credentials credentials) throws IOException, DataRetrievingError, InterruptedException;
+    public abstract int getPriority();
+    private static final double RELEVANCE_THRESHOLD = 0.5;
+
+    @Override
+    public int compareTo(WebSite site) {
+        assert (site != null);
+        return site.getPriority() - this.getPriority();
+    }
 
     protected Document downloadPage(String url) throws IOException, DataRetrievingError, InterruptedException {
         String html = HttpDownloader.get(url);
@@ -23,7 +31,7 @@ public abstract class WebSite {
 
     protected Credentials findWithBestRelevance(Map<RelevanceInput, Double> relevances) {
         RelevanceInput best = null;
-        double bestRelevance = 0.0;
+        double bestRelevance = RELEVANCE_THRESHOLD;
         for (Map.Entry<RelevanceInput, Double> entry : relevances.entrySet()) {
             double relevance = entry.getValue();
             if (best == null || relevance > bestRelevance) {
@@ -40,7 +48,7 @@ public abstract class WebSite {
         String reqInn = input.getRequest().getInn();
         String reqOgrn = input.getRequest().getOgrn();
         String reqName = StringUtils.removeNonLetters(input.getRequest().getCompanyName());
-        String reqAddress = StringUtils.removeNonLetters(input.getRequest().getAddress());
+        String reqAddress = StringUtils.removeNonLetters(input.getRequest().getAddress().getRaw());
 
         String foundName = StringUtils.removeNonLetters(input.getName());
         String foundAddress = StringUtils.removeNonLetters(input.getAddress());
@@ -65,7 +73,7 @@ public abstract class WebSite {
                 similarity(globalTelephones, foundTelephones)
         };
 
-        double[] weights = { 0.1, 0.4, 0.2, 0.3 }; // TODO: Still think it around
+        double[] weights = { 0.3, 0.2, 0.2, 0.3 }; // TODO: Still think it around
 
         return weightedAverage(similarities, weights);
     }
@@ -97,6 +105,9 @@ public abstract class WebSite {
     }
 
     private static double similarity(String s1, String s2) {
+        if (s1 == null || s2 == null)
+            return 0.0;
+
         String[] tokens1 = s1.split("\\s+");
         String[] tokens2 = s2.split("\\s+");
         int minSize = Math.min(tokens1.length, tokens2.length);
@@ -116,7 +127,7 @@ public abstract class WebSite {
             String t1 = tokens1[i];
             for (int j = 0; j < tokens2.length; ++j) {
                 String t2 = tokens2[j];
-                double d = StringUtils.levenshteinDistance(t1, t2);
+                double d = StringUtils.levensteinDistance(t1, t2);
                 double maxLength = Math.max(t1.length(), t2.length());
                 simMatrix[i][j] = 1.0 - d / maxLength;
             }

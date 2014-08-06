@@ -1,6 +1,5 @@
 package caseloader;
 
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -13,7 +12,7 @@ public class CasesData implements util.Appendable<CaseInfo> {
     }
 
     @Override
-    public Collection<CaseInfo> getCollection() {
+    public List<CaseInfo> getCollection() {
         return cases;
     }
 }

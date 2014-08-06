@@ -1,6 +1,8 @@
 package caseloader.credentials;
 
 import caseloader.ThreadPool;
+import caseloader.credentials.websites.Kartoteka;
+import caseloader.credentials.websites.ListOrg;
 import caseloader.credentials.websites.RusProfile;
 import caseloader.credentials.websites.WebSite;
 import exceptions.DataRetrievingError;
@@ -9,21 +11,19 @@ import util.MyLogger;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.PriorityQueue;
 import java.util.concurrent.*;
 import java.util.logging.Logger;
 
 public class CredentialsLoader {
-    private List<WebSite> webSites;
+    private PriorityQueue<WebSite> webSites;
     private ThreadPool pool = new ThreadPool();
     private Logger logger = MyLogger.getLogger(this.getClass().toString());
 
     public CredentialsLoader() {
-        webSites = new LinkedList<>();
-        webSites.add(new RusProfile());
-    }
-
-    public CredentialsLoader(List<WebSite> webSites) {
-        this.webSites = webSites;
+        webSites = new PriorityQueue<>();
+        webSites.add(new Kartoteka());
+        webSites.add(new ListOrg());
     }
 
     public Credentials retrieveCredentials(CredentialsSearchRequest request) throws InterruptedException {
@@ -33,17 +33,23 @@ public class CredentialsLoader {
         for (WebSite webSite : webSites) {
             Future<Credentials> found =
                     pool.submit(new CredentialsWorker(webSite, request, credentials));
-            founds.add(found);
-        }
-
-        for (Future<Credentials> found : founds) {
             try {
                 credentials.merge(found.get());
             } catch (ExecutionException e) {
                 e.printStackTrace();
                 return null;
             }
+//            founds.add(found);
         }
+
+//        for (Future<Credentials> found : founds) {
+//            try {
+//                credentials.merge(found.get());
+//            } catch (ExecutionException e) {
+//                e.printStackTrace();
+//                return null;
+//            }
+//        }
 
         return credentials;
     }
@@ -87,11 +93,9 @@ public class CredentialsLoader {
     }
 
 
-    public static void main(String[] args) {
-//        CredentialsLoader credentialsLoader = new CredentialsLoader();
-//        Credentials creds =
-//                credentialsLoader.retrieveCredentials(new CredentialsSearchRequest("test", "test"));
-//
-//        ThreadPool.instance().waitForFinish();
+    public static void main(String[] args) throws InterruptedException {
+        CredentialsLoader credentialsLoader = new CredentialsLoader();
+        Credentials creds =
+                credentialsLoader.retrieveCredentials(new CredentialsSearchRequest("ОАО Гамма Траст", "test"));
     }
 }

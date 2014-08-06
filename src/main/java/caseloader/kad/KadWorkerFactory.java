@@ -74,14 +74,16 @@ public class KadWorkerFactory<CaseContainerType extends util.Appendable<CaseInfo
 
                                     caseInfo.splitSides();
                                 for (CaseSide defendant : caseInfo.getDefendants()) {
-                                    CredentialsSearchRequest credentialsSearchRequest =
-                                            new CredentialsSearchRequest(defendant.getName(),
-                                                    defendant.getAddress(),
-                                                    defendant.getInn(),
-                                                    defendant.getOgrn());
-                                    Credentials defendantCredentials =
-                                            credentialsLoader.retrieveCredentials(credentialsSearchRequest);
-                                    defendant.setCredentials(defendantCredentials);
+                                    if (!defendant.isPhysical()) {
+                                        CredentialsSearchRequest credentialsSearchRequest =
+                                                new CredentialsSearchRequest(defendant.getName(),
+                                                        defendant.getAddress(),
+                                                        defendant.getInn(),
+                                                        defendant.getOgrn());
+                                        Credentials defendantCredentials =
+                                                credentialsLoader.retrieveCredentials(credentialsSearchRequest);
+                                        defendant.setCredentials(defendantCredentials);
+                                    }
                                 }
 
                                     if (Thread.currentThread().isInterrupted()) {
