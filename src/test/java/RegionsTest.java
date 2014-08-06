@@ -21,7 +21,7 @@ public class RegionsTest {
             String region = cityToRegionDB.getString(city);
             regions2.add(region);
 
-            assert regionsDB.containsKey(region)
+            assert regions1.contains(region)
                     : "Region not found in regionsDB: " + region;
         }
 
