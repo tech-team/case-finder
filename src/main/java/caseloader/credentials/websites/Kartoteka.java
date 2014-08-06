@@ -10,13 +10,11 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import util.HttpDownloader;
 import caseloader.util.RegionHelper;
+import util.ResourceControl;
 import util.StringUtils;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 // For INN search
 public class Kartoteka extends WebSite {
@@ -28,14 +26,6 @@ public class Kartoteka extends WebSite {
 
     abstract class Countries {
         private static final String RUSSIA = "643";
-    }
-
-    abstract static class RegionsIds {
-        private static final Map<String, Integer> regions = new HashMap<>();
-
-        static {
-
-        }
     }
 
     private static final String ENCODING = "cp1251";
@@ -59,7 +49,7 @@ public class Kartoteka extends WebSite {
         List<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair("query", companyName));
         params.add(new BasicNameValuePair(COUNTRY_KEY, Countries.RUSSIA));
-        params.add(new BasicNameValuePair(REGION_KEY, RegionHelper.byCity(city)));
+        params.add(new BasicNameValuePair(REGION_KEY, RegionHelper.regionIdByCity(city)));
 
         String resp = HttpDownloader.get(Urls.SEARCH, params, null, true, ENCODING);
         return parsePage(resp, request, credentials);
