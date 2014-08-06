@@ -30,6 +30,14 @@ public class Kartoteka extends WebSite {
         private static final String RUSSIA = "643";
     }
 
+    abstract static class RegionsIds {
+        private static final Map<String, Integer> regions = new HashMap<>();
+
+        static {
+
+        }
+    }
+
     private static final String ENCODING = "cp1251";
     private static final int COUNT_TO_PARSE = 3;
     private static final int PRIORITY = 2;

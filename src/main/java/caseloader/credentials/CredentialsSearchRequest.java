@@ -20,13 +20,6 @@ public class CredentialsSearchRequest {
         this.address = Address.parse(address);
     }
 
-//    public CredentialsSearchRequest clone(final CredentialsSearchRequest req) {
-//        return new CredentialsSearchRequest(req.getCompanyName(),
-//                                            req.getAddress(),
-//                                            req.getInn(),
-//                                            req.getOgrn());
-//    }
-
     public String getCompanyName() {
         return companyName;
     }
