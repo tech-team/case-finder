@@ -315,7 +315,8 @@ public class MainController {
                         100,
                         200);
 
-                ExcelExporter.export(request, casesData, selectedFile.getAbsolutePath(), Extension.fromName(extensionName));
+                ExcelExporter exporter = new ExcelExporter(Extension.fromName(extensionName));
+                exporter.export(request, casesData, selectedFile.getAbsolutePath());
             } catch (ExportException | UnsupportedExtensionException e) {
                 Dialogs.create().showException(e);
             }

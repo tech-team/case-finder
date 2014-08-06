@@ -8,46 +8,50 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.*;
+import util.HypertextNode;
+import util.HypertextParser;
 import util.ResourceControl;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 
 public class ExcelExporter {
-    /**
-     * see http://poi.apache.org/spreadsheet/examples.html
-     */
     private enum CellType {
-        BOLD
+        BOLD, LINK
     }
 
-    public static void export(CaseSearchRequest request, ObservableList<CaseModel> data, String fileName, Extension extension) throws UnsupportedExtensionException, ExportException {
-        Workbook wb = null;
+    private Extension extension = null;
+    Workbook wb = null;
+    CreationHelper ch = null;
+    Map<CellType, CellStyle> styles = null;
+
+    public ExcelExporter(Extension extension) throws UnsupportedExtensionException {
+        this.extension = extension;
+
         try {
             wb = (Workbook) extension.getWorkbookClass().newInstance();
+            styles = createStyles(wb);
+            ch = wb.getCreationHelper();
         } catch (InstantiationException | IllegalAccessException e) {
             throw new UnsupportedExtensionException(e);
         }
+    }
 
+    public void export(CaseSearchRequest request, ObservableList<CaseModel> data, String fileName) throws ExportException {
         //change fileName's extension to selected extension
-        String actualFileName = fileName.replaceFirst(
+        fileName = fileName.replaceFirst(
                 "\\.xlsx?$",
                 extension.getStarlessValue());
 
-        export(request, data, actualFileName, wb);
-    }
-
-    private static void export(CaseSearchRequest request, ObservableList<CaseModel> data, String fileName, Workbook wb) throws ExportException {
         ResourceBundle res = ResourceBundle.getBundle("properties.export_strings", new ResourceControl("UTF-8"));
 
-        Map<CellType, CellStyle> styles = createStyles(wb);
-
-        saveData(wb, data, res, styles);
-        saveRequest(wb, request, res, styles);
+        saveData(data, res);
+        saveRequest(request, res);
 
         //save to file
         try (FileOutputStream out = new FileOutputStream(fileName)) {
@@ -58,7 +62,7 @@ public class ExcelExporter {
         }
     }
 
-    private static void saveData(Workbook wb, ObservableList<CaseModel> data, ResourceBundle res, Map<CellType, CellStyle> styles) throws ExportException {
+    private void saveData(ObservableList<CaseModel> data, ResourceBundle res) throws ExportException {
         Sheet sheet = wb.createSheet(res.getString("dataSheetName"));
         PrintSetup printSetup = sheet.getPrintSetup();
         printSetup.setLandscape(true);
@@ -93,7 +97,7 @@ public class ExcelExporter {
 
                     if (obj instanceof StringProperty) {
                         String value = ((StringProperty) obj).get();
-                        cell.setCellValue(value);
+                        fillStringCell(cell, value);
                     } else if (obj instanceof IntegerProperty) {
                         int value = ((IntegerProperty) obj).get();
                         cell.setCellValue(value);
@@ -112,7 +116,29 @@ public class ExcelExporter {
             sheet.autoSizeColumn(i);
     }
 
-    private static void saveRequest(Workbook wb, CaseSearchRequest request, ResourceBundle res, Map<CellType, CellStyle> styles) {
+    private void fillStringCell(Cell cell, String value) {
+        List<HypertextNode> nodes = HypertextParser.parse(value);
+
+        if (nodes.size() > 1) //multiple links in one cell are not supported by Excel unfortunately
+            cell.setCellValue(value);
+        else if (nodes.size() == 1) {
+            HypertextNode node = nodes.get(0);
+
+            if (node.getType() == HypertextNode.Type.LINK) {
+                Hyperlink link = ch.createHyperlink(Hyperlink.LINK_URL);
+                link.setAddress(value);
+
+                cell.setCellValue(value);
+                cell.setHyperlink(link);
+                cell.setCellStyle(styles.get(CellType.LINK));
+            }
+            else {
+                cell.setCellValue(value);
+            }
+        }
+    }
+
+    private void saveRequest(CaseSearchRequest request, ResourceBundle res) {
         Sheet sheet = wb.createSheet(res.getString("requestSheetName"));
         PrintSetup printSetup = sheet.getPrintSetup();
         printSetup.setLandscape(true);
@@ -155,7 +181,7 @@ public class ExcelExporter {
         sheet.autoSizeColumn(1);
     }
 
-    private static void createKeyValueRow(Sheet sheet, Map<CellType, CellStyle> styles, int rowId, String key, String value) {
+    private void createKeyValueRow(Sheet sheet, Map<CellType, CellStyle> styles, int rowId, String key, String value) {
         Row row = sheet.createRow(rowId);
         Cell keyCell = row.createCell(0);
         keyCell.setCellValue(key);
@@ -165,15 +191,22 @@ public class ExcelExporter {
         valueCell.setCellValue(value);
     }
 
-    private static Map<CellType, CellStyle> createStyles(Workbook wb){
+    private Map<CellType, CellStyle> createStyles(Workbook wb) {
         Map<CellType, CellStyle> styles = new HashMap<>();
 
-        CellStyle style;
+        CellStyle boldStyle;
         Font boldFont = wb.createFont();
         boldFont.setBoldweight(Font.BOLDWEIGHT_BOLD);
-        style = wb.createCellStyle();
-        style.setFont(boldFont);
-        styles.put(CellType.BOLD, style);
+        boldStyle = wb.createCellStyle();
+        boldStyle.setFont(boldFont);
+        styles.put(CellType.BOLD, boldStyle);
+
+        CellStyle linkStyle = wb.createCellStyle();
+        Font linkFont = wb.createFont();
+        linkFont.setUnderline(Font.U_SINGLE);
+        linkFont.setColor(IndexedColors.BLUE.getIndex());
+        linkStyle.setFont(linkFont);
+        styles.put(CellType.LINK, linkStyle);
 
         return styles;
     }
