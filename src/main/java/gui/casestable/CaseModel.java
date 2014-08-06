@@ -38,6 +38,8 @@ public class CaseModel {
     public final StringProperty createdDate;
     public final StringProperty plaintiff;
     public final StringProperty defendant;
+    public final StringProperty phone;
+    public final StringProperty fullName;
     public final DoubleProperty cost;
     public final StringProperty caseType;
     public final StringProperty court;
@@ -50,6 +52,8 @@ public class CaseModel {
 
         this.plaintiff = new SimpleStringProperty();
         this.defendant = new SimpleStringProperty();
+        this.phone = new SimpleStringProperty();
+        this.fullName = new SimpleStringProperty();
 
         this.cost = new SimpleDoubleProperty();
 
@@ -105,6 +109,30 @@ public class CaseModel {
         this.defendant.set(defendant);
     }
 
+    public String getPhone() {
+        return phone.get();
+    }
+
+    public StringProperty phoneProperty() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone.set(phone);
+    }
+
+    public String getFullName() {
+        return fullName.get();
+    }
+
+    public StringProperty fullNameProperty() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName.set(fullName);
+    }
+
     public double getCost() {
         return cost.get();
     }
@@ -116,7 +144,6 @@ public class CaseModel {
     public void setCost(double cost) {
         this.cost.set(cost);
     }
-
 
     public String getCourt() {
         return court.get();
