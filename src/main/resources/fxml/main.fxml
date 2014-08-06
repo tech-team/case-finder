@@ -55,7 +55,7 @@
                 <MyProgressIndicator fx:id="progressIndicator" prefHeight="296.0" prefWidth="180.0" />
                 <Region prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS" />
                 <Separator prefWidth="200.0" />
-                <Button alignment="BASELINE_CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#exportCasesToExcel" prefHeight="31.0" prefWidth="190.0" text="Экспорт" textAlignment="CENTER">
+                <Button fx:id="exportButton" alignment="BASELINE_CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#exportCasesToExcel" prefHeight="31.0" prefWidth="190.0" text="Экспорт" disable="true" textAlignment="CENTER">
                     <font>
                         <Font name="System Bold" size="15.0" />
                     </font>
