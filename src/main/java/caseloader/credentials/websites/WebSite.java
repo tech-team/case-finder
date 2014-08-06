@@ -24,11 +24,6 @@ public abstract class WebSite implements Comparable<WebSite> {
         return site.getPriority() - this.getPriority();
     }
 
-    protected Document downloadPage(String url) throws IOException, DataRetrievingError, InterruptedException {
-        String html = HttpDownloader.get(url);
-        return Jsoup.parse(html, url);
-    }
-
     protected Credentials findWithBestRelevance(Map<RelevanceInput, Double> relevances) {
         RelevanceInput best = null;
         double bestRelevance = RELEVANCE_THRESHOLD;

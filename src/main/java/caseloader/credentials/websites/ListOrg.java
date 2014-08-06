@@ -40,11 +40,6 @@ public class ListOrg extends WebSite {
 
     @Override
     public Credentials findCredentials(CredentialsSearchRequest request, Credentials credentials) throws InterruptedException, IOException, DataRetrievingError {
-        if (request.getInn() == null)
-            request.setInn(credentials.getInn());
-        if (request.getOgrn() == null)
-            request.setOgrn(credentials.getOgrn());
-
         List<Elements> searchResults = new ArrayList<>(2);
 
         if (request.getInn() != null) {
@@ -113,9 +108,7 @@ public class ListOrg extends WebSite {
                         case "Телефон:":
                             if (!p.ownText().equals("")) {
                                 String[] telephones = p.ownText().split("\\s+");
-                                for (String tel : telephones) {
-                                    creds.addTelephone(Urls.MAIN_PAGE, tel);
-                                }
+                                creds.addTelephones(Urls.MAIN_PAGE, telephones);
                             }
                             break;
                         case "Адрес:":

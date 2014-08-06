@@ -19,22 +19,30 @@ public class CredentialsLoader {
     private PriorityQueue<WebSite> webSites;
     private ThreadPool pool = new ThreadPool();
     private Logger logger = MyLogger.getLogger(this.getClass().toString());
+    private int count = 0;
 
     public CredentialsLoader() {
         webSites = new PriorityQueue<>();
-        webSites.add(new Kartoteka());
-        webSites.add(new ListOrg());
+        webSites.add(new RusProfile());
+//        webSites.add(new ListOrg());
     }
 
     public Credentials retrieveCredentials(CredentialsSearchRequest request) throws InterruptedException {
         Credentials credentials = new Credentials();
         List<Future<Credentials>> founds = new LinkedList<>();
 
+
         for (WebSite webSite : webSites) {
+            if (request.getInn() == null)
+                request.setInn(credentials.getInn());
+            if (request.getOgrn() == null)
+                request.setOgrn(credentials.getOgrn());
+
             Future<Credentials> found =
                     pool.submit(new CredentialsWorker(webSite, request, credentials));
             try {
                 credentials.merge(found.get());
+                System.out.println(++count + ") " + request.getCompanyName() + " found creds. Inn = " + (found.get() == null ? null : found.get().getInn()));
             } catch (ExecutionException e) {
                 e.printStackTrace();
                 return null;
@@ -73,7 +81,7 @@ public class CredentialsLoader {
         @Override
         public Credentials call() {
             for (int retry = 1; retry <= 3; ++retry) {
-                logger.info("Working on url: " + webSite.url());
+                logger.info("Working on company: " + request.getCompanyName() + ". url: " + webSite.url());
 
                 Credentials found = null;
                 try {
@@ -84,7 +92,7 @@ public class CredentialsLoader {
                 } catch (InterruptedException e) {
                     return null;
                 }
-                logger.info("Finished url: " + webSite.url());
+                logger.info("Finished company: " + request.getCompanyName() + ". url: " + webSite.url());
                 return found;
             }
             logger.severe("Couldn't retrieve credentials. Breaking");
