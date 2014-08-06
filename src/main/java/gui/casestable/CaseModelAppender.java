@@ -2,10 +2,8 @@ package gui.casestable;
 
 import caseloader.CaseInfo;
 import caseloader.CaseSide;
-import gui.casestable.CaseModel;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
-import util.*;
 
 import java.util.Collection;
 
@@ -27,13 +25,13 @@ public class CaseModelAppender implements util.Appendable<CaseInfo> {
         caseModel.plaintiff.setValue(caseInfo.getPlaintiffs()
                 .stream()
                 .map(CaseSide::getName)
-                .reduce((s1, s2) -> s1 + ", " + s2)
+                .reduce((s1, s2) -> s1 + "\n" + s2)
                 .get());
 
         caseModel.defendant.setValue(caseInfo.getDefendants()
                 .stream()
                 .map(CaseSide::getName)
-                .reduce((s1, s2) -> s1 + ", " + s2)
+                .reduce((s1, s2) -> s1 + "\n" + s2)
                 .get());
 
         caseModel.cost.setValue(caseInfo.getCost());
