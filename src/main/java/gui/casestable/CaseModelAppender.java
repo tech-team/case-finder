@@ -68,7 +68,13 @@ public class CaseModelAppender implements util.Appendable<CaseInfo> {
 
         caseModel.credentialsLink.setValue(caseInfo.getDefendants()
                 .stream()
-                .map(caseSide -> caseSide.getCredentials().getLink())
+                .map(caseSide -> {
+                    String link = caseSide.getCredentials().getLink();
+                    if (link == null)
+                        return "";
+                    else
+                        return link;
+                })
                 .reduce((s1, s2) -> s1 + "\n" + s2)
                 .orElse(""));
 
