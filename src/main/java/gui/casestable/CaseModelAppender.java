@@ -34,6 +34,18 @@ public class CaseModelAppender implements util.Appendable<CaseInfo> {
                 .reduce((s1, s2) -> s1 + "\n" + s2)
                 .get());
 
+        caseModel.inn.setValue(caseInfo.getDefendants()
+                .stream()
+                .map(caseSide -> caseSide.getCredentials().getInn())
+                .reduce((s1, s2) -> s1 + "\n" + s2)
+                .get());
+
+        caseModel.ogrn.setValue(caseInfo.getDefendants()
+                .stream()
+                .map(caseSide -> caseSide.getCredentials().getOgrn())
+                .reduce((s1, s2) -> s1 + "\n" + s2)
+                .get());
+
         caseModel.phone.setValue("");
         caseModel.fullName.setValue("");
 
