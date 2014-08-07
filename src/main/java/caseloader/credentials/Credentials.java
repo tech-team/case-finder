@@ -106,6 +106,9 @@ public class Credentials {
         return telephones.get(website);
     }
 
+    public boolean hasLink() {
+        return link != null && !link.equals("");
+    }
     public String getLink() {
         return link;
     }
@@ -133,6 +136,10 @@ public class Credentials {
 
             if (!hasOgrn()) {
                 setOgrn(found.getOgrn());
+            }
+
+            if (!hasLink()) {
+                setLink(found.getLink());
             }
         }
     }

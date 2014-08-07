@@ -34,7 +34,7 @@ public class CredentialsLoader {
     }
 
     private List<WebSiteBulk> webSites;
-    private ThreadPool pool = new ThreadPool();
+//    private ThreadPool pool = new ThreadPool();
     private Logger logger = MyLogger.getLogger(this.getClass().toString());
     private int count = 0;
 
@@ -76,7 +76,7 @@ public class CredentialsLoader {
     }
 
     public void stopExecution() {
-        pool.stopExecution();
+//        pool.stopExecution();
     }
 
 
@@ -92,7 +92,7 @@ public class CredentialsLoader {
         }
 
         @Override
-        public Credentials call() {
+        public Credentials call() throws InterruptedException {
             for (int retry = 1; retry <= 3; ++retry) {
                 logger.info("Working on company: " + request.getCompanyName() + ". url: " + webSite.url());
 
@@ -102,8 +102,6 @@ public class CredentialsLoader {
                 } catch (IOException | DataRetrievingError e) {
                     logger.warning("Error retrieving credentials. Retrying");
                     continue;
-                } catch (InterruptedException e) {
-                    return null;
                 }
                 logger.info("Finished company: " + request.getCompanyName() + ". url: " + webSite.url());
                 return found;
