@@ -8,6 +8,7 @@ public class Credentials {
     private Map<String, List<String>> telephones = new HashMap<>();
     private String inn = null;
     private String ogrn = null;
+    private String link = null;
 
     public void addDirector(String website, String director) {
         if (director != null) {
@@ -75,12 +76,36 @@ public class Credentials {
         return directors.get(website);
     }
 
+    public List<String> getAllDirectors() {
+        List<String> allDirectors = new LinkedList<>();
+        for (Map.Entry<String, List<String>> directors : this.directors.entrySet()) {
+            allDirectors.addAll(directors.getValue());
+        }
+        return allDirectors;
+    }
+
     public Map<String, List<String>> getTelephones() {
         return telephones;
     }
 
+    public List<String> getAllTelephones() {
+        List<String> allTelephones = new LinkedList<>();
+        for (Map.Entry<String, List<String>> telephones : this.telephones.entrySet()) {
+            allTelephones.addAll(telephones.getValue());
+        }
+        return allTelephones;
+    }
+
     public List<String> getTelephones(String website) {
         return telephones.get(website);
+    }
+
+    public String getLink() {
+        return link;
+    }
+
+    public void setLink(String link) {
+        this.link = link;
     }
 
     public void merge(final Credentials found) {

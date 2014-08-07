@@ -102,6 +102,7 @@ public class RusProfile extends WebSite {
             }
 
             Credentials creds = new Credentials();
+            creds.setLink(companyUrl);
             creds.addDirector(Urls.MAIN_PAGE, director);
             creds.addTelephones(Urls.MAIN_PAGE, telephones);
 
