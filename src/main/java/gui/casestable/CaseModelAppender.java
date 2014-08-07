@@ -26,35 +26,25 @@ public class CaseModelAppender implements util.Appendable<CaseInfo> {
                 .stream()
                 .map(CaseSide::getName)
                 .reduce((s1, s2) -> s1 + "\n" + s2)
-                .get());
+                .orElse(""));
 
         caseModel.defendant.setValue(caseInfo.getDefendants()
                 .stream()
                 .map(CaseSide::getName)
                 .reduce((s1, s2) -> s1 + "\n" + s2)
-                .get());
+                .orElse(""));
 
-        String inn = caseInfo.getDefendants()
+        caseModel.inn.setValue(caseInfo.getDefendants()
                 .stream()
                 .map(caseSide -> caseSide.getCredentials().getInn())
                 .reduce((s1, s2) -> s1 + "\n" + s2)
-                .get();
+                .orElse(""));
 
-        if (inn == null)
-            inn = "";
-
-        caseModel.inn.setValue(inn);
-
-        String ogrn = caseInfo.getDefendants()
+        caseModel.ogrn.setValue(caseInfo.getDefendants()
                 .stream()
                 .map(caseSide -> caseSide.getCredentials().getOgrn())
                 .reduce((s1, s2) -> s1 + "\n" + s2)
-                .get();
-
-        if (ogrn == null)
-            ogrn = "";
-
-        caseModel.ogrn.setValue(ogrn);
+                .orElse(""));
 
         caseModel.phone.setValue(caseInfo.getDefendants()
                 .stream()
@@ -62,9 +52,9 @@ public class CaseModelAppender implements util.Appendable<CaseInfo> {
                         caseSide.getCredentials().getAllTelephones()
                                 .stream()
                                 .reduce((s1, s2) -> s1 + ", " + s2)
-                                .get())
+                                .orElse(""))
                 .reduce((s1, s2) -> s1 + "\n" + s2)
-                .get());
+                .orElse(""));
 
         caseModel.fullName.setValue(caseInfo.getDefendants()
                 .stream()
@@ -72,15 +62,15 @@ public class CaseModelAppender implements util.Appendable<CaseInfo> {
                         caseSide.getCredentials().getAllDirectors()
                                 .stream()
                                 .reduce((s1, s2) -> s1 + ", " + s2)
-                                .get())
+                                .orElse(""))
                 .reduce((s1, s2) -> s1 + "\n" + s2)
-                .get());
+                .orElse(""));
 
         caseModel.credentialsLink.setValue(caseInfo.getDefendants()
                 .stream()
                 .map(caseSide -> caseSide.getCredentials().getLink())
                 .reduce((s1, s2) -> s1 + "\n" + s2)
-                .get());
+                .orElse(""));
 
         caseModel.cost.setValue(caseInfo.getCost());
         caseModel.caseType.setValue(caseInfo.getCaseType());
