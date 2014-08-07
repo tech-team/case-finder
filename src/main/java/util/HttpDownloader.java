@@ -100,8 +100,7 @@ public abstract class HttpDownloader {
 
 
         HttpGet request = new HttpGet(getPathAndQuery(uri));
-        if (useProxy)
-            request.setConfig(buildRequestConfig());
+        request.setConfig(buildRequestConfig(useProxy));
         setHeaders(request, headers);
 
         checkSleep(uriBuilder.getHost());
@@ -157,8 +156,7 @@ public abstract class HttpDownloader {
 
         HttpPost request = new HttpPost(getPathAndQuery(uri));
         request.setEntity(data);
-        if (useProxy)
-            request.setConfig(buildRequestConfig());
+        request.setConfig(buildRequestConfig(useProxy));
         setHeaders(request, headers);
 
         checkSleep(uriBuilder.getHost());
@@ -207,10 +205,14 @@ public abstract class HttpDownloader {
         return new HttpHost(uriBuilder.getHost(), uriBuilder.getPort(), uriBuilder.getScheme());
     }
 
-    private static RequestConfig buildRequestConfig() throws InterruptedException {
-        ProxyInfo proxyInfo = ProxyList.instance().getNext();
-        HttpHost proxy = new HttpHost(proxyInfo.getIp(), proxyInfo.getPort());
-        return RequestConfig.custom().setProxy(proxy).setConnectTimeout(REQUEST_TIMEOUT).build();
+    private static RequestConfig buildRequestConfig(boolean useProxy) throws InterruptedException {
+        if (useProxy) {
+            ProxyInfo proxyInfo = ProxyList.instance().getNext();
+            HttpHost proxy = new HttpHost(proxyInfo.getIp(), proxyInfo.getPort());
+            return RequestConfig.custom().setProxy(proxy).setConnectTimeout(REQUEST_TIMEOUT).build();
+        } else {
+            return RequestConfig.custom().setConnectTimeout(REQUEST_TIMEOUT).build();
+        }
     }
 
     private static String getResponse(HttpResponse response, String encoding) throws IOException, InterruptedException {
