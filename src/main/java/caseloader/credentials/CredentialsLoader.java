@@ -52,9 +52,9 @@ public class CredentialsLoader {
             Credentials found = null;
 
             for (WebSite site : bulk.getSites()) {
-                if (request.getInn() == null)
+                if (request.getInn() == null || request.getInn().equals(""))
                     request.setInn(credentials.getInn());
-                if (request.getOgrn() == null)
+                if (request.getOgrn() == null || request.getOgrn().equals(""))
                     request.setOgrn(credentials.getOgrn());
 
                 found = new CredentialsWorker(site, request, credentials).call();

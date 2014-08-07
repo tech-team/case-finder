@@ -95,6 +95,7 @@ public class KadWorkerFactory<CaseContainerType extends util.Appendable<CaseInfo
                                 }
                             } catch (NullPointerException e) {
                                 logger.severe(e.getMessage());
+                                throw e;
                             }
                             caseProcessed.fire();
                             logger.info(String.format("Finished case %d/%d = %s", id, searchLimit, caseInfo.getCaseNumber()));

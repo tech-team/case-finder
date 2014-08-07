@@ -105,14 +105,8 @@ public class RusProfile extends WebSite {
             creds.setLink(companyUrl);
             creds.addDirector(Urls.MAIN_PAGE, director);
             creds.addTelephones(Urls.MAIN_PAGE, telephones);
-
-            if (creds.getInn() == null) {
-                creds.setInn(inn);
-            }
-
-            if (creds.getOgrn() == null) {
-                creds.setOgrn(ogrn);
-            }
+            creds.setInn(inn);
+            creds.setOgrn(ogrn);
 
             return creds;
         } catch (NullPointerException e) {

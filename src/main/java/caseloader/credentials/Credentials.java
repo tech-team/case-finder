@@ -6,9 +6,9 @@ import java.util.stream.Collectors;
 public class Credentials {
     private Map<String, List<String>> directors = new HashMap<>();
     private Map<String, List<String>> telephones = new HashMap<>();
-    private String inn = null;
-    private String ogrn = null;
-    private String link = null;
+    private String inn = "";
+    private String ogrn = "";
+    private String link = "";
 
     public void addDirector(String website, String director) {
         if (director != null) {
