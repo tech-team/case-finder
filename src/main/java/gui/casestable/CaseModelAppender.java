@@ -37,13 +37,25 @@ public class CaseModelAppender implements util.Appendable<CaseInfo> {
 
         caseModel.inn.setValue(caseInfo.getDefendants()
                 .stream()
-                .map(caseSide -> caseSide.getCredentials().getInn())
+                .map(caseSide -> {
+                    Credentials credentials = caseSide.getCredentials();
+                    if (credentials == null)
+                        return "";
+                    else
+                        return caseSide.getCredentials().getInn();
+                })
                 .reduce((s1, s2) -> s1 + "\n" + s2)
                 .orElse(""));
 
         caseModel.ogrn.setValue(caseInfo.getDefendants()
                 .stream()
-                .map(caseSide -> caseSide.getCredentials().getOgrn())
+                .map(caseSide -> {
+                    Credentials credentials = caseSide.getCredentials();
+                    if (credentials == null)
+                        return "";
+                    else
+                        return caseSide.getCredentials().getOgrn();
+                })
                 .reduce((s1, s2) -> s1 + "\n" + s2)
                 .orElse(""));
 
