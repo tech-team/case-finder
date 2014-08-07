@@ -54,7 +54,9 @@ public class TextFlowCell<S, T> extends TableCell<S, T> {
             textFlow.setPrefWidth(Integer.MAX_VALUE);
             textFlow.setMinWidth(Integer.MAX_VALUE);
 
-            List<HypertextNode> nodes = HypertextParser.parse(value);
+            //display just first line, because JavaFX's TableView can't have different row height's
+            String[] lines = value.split("\n", 2);
+            List<HypertextNode> nodes = HypertextParser.parse(lines[0]);
             for (HypertextNode node: nodes) {
                 if (node.getType() == HypertextNode.Type.LINK) {
                     Hyperlink link = new Hyperlink(node.getValue());
