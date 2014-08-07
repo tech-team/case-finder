@@ -35,7 +35,10 @@ import util.MyLogger;
 import util.ResourceControl;
 
 import java.io.File;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.prefs.Preferences;
@@ -290,16 +293,24 @@ public class MainController {
     }
 
     public void exportCasesToExcel(ActionEvent actionEvent) {
-        Action action = Dialogs.create()
-                .message(res.getString("onExportWhenSearching"))
-                .actions(Dialog.Actions.YES, Dialog.Actions.NO)
-                .showConfirm();
+        if (mode == Mode.SEARCHING) {
+            Action action = Dialogs.create()
+                    .message(res.getString("onExportWhenSearching"))
+                    .actions(Dialog.Actions.YES, Dialog.Actions.NO)
+                    .showConfirm();
 
-        if (action != Dialog.Actions.YES)
-            return;
+            if (action != Dialog.Actions.YES)
+                return;
+        }
 
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Export to Excel");
+
+        DateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
+        Date date = new Date();
+        fileChooser.setInitialFileName("CaseFinder Report "
+                + dateFormat.format(date));
+
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter(Extension.Excel.getName(), Extension.Excel.getValue()),
                 new FileChooser.ExtensionFilter(Extension.AncientExcel.getName(), Extension.AncientExcel.getValue()));
