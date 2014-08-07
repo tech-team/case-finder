@@ -13,14 +13,20 @@ public class Credentials {
     public void addDirector(String website, String director) {
         if (director != null) {
             List<String> directors = this.directors.get(website);
-            directors.add(director);
+            if (directors == null) {
+                this.directors.put(website, new LinkedList<>());
+            }
+            this.directors.get(website).add(director);
         }
     }
 
     public void addTelephone(String website, String telephone) {
         if (telephone != null) {
-            List<String> telephones = this.telephones.get(website);
-            telephones.add(telephone);
+            List<String> telephones = this.directors.get(website);
+            if (telephones == null) {
+                this.telephones.put(website, new LinkedList<>());
+            }
+            this.telephones.get(website).add(telephone);
         }
     }
 
