@@ -1,20 +1,58 @@
 package caseloader.util;
 
+import org.apache.commons.lang3.StringUtils;
+import util.ResourceControl;
+
+import java.util.ResourceBundle;
+
 public class Address {
     private String rawAddress;
     private String city;
+    private String region;
 
     public static Address parse(String address) {
-        Address a = new Address();
-        a.rawAddress = address;
+        return new Address(address);
+    }
 
-        // TODO
+    public Address(String address) {
+        rawAddress = address;
 
-        return a;
+        parseCity();
+        parseRegion();
+    }
+
+    private void parseCity() {
+        ResourceBundle cityToRegion = ResourceBundle.getBundle("properties.cityToRegionDB", new ResourceControl("UTF-8"));
+
+        for (String city: cityToRegion.keySet()) {
+            if (StringUtils.containsIgnoreCase(rawAddress, city)) {
+                this.city = city;
+                this.region = cityToRegion.getString(city);
+                return;
+            }
+        }
+    }
+
+    private void parseRegion() {
+        if (region != null) //already recognised in getCity
+            return;
+
+        ResourceBundle regions = ResourceBundle.getBundle("properties.regionsDB", new ResourceControl("UTF-8"));
+
+        for (String region: regions.keySet()) {
+            if (StringUtils.containsIgnoreCase(rawAddress, region)) {
+                this.region = region;
+                return;
+            }
+        }
     }
 
     public String getCity() {
         return city;
+    }
+
+    public String getRegion() {
+        return region;
     }
 
     public String getRaw() {
