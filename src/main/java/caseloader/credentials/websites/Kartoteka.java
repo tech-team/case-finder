@@ -53,12 +53,12 @@ public class Kartoteka extends WebSite {
 
         List<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair(QueryKeys.QUERY, companyName));
-//        params.add(new BasicNameValuePair(QueryKeys.COUNTRY, Countries.RUSSIA));
-//        params.add(new BasicNameValuePair(QueryKeys.REGION, RegionHelper.regionIdByCity(city)));
+        params.add(new BasicNameValuePair(QueryKeys.COUNTRY, Countries.RUSSIA));
+        params.add(new BasicNameValuePair(QueryKeys.REGION, RegionHelper.regionIdByCity(city)));
 
         String resp = HttpDownloader.get(Urls.SEARCH, params, null, true, ENCODING);
         Credentials creds = parsePage(resp, request, credentials);
-        System.out.println(++count + ") " + request.getCompanyName() + " kartoteka found creds. Inn = " + (creds == null ? null : creds.getInn()));
+//        System.out.println(++count + ") " + request.getCompanyName() + " kartoteka found creds. Inn = " + (creds == null ? null : creds.getInn()));
         return creds;
     }
 

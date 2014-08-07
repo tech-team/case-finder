@@ -16,48 +16,61 @@ import java.util.concurrent.*;
 import java.util.logging.Logger;
 
 public class CredentialsLoader {
-    private PriorityQueue<WebSite> webSites;
+    private class WebSiteBulk {
+        private List<WebSite> sites;
+
+        public WebSiteBulk() {
+            sites = new LinkedList<>();
+        }
+
+        public WebSiteBulk addSite(WebSite site) {
+            sites.add(site);
+            return this;
+        }
+
+        public List<WebSite> getSites() {
+            return sites;
+        }
+    }
+
+    private List<WebSiteBulk> webSites;
     private ThreadPool pool = new ThreadPool();
     private Logger logger = MyLogger.getLogger(this.getClass().toString());
     private int count = 0;
 
     public CredentialsLoader() {
-        webSites = new PriorityQueue<>();
-        webSites.add(new RusProfile());
-//        webSites.add(new ListOrg());
+        webSites = new LinkedList<>();
+        webSites.add(new WebSiteBulk().addSite(new RusProfile()));
+        webSites.add(new WebSiteBulk().addSite(new Kartoteka()).addSite(new RusProfile()));
     }
 
     public Credentials retrieveCredentials(CredentialsSearchRequest request) throws InterruptedException {
         Credentials credentials = new Credentials();
-        List<Future<Credentials>> founds = new LinkedList<>();
+        boolean foundAnything = false;
 
+        for (WebSiteBulk bulk : webSites) {
+            Credentials found = null;
 
-        for (WebSite webSite : webSites) {
-            if (request.getInn() == null)
-                request.setInn(credentials.getInn());
-            if (request.getOgrn() == null)
-                request.setOgrn(credentials.getOgrn());
+            for (WebSite site : bulk.getSites()) {
+                if (request.getInn() == null)
+                    request.setInn(credentials.getInn());
+                if (request.getOgrn() == null)
+                    request.setOgrn(credentials.getOgrn());
 
-            Future<Credentials> found =
-                    pool.submit(new CredentialsWorker(webSite, request, credentials));
-            try {
-                credentials.merge(found.get());
-                System.out.println(++count + ") " + request.getCompanyName() + " found creds. Inn = " + (found.get() == null ? null : found.get().getInn()));
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-                return null;
+                found = new CredentialsWorker(site, request, credentials).call();
+                credentials.merge(found);
             }
-//            founds.add(found);
+
+            if (found != null) {
+                foundAnything = true;
+                System.out.println(++count + ") " + request.getCompanyName() + " found creds. Inn = " + found.getInn() + ". tels count = " + found.getTelephones().size());
+                break;
+            }
         }
 
-//        for (Future<Credentials> found : founds) {
-//            try {
-//                credentials.merge(found.get());
-//            } catch (ExecutionException e) {
-//                e.printStackTrace();
-//                return null;
-//            }
-//        }
+        if (!foundAnything) {
+            System.out.println("CREDENTIALS ARE NULL");
+        }
 
         return credentials;
     }

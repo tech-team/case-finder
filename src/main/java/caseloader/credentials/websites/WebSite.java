@@ -39,7 +39,6 @@ public abstract class WebSite implements Comparable<WebSite> {
     }
 
     protected double countRelevance(RelevanceInput input) {
-
         String reqInn = input.getRequest().getInn();
         String reqOgrn = input.getRequest().getOgrn();
         String reqName = StringUtils.removeNonLetters(input.getRequest().getCompanyName());
@@ -49,13 +48,6 @@ public abstract class WebSite implements Comparable<WebSite> {
         String foundAddress = StringUtils.removeNonLetters(input.getAddress());
         String foundInn = input.getCredentials().getInn();
         String foundOgrn = input.getCredentials().getOgrn();
-        List<String> foundDirectors = input.getCredentials().getDirectors(url()).stream().map(StringUtils::removeNonLetters).collect(Collectors.toCollection(LinkedList::new));
-        List<String> foundTelephones = input.getCredentials().getTelephones(url()).stream().map(StringUtils::removeNonLetters).collect(Collectors.toCollection(LinkedList::new));
-
-        String globalInn = input.getTotalCreds().getInn();
-        String globalOgrn = input.getTotalCreds().getOgrn();
-        List<String> globalDirectors = input.getTotalCreds().getDirectors(url()).stream().map(StringUtils::removeNonLetters).collect(Collectors.toCollection(LinkedList::new));
-        List<String> globalTelephones = input.getTotalCreds().getTelephones(url()).stream().map(StringUtils::removeNonLetters).collect(Collectors.toCollection(LinkedList::new));
 
         if (reqInn != null && reqInn.equals(foundInn)
                 || reqOgrn != null && reqOgrn.equals(foundOgrn))
@@ -63,12 +55,10 @@ public abstract class WebSite implements Comparable<WebSite> {
 
         double[] similarities = {
                 similarity(reqName, foundName),
-                similarity(reqAddress, foundAddress),
-                similarity(globalDirectors, foundDirectors),
-                similarity(globalTelephones, foundTelephones)
+                similarity(reqAddress, foundAddress)
         };
 
-        double[] weights = { 0.3, 0.2, 0.2, 0.3 }; // TODO: Still think it around
+        double[] weights = { 0.6, 0.4 }; // TODO: Still think it around
 
         return weightedAverage(similarities, weights);
     }
@@ -99,7 +89,7 @@ public abstract class WebSite implements Comparable<WebSite> {
         return 0;
     }
 
-    private static double similarity(String s1, String s2) {
+    public static double similarity(String s1, String s2) {
         if (s1 == null || s2 == null)
             return 0.0;
 
@@ -119,12 +109,9 @@ public abstract class WebSite implements Comparable<WebSite> {
 
         // TODO
         for (int i = 0; i < tokens1.length; ++i) {
-            String t1 = tokens1[i];
             for (int j = 0; j < tokens2.length; ++j) {
-                String t2 = tokens2[j];
-                double d = StringUtils.levensteinDistance(t1, t2);
-                double maxLength = Math.max(t1.length(), t2.length());
-                simMatrix[i][j] = 1.0 - d / maxLength;
+                double d = StringUtils.levensteinDistance(tokens1[i], tokens2[j]);
+                simMatrix[i][j] = 0.5 / (d + 0.5);
             }
         }
 

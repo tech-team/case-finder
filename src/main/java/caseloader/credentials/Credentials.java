@@ -96,6 +96,10 @@ public class Credentials {
         return websiteDirectors;
     }
 
+    public List<Pair> getTelephones() {
+        return telephones;
+    }
+
     public List<String> getTelephones(String website) {
         List<String> websiteTelephones
                 = telephones.stream()

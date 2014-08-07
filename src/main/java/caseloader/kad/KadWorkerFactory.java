@@ -73,18 +73,18 @@ public class KadWorkerFactory<CaseContainerType extends util.Appendable<CaseInfo
                                     caseInfo.setCost(cost);
 
                                     caseInfo.splitSides();
-                                for (CaseSide defendant : caseInfo.getDefendants()) {
-                                    if (!defendant.isPhysical()) {
-                                        CredentialsSearchRequest credentialsSearchRequest =
-                                                new CredentialsSearchRequest(defendant.getName(),
-                                                        defendant.getAddress(),
-                                                        defendant.getInn(),
-                                                        defendant.getOgrn());
-                                        Credentials defendantCredentials =
-                                                credentialsLoader.retrieveCredentials(credentialsSearchRequest);
-                                        defendant.setCredentials(defendantCredentials);
+                                    for (CaseSide defendant : caseInfo.getDefendants()) {
+                                        if (!defendant.isPhysical()) {
+                                            CredentialsSearchRequest credentialsSearchRequest =
+                                                    new CredentialsSearchRequest(defendant.getName(),
+                                                            defendant.getAddress(),
+                                                            defendant.getInn(),
+                                                            defendant.getOgrn());
+                                            Credentials defendantCredentials =
+                                                    credentialsLoader.retrieveCredentials(credentialsSearchRequest);
+                                            defendant.setCredentials(defendantCredentials);
+                                        }
                                     }
-                                }
 
                                     if (Thread.currentThread().isInterrupted()) {
                                         throw new InterruptedException();
@@ -96,11 +96,11 @@ public class KadWorkerFactory<CaseContainerType extends util.Appendable<CaseInfo
                             } catch (NullPointerException e) {
                                 logger.severe(e.getMessage());
                             }
-
                             caseProcessed.fire();
                             logger.info(String.format("Finished case %d/%d = %s", id, searchLimit, caseInfo.getCaseNumber()));
                         } else {
-                            logger.info(String.format("Case %d/%d = %s failed", id, searchLimit, caseInfo.getCaseNumber()));
+                            logger.info(String.format("Case %d/%d = %s failed", id, searchLimit, caseInfo.getCaseNumber()) + ". Retrying");
+                            continue;
                         }
                         return;
                     } catch (InterruptedException e) {
@@ -108,7 +108,7 @@ public class KadWorkerFactory<CaseContainerType extends util.Appendable<CaseInfo
                         return;
                     }
                 }
-
+                caseProcessed.fire();
                 logger.warning("Couldn't retrieve case " + caseInfo.getCaseNumber() + ". Breaking");
             }
         };
