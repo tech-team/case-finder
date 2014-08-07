@@ -22,7 +22,7 @@ public class Credentials {
 
     public void addTelephone(String website, String telephone) {
         if (telephone != null) {
-            List<String> telephones = this.directors.get(website);
+            List<String> telephones = this.telephones.get(website);
             if (telephones == null) {
                 this.telephones.put(website, new LinkedList<>());
             }
