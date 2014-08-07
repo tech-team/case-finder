@@ -42,6 +42,7 @@ public class CaseModel {
     public final StringProperty ogrn;
     public final StringProperty phone;
     public final StringProperty fullName;
+    public final StringProperty credentialsLink;
     public final DoubleProperty cost;
     public final StringProperty caseType;
     public final StringProperty court;
@@ -58,7 +59,7 @@ public class CaseModel {
         this.ogrn = new SimpleStringProperty();
         this.phone = new SimpleStringProperty();
         this.fullName = new SimpleStringProperty();
-
+        this.credentialsLink = new SimpleStringProperty();
         this.cost = new SimpleDoubleProperty();
 
         this.caseType = new SimpleStringProperty();
@@ -159,6 +160,18 @@ public class CaseModel {
 
     public void setFullName(String fullName) {
         this.fullName.set(fullName);
+    }
+
+    public String getCredentialsLink() {
+        return credentialsLink.get();
+    }
+
+    public StringProperty credentialsLinkProperty() {
+        return credentialsLink;
+    }
+
+    public void setCredentialsLink(String credentialsLink) {
+        this.credentialsLink.set(credentialsLink);
     }
 
     public double getCost() {
