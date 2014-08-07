@@ -24,6 +24,7 @@ import proxy.ProxyList;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
@@ -35,7 +36,7 @@ import java.util.logging.Logger;
 
 public abstract class HttpDownloader {
     public static final String USER_AGENT = "Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)";
-    private static final int REQUEST_TIMEOUT = 5 * 1000;
+    private static final int REQUEST_TIMEOUT = 7 * 1000;
     private static final boolean USE_PROXY_DEFAULT = true;
     private static final ConcurrentHashMap<String, Long> LAST_TIMES = new ConcurrentHashMap<>();
     private static final long WAIT_DELTA = 3 * 1000;
@@ -169,7 +170,7 @@ public abstract class HttpDownloader {
             updateTime(uriBuilder.getHost());
             postRetryCount = 1;
             return getResponse(response, DEFAULT_ENCODING);
-        } catch (HttpHostConnectException | ConnectTimeoutException | NoHttpResponseException e) {
+        } catch (HttpHostConnectException | ConnectTimeoutException | SocketTimeoutException | NoHttpResponseException e) {
             logger.warning("Exception happened. Retry #" + postRetryCount++);
             if (postRetryCount < 3)
                 return post(url, data, headers, useProxy);
@@ -206,12 +207,13 @@ public abstract class HttpDownloader {
     }
 
     private static RequestConfig buildRequestConfig(boolean useProxy) throws InterruptedException {
+        RequestConfig.Builder b = RequestConfig.custom().setConnectTimeout(REQUEST_TIMEOUT).setSocketTimeout(REQUEST_TIMEOUT);
         if (useProxy) {
             ProxyInfo proxyInfo = ProxyList.instance().getNext();
             HttpHost proxy = new HttpHost(proxyInfo.getIp(), proxyInfo.getPort());
-            return RequestConfig.custom().setProxy(proxy).setConnectTimeout(REQUEST_TIMEOUT).build();
+            return b.setProxy(proxy).build();
         } else {
-            return RequestConfig.custom().setConnectTimeout(REQUEST_TIMEOUT).build();
+            return b.build();
         }
     }
 
