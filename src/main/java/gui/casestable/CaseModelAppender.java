@@ -2,6 +2,7 @@ package gui.casestable;
 
 import caseloader.CaseInfo;
 import caseloader.CaseSide;
+import caseloader.credentials.Credentials;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 
@@ -48,32 +49,42 @@ public class CaseModelAppender implements util.Appendable<CaseInfo> {
 
         caseModel.phone.setValue(caseInfo.getDefendants()
                 .stream()
-                .map(caseSide ->
-                        caseSide.getCredentials().getAllTelephones()
+                .map(caseSide -> {
+                    Credentials credentials = caseSide.getCredentials();
+                    if (credentials == null)
+                        return "";
+                    else
+                        return caseSide.getCredentials().getAllTelephones()
                                 .stream()
                                 .reduce((s1, s2) -> s1 + ", " + s2)
-                                .orElse(""))
+                                .orElse("");
+                })
                 .reduce((s1, s2) -> s1 + "\n" + s2)
                 .orElse(""));
 
         caseModel.fullName.setValue(caseInfo.getDefendants()
                 .stream()
-                .map(caseSide ->
-                        caseSide.getCredentials().getAllDirectors()
+                .map(caseSide -> {
+                    Credentials credentials = caseSide.getCredentials();
+                    if (credentials == null)
+                        return "";
+                    else
+                        return caseSide.getCredentials().getAllDirectors()
                                 .stream()
                                 .reduce((s1, s2) -> s1 + ", " + s2)
-                                .orElse(""))
+                                .orElse("");
+                })
                 .reduce((s1, s2) -> s1 + "\n" + s2)
                 .orElse(""));
 
         caseModel.credentialsLink.setValue(caseInfo.getDefendants()
                 .stream()
                 .map(caseSide -> {
-                    String link = caseSide.getCredentials().getLink();
-                    if (link == null)
+                    Credentials credentials = caseSide.getCredentials();
+                    if (credentials == null)
                         return "";
                     else
-                        return link;
+                        return caseSide.getCredentials().getLink();
                 })
                 .reduce((s1, s2) -> s1 + "\n" + s2)
                 .orElse(""));
