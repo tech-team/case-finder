@@ -82,6 +82,14 @@ public class MainController {
 
     @FXML
     private void initialize() {
+        Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
+            Dialogs.create().showException(
+                    new UnexpectedException(
+                            res.getString("unexpectedException"), e));
+
+            System.exit(1);
+        });
+
         initializeCourtList();
         initializeCaseModel();
         initializeTableView();
