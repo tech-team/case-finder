@@ -32,9 +32,9 @@ public class RusProfile extends WebSite {
 
     @Override
     public Credentials findCredentials(final CredentialsSearchRequest request, final Credentials credentials) throws IOException, DataRetrievingError, InterruptedException {
-        if (request.getInn() != null) {
+        if (request.getInn() != null && !request.getInn().equals("")) {
             return findByInn(request);
-        } else if (request.getOgrn() != null) {
+        } else if (request.getOgrn() != null && !request.getOgrn().equals("")) {
             return findByOgrn(request);
         } else {
             return findByNameAndAddress(request);
@@ -68,20 +68,20 @@ public class RusProfile extends WebSite {
         if (companyUrl == null)
             return null;
         try {
-            String resp = HttpDownloader.get(companyUrl);
+            String resp = HttpDownloader.i().get(companyUrl);
             Element content = Jsoup.parse(resp)
                     .body()
                     .getElementById("content");
 
             Elements generalInfo = content.getElementById("general-info").getElementsByTag("tr");
             String director = null;
-            String[] telephones = null;
+            String telephones = null;
 
             for (Element tr : generalInfo) {
                 String key = tr.getElementsByTag("td").first().text();
                 String value = tr.getElementsByTag("td").last().text();
-                if (key.contains("тел")) {
-                    telephones = value.split("\\s+");
+                if (key.contains("телеф")) {
+                    telephones = value;
                 } else if (key.contains("комп")) {
                     director = value;
                 }
@@ -104,13 +104,14 @@ public class RusProfile extends WebSite {
             Credentials creds = new Credentials();
             creds.setLink(companyUrl);
             creds.addDirector(Urls.MAIN_PAGE, director);
-            creds.addTelephones(Urls.MAIN_PAGE, telephones);
+            creds.addTelephone(Urls.MAIN_PAGE, telephones);
+
             creds.setInn(inn);
             creds.setOgrn(ogrn);
 
             return creds;
-        } catch (NullPointerException e) {
-            System.out.println("Something is null");
+        } catch (NullPointerException | IllegalArgumentException e) {
+            System.out.println("parseCompanyPage: Something is null");
         }
         return null;
     }
@@ -118,11 +119,14 @@ public class RusProfile extends WebSite {
     private String getCompanyUrl(String searchQuery) throws InterruptedException, DataRetrievingError, IOException {
         List<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair("q", searchQuery));
-        String googleResp = HttpDownloader.get(Urls.SEARCH, params, null, false);
-        Elements results = Jsoup.parse(googleResp)
-                                .body()
-                                .getElementsByClass("g");
         try {
+            String googleResp = HttpDownloader.i().get(Urls.SEARCH, params, null);
+            if (googleResp == null)
+                throw new NullPointerException();
+            Elements results = Jsoup.parse(googleResp)
+                                    .body()
+                                    .getElementsByClass("g");
+
             String googleCompanyUrl = results.first()
                                              .getElementsByTag("h3").first()
                                              .getElementsByTag("a").first()
@@ -138,8 +142,8 @@ public class RusProfile extends WebSite {
 
         } catch (URISyntaxException e) {
             e.printStackTrace();
-        } catch (NullPointerException e) {
-            System.out.println("Something is null");
+        } catch (NullPointerException | IllegalArgumentException e) {
+            System.out.println("getCompanyUrl: Something is null");
         }
         return null;
     }

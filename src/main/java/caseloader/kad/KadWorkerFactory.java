@@ -54,9 +54,9 @@ public class KadWorkerFactory<CaseContainerType extends util.Appendable<CaseInfo
                     JSONObject caseJson = null;
                     String json = "";
                     try {
-                        json = HttpDownloader.get(Urls.KAD_CARD, params, headers);
+                        json = HttpDownloader.i().get(Urls.KAD_CARD, params, headers);
                         caseJson = new JSONObject(json);
-                    } catch (IOException | DataRetrievingError | JSONException e) {
+                    } catch (IOException | DataRetrievingError | JSONException | NullPointerException e) {
                         logger.warning("Error retrieving case " + caseInfo.getCaseNumber() + ". Retrying #" + retry);
                         continue;
                     } catch (InterruptedException e) {

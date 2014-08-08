@@ -17,6 +17,9 @@ class ProxyUpdater {
     class Urls {
         public static final String HIDE_MY_ASS = "http://proxylist.hidemyass.com/";
         public static final String COOL_PROXY = "http://www.cool-proxy.net/proxies/http_proxy_list/sort:download_speed_average/direction:desc/country_code:/port:/anonymous:1";
+        public static final String COOL_PROXY2 = "http://www.cool-proxy.net/proxies/http_proxy_list/sort:download_speed_average/direction:desc/country_code:/port:/anonymous:0";
+        public static final String GOOGLE_PROXY = "http://www.google-proxy.net/";
+
     }
 
     private static final int UPDATE_PERIOD = 30 * 60 * 1000; // 30 minutes
@@ -32,8 +35,10 @@ class ProxyUpdater {
                 doWork = true;
                 while (doWork) {
                     List<ProxyInfo> newList = null;
+                    List<ProxyInfo> newGoogleList = null;
                     try {
-                        newList = retrieveProxyList();
+                        newList = retrieveProxyListCoolProxy();
+                        newGoogleList = retrieveProxyListGoogleProxies();
                     } catch (IOException | DataRetrievingError e) {
                         throw new RuntimeException(e);
                     } catch (InterruptedException e) {
@@ -41,6 +46,7 @@ class ProxyUpdater {
                         return;
                     }
                     proxyList.loadNewList(newList);
+                    proxyList.loadNewGoogleList(newGoogleList);
 
                     int sleepCount = 0;
                     while (doWork && sleepCount != (UPDATE_PERIOD / SLEEP_TIME)) {
@@ -66,11 +72,37 @@ class ProxyUpdater {
         doWork = false;
     }
 
-
-    private List<ProxyInfo> retrieveProxyList() throws IOException, DataRetrievingError, InterruptedException {
+    private List<ProxyInfo> retrieveProxyListGoogleProxies() throws InterruptedException, DataRetrievingError, IOException {
         List<ProxyInfo> proxies = new ArrayList<>();
 
-        Element page = Jsoup.parse(retrieveRawData()).body();
+        String raw = HttpDownloader.i().get(Urls.GOOGLE_PROXY, false);
+        Elements proxyTable = Jsoup.parse(raw)
+                                   .body()
+                                   .getElementById("proxylisttable")
+                                   .getElementsByTag("tbody").first()
+                                   .getElementsByTag("tr");
+
+        int max = 20;
+        for (int i = 0; proxies.size() < max && i < proxyTable.size(); ++i) {
+            Element tr = proxyTable.get(i);
+            Elements tds = tr.getElementsByTag("td");
+
+            String ip = tds.first().text();
+            int port = Integer.parseInt(tds.get(1).text());
+            String country = tds.get(3).text();
+            boolean isHttps = tds.get(6).text().equals("yes");
+            if (isHttps)
+                proxies.add(new ProxyInfo(ip, port, country));
+        }
+
+        return proxies;
+    }
+
+    private List<ProxyInfo> retrieveProxyListCoolProxy() throws IOException, DataRetrievingError, InterruptedException {
+        List<ProxyInfo> proxies = new ArrayList<>();
+
+        String raw = HttpDownloader.i().get(Urls.COOL_PROXY, false);
+        Element page = Jsoup.parse(raw).body();
         Element table = page.select("#main table").first();
         Elements trs = table.getElementsByTag("tr");
         for (int i = 1; i < trs.size(); ++i) {
@@ -116,10 +148,13 @@ class ProxyUpdater {
 //                System.out.println("<---Wrong line");
             }
         }
-        return proxies;
-    }
 
-    private String retrieveRawData() throws IOException, DataRetrievingError, InterruptedException {
-        return HttpDownloader.get(Urls.COOL_PROXY, false);
+        final int RATING_THRESHOLD = 3;
+        for (int i = proxies.size() - 1; i >= 0; --i) {
+            if (proxies.get(i).getRating() < RATING_THRESHOLD) {
+                proxies.remove(i);
+            }
+        }
+        return proxies;
     }
 }

@@ -1,8 +1,6 @@
 package caseloader.credentials;
 
-import caseloader.ThreadPool;
 import caseloader.credentials.websites.Kartoteka;
-import caseloader.credentials.websites.ListOrg;
 import caseloader.credentials.websites.RusProfile;
 import caseloader.credentials.websites.WebSite;
 import exceptions.DataRetrievingError;
@@ -11,7 +9,6 @@ import util.MyLogger;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.PriorityQueue;
 import java.util.concurrent.*;
 import java.util.logging.Logger;
 

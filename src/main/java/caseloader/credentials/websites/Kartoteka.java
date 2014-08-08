@@ -54,9 +54,10 @@ public class Kartoteka extends WebSite {
         List<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair(QueryKeys.QUERY, companyName));
         params.add(new BasicNameValuePair(QueryKeys.COUNTRY, Countries.RUSSIA));
-        params.add(new BasicNameValuePair(QueryKeys.REGION, RegionHelper.regionIdByCity(city)));
+        if (city != null)
+            params.add(new BasicNameValuePair(QueryKeys.REGION, RegionHelper.regionIdByCity(city)));
 
-        String resp = HttpDownloader.get(Urls.SEARCH, params, null, true, ENCODING);
+        String resp = HttpDownloader.i().get(Urls.SEARCH, params, null, true, ENCODING);
         Credentials creds = parsePage(resp, request, credentials);
 //        System.out.println(++count + ") " + request.getCompanyName() + " kartoteka found creds. Inn = " + (creds == null ? null : creds.getInn()));
         return creds;
@@ -68,6 +69,9 @@ public class Kartoteka extends WebSite {
     }
 
     private Credentials parsePage(String page, CredentialsSearchRequest request, Credentials totalCreds) {
+        if (page == null) {
+            return null;
+        }
         Elements items = Jsoup.parse(page)
                               .body()
                               .getElementsByClass("page-content-company");

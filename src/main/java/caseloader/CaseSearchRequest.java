@@ -93,7 +93,10 @@ public class CaseSearchRequest {
     }
 
     public CaseType getCaseType() {
-        return CaseType.valueOf(kadJson.getString(Keys.CASE_TYPE));
+        String caseValue = JsonUtils.getString(kadJson, Keys.CASE_TYPE);
+        if (caseValue == null)
+            return null;
+        return CaseType.valueOf(caseValue);
     }
 
     public int getPage() {

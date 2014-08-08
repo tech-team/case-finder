@@ -47,8 +47,8 @@ public class ListOrg extends WebSite {
         } else if (request.getOgrn() != null) {
             searchResults.add(findByOgrn(request));
         } else {
-            searchResults.add(findByAddress(request));
-            searchResults.add(findByName(request));
+//            searchResults.add(findByAddress(request));
+//            searchResults.add(findByName(request));
         }
 
         for (Elements results : searchResults) {
@@ -79,7 +79,7 @@ public class ListOrg extends WebSite {
         for (Element result : results) {
             String companyUrl = Urls.MAIN_PAGE + result.getElementsByTag("a").attr("href");
 
-            String resp = HttpDownloader.get(companyUrl, false);
+            String resp = HttpDownloader.i().get(companyUrl, false);
             Element company = Jsoup.parse(resp)
                                    .body()
                                    .select(".main .content")
@@ -107,8 +107,8 @@ public class ListOrg extends WebSite {
                             break;
                         case "Телефон:":
                             if (!p.ownText().equals("")) {
-                                String[] telephones = p.ownText().split("\\s+");
-                                creds.addTelephones(Urls.MAIN_PAGE, telephones);
+                                String telephones = p.ownText();
+                                creds.addTelephone(Urls.MAIN_PAGE, telephones);
                             }
                             break;
                         case "Адрес:":
@@ -131,7 +131,7 @@ public class ListOrg extends WebSite {
 
 
     private Elements executeSearch(List<NameValuePair> searchParams) throws InterruptedException, IOException, DataRetrievingError {
-        String resp = HttpDownloader.get(Urls.SEARCH, searchParams, null, false);
+        String resp = HttpDownloader.i().get(Urls.SEARCH, searchParams, null, false);
         return Jsoup.parse(resp)
                     .body()
                     .select(".main .content p");

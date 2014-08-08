@@ -2,7 +2,7 @@ package caseloader.kad;
 
 import caseloader.CaseInfo;
 import caseloader.CaseSearchRequest;
-import caseloader.ThreadPool;
+import util.ThreadPool;
 import caseloader.credentials.CredentialsLoader;
 import eventsystem.DataEvent;
 import eventsystem.Event;
@@ -24,7 +24,7 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
     public static final int TOTAL_MAX_COUNT = 1000;
     private int retryCount = 1;
     private AtomicInteger casesProgressCount = new AtomicInteger(0);
-    private ThreadPool pool = new ThreadPool();
+    private ThreadPool pool = new ThreadPool(4);
     private KadWorkerFactory<CaseContainerType> kadWorkerFactory = null;
     private final CredentialsLoader credentialsLoader = new CredentialsLoader();
 
@@ -102,13 +102,13 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
         headers.put("X-Requested-With", "XMLHttpRequest");
         headers.put("Content-Type", "application/json");
         headers.put("Accept", "application/json, text/javascript, */*");
-        String resp = HttpDownloader.post(Urls.KAD_SEARCH, json, headers);
+        String resp = HttpDownloader.i().post(Urls.KAD_SEARCH, json, headers);
         try {
             JSONObject jsonObj = new JSONObject(resp);
             retryCount = 1;
             logger.info("Got page #" + page);
             return KadResponse.fromJSON(jsonObj);
-        } catch (JSONException e) {
+        } catch (JSONException | NullPointerException e) {
             logger.warning("Retrying #" + retryCount);
             if (retryCount < 3) {
                 retryCount++;
