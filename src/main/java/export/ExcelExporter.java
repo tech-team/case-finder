@@ -152,9 +152,13 @@ public class ExcelExporter {
         createKeyValueRow(sheet, styles, rowId++,
                 res.getString("requestCourt"), courtsString);
 
-        String caseType = res.getString(request.getCaseType().toString());
+        CaseSearchRequest.CaseType caseType = request.getCaseType();
+        String caseTypeStr = "";
+        if (caseType != null)
+            caseTypeStr = res.getString(caseType.toString());
+
         createKeyValueRow(sheet, styles, rowId++,
-                res.getString("requestType"), caseType);
+                res.getString("requestType"), caseTypeStr);
 
         String withVKSInstances = request.isWithVKSInstances() ?
                 res.getString("yes") : res.getString("no");
