@@ -31,59 +31,88 @@ import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
-public abstract class HttpDownloader {
+public class HttpDownloader {
     public static final String USER_AGENT = "Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)";
-    private static final int REQUEST_TIMEOUT = 7 * 1000;
+    private static final int REQUEST_TIMEOUT = 20 * 1000;
     private static final boolean USE_PROXY_DEFAULT = true;
-    private static final ConcurrentHashMap<String, Long> LAST_TIMES = new ConcurrentHashMap<>();
-    private static final long WAIT_DELTA = 3 * 1000;
+    private final ConcurrentHashMap<String, Long> LAST_TIMES = new ConcurrentHashMap<>();
+    private final Object waitSleepLock = new Object();
+    private static final long WAIT_DELTA = 2 * 1000;
+    private static final String GOOGLE_HOST = "www.google.ru";
+    private static final int GOOGLE_MAX_REQUESTS = 200;
+    private AtomicInteger googleMadeRequests = new AtomicInteger(0);
+    private static final long GOOGLE_WAIT_DELTA = 10 * 60 * 1000;
     private static final String DEFAULT_ENCODING = "UTF-8";
-    private static int getRetryCount = 1;
-    private static int postRetryCount = 1;
-    private static Logger logger = MyLogger.getLogger(HttpDownloader.class.toString());
+    private AtomicInteger getRetryCount = new AtomicInteger(0);
+    private AtomicInteger postRetryCount = new AtomicInteger(0);
+    private Logger logger = MyLogger.getLogger(HttpDownloader.class.toString());
+    private ThreadPool pool = new ThreadPool(1);
+    private static HttpDownloader instance = null;
 
-    private static void checkSleep(String hostname) throws InterruptedException {
-        Long lastTime = LAST_TIMES.get(hostname);
-        if (lastTime != null) {
-            long time = System.currentTimeMillis();
-            long delta = time - lastTime;
-            if (delta < WAIT_DELTA) {
-                logger.fine("Sleeping for " + (WAIT_DELTA - delta));
-                Thread.sleep(WAIT_DELTA - delta);
-                logger.fine("Sleep finished");
-            }
+    private HttpDownloader() {
+    }
+
+    public static HttpDownloader i() {
+        if (instance == null) {
+            instance = new HttpDownloader();
         }
+        return instance;
+    }
+
+    public void stop() {
+        pool.stopExecution();
+    }
+
+    private void checkSleep(String hostname) throws InterruptedException {
+//        synchronized (waitSleepLock) {
+//            if (hostname.equals(GOOGLE_HOST) && googleMadeRequests.get() == GOOGLE_MAX_REQUESTS) {
+//                Thread.sleep(GOOGLE_WAIT_DELTA);
+//                googleMadeRequests.set(0);
+//            } else {
+                Long lastTime = LAST_TIMES.get(hostname);
+                if (lastTime != null) {
+                    long time = System.currentTimeMillis();
+                    long delta = time - lastTime;
+                    if (delta < WAIT_DELTA) {
+                        logger.fine("Sleeping for " + (WAIT_DELTA - delta));
+                        Thread.sleep(WAIT_DELTA - delta);
+                        logger.fine("Sleep finished");
+                    }
+                }
+//            }
+            LAST_TIMES.put(hostname, System.currentTimeMillis());
+//        }
+    }
+
+    private void updateTime(String hostname) {
         LAST_TIMES.put(hostname, System.currentTimeMillis());
     }
 
-    private static void updateTime(String hostname) {
-        LAST_TIMES.put(hostname, System.currentTimeMillis());
-    }
-
-    public static String get(String url, boolean useProxy) throws IOException, DataRetrievingError, InterruptedException {
+    public String get(String url, boolean useProxy) throws IOException, DataRetrievingError, InterruptedException {
         return get(url, null, null, useProxy, DEFAULT_ENCODING);
     }
 
-    public static String get(String url) throws IOException, DataRetrievingError, InterruptedException {
+    public String get(String url) throws IOException, DataRetrievingError, InterruptedException {
         return get(url, null, null, USE_PROXY_DEFAULT, DEFAULT_ENCODING);
     }
 
-    public static String get(String url, String encoding) throws IOException, DataRetrievingError, InterruptedException {
+    public String get(String url, String encoding) throws IOException, DataRetrievingError, InterruptedException {
         return get(url, null, null, USE_PROXY_DEFAULT, encoding);
     }
 
-    public static String get(String url, List<NameValuePair> params, Map<String, String> headers) throws IOException, DataRetrievingError, InterruptedException {
+    public String get(String url, List<NameValuePair> params, Map<String, String> headers) throws IOException, DataRetrievingError, InterruptedException {
         return get(url, params, headers, USE_PROXY_DEFAULT, DEFAULT_ENCODING);
     }
 
-    public static String get(String url, List<NameValuePair> params, Map<String, String> headers, boolean useProxy) throws IOException, DataRetrievingError, InterruptedException {
+    public String get(String url, List<NameValuePair> params, Map<String, String> headers, boolean useProxy) throws IOException, DataRetrievingError, InterruptedException {
         return get(url, params, headers, useProxy, DEFAULT_ENCODING);
     }
 
-    public static String get(String url, List<NameValuePair> params, Map<String, String> headers, boolean useProxy, String encoding) throws IOException, DataRetrievingError, InterruptedException {
+    public String get(String url, List<NameValuePair> params, Map<String, String> headers, boolean useProxy, String encoding) throws IOException, DataRetrievingError, InterruptedException {
         URIBuilder uriBuilder = buildUriBuilder(url, encoding);
 
         if (params != null) {
@@ -101,48 +130,55 @@ public abstract class HttpDownloader {
 
 
         HttpGet request = new HttpGet(getPathAndQuery(uri));
-        request.setConfig(buildRequestConfig(useProxy));
+        request.setConfig(buildRequestConfig(uri.getHost(), useProxy));
         setHeaders(request, headers);
 
         checkSleep(uriBuilder.getHost());
 
         try (CloseableHttpClient client = HttpClientBuilder.create().build()) {
-            HttpResponse response = client.execute(buildTarget(uriBuilder), request);
+            Future<HttpResponse> responseFuture = pool.submit(() -> client.execute(buildTarget(uriBuilder), request));
+            HttpResponse response = responseFuture.get(REQUEST_TIMEOUT, TimeUnit.MILLISECONDS);
             if (Thread.currentThread().isInterrupted()) {
                 throw new InterruptedException("Thread is already stopped");
             }
+            if (uri.getHost().equals(GOOGLE_HOST)) {
+                googleMadeRequests.incrementAndGet();
+            }
             updateTime(uriBuilder.getHost());
-            getRetryCount = 1;
+            getRetryCount.set(1);
             return getResponse(response, encoding);
-        } catch (HttpHostConnectException | ConnectTimeoutException | NoHttpResponseException e) {
-            logger.warning("Exception happened. Retry #" + getRetryCount++);
-            if (getRetryCount < 3) {
+        } catch (HttpHostConnectException | ConnectTimeoutException | SocketTimeoutException | TimeoutException | NoHttpResponseException e) {
+            logger.warning("Exception happened. Retry #" + getRetryCount.incrementAndGet());
+            if (getRetryCount.get() <= 3) {
                 updateTime(uriBuilder.getHost());
                 return get(url, params, headers, useProxy, encoding);
             }
-            logger.severe("Exception happened again after " + getRetryCount + "retries");
-            throw e;
+            logger.severe("Exception happened again after " + getRetryCount.get() + " retries");
+            return null;
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+            return null;
         }
 
     }
 
-    public static String post(String url, List<NameValuePair> formData, Map<String, String> headers) throws IOException, DataRetrievingError, InterruptedException {
+    public String post(String url, List<NameValuePair> formData, Map<String, String> headers) throws IOException, DataRetrievingError, InterruptedException {
         return post(url, formData, headers, USE_PROXY_DEFAULT);
     }
 
-    public static String post(String url, List<NameValuePair> formData, Map<String, String> headers, boolean useProxy) throws IOException, DataRetrievingError, InterruptedException {
+    public String post(String url, List<NameValuePair> formData, Map<String, String> headers, boolean useProxy) throws IOException, DataRetrievingError, InterruptedException {
         return post(url, new UrlEncodedFormEntity(formData, "UTF-8"), headers, useProxy);
     }
 
-    public static String post(String url, String data, Map<String, String> headers) throws IOException, DataRetrievingError, InterruptedException {
+    public String post(String url, String data, Map<String, String> headers) throws IOException, DataRetrievingError, InterruptedException {
         return post(url, data, headers, USE_PROXY_DEFAULT);
     }
 
-    public static String post(String url, String data, Map<String, String> headers, boolean useProxy) throws IOException, DataRetrievingError, InterruptedException {
+    public String post(String url, String data, Map<String, String> headers, boolean useProxy) throws IOException, DataRetrievingError, InterruptedException {
         return post(url, new StringEntity(data, "UTF-8"), headers, useProxy);
     }
 
-    public static String post(String url, AbstractHttpEntity data, Map<String, String> headers, boolean useProxy) throws IOException, DataRetrievingError, InterruptedException {
+    public String post(String url, AbstractHttpEntity data, Map<String, String> headers, boolean useProxy) throws IOException, DataRetrievingError, InterruptedException {
         URIBuilder uriBuilder = buildUriBuilder(url);
 
         assert data != null;
@@ -157,29 +193,39 @@ public abstract class HttpDownloader {
 
         HttpPost request = new HttpPost(getPathAndQuery(uri));
         request.setEntity(data);
-        request.setConfig(buildRequestConfig(useProxy));
+        request.setConfig(buildRequestConfig(uri.getHost(), useProxy));
         setHeaders(request, headers);
 
         checkSleep(uriBuilder.getHost());
 
         try (CloseableHttpClient client = HttpClientBuilder.create().build()) {
-            HttpResponse response = client.execute(buildTarget(uriBuilder), request);
+            Future<HttpResponse> responseFuture = pool.submit(() -> client.execute(buildTarget(uriBuilder), request));
+            HttpResponse response = responseFuture.get(REQUEST_TIMEOUT, TimeUnit.MILLISECONDS);
             if (Thread.currentThread().isInterrupted()) {
                 throw new InterruptedException("Thread is already stopped");
             }
+            if (uri.getHost().equals(GOOGLE_HOST)) {
+                googleMadeRequests.incrementAndGet();
+            }
             updateTime(uriBuilder.getHost());
-            postRetryCount = 1;
+            postRetryCount.set(1);
             return getResponse(response, DEFAULT_ENCODING);
-        } catch (HttpHostConnectException | ConnectTimeoutException | SocketTimeoutException | NoHttpResponseException e) {
-            logger.warning("Exception happened. Retry #" + postRetryCount++);
-            if (postRetryCount < 3)
+        } catch (HttpHostConnectException | ConnectTimeoutException | SocketTimeoutException | TimeoutException | NoHttpResponseException e) {
+            logger.warning("Exception happened. Retry #" + postRetryCount.incrementAndGet());
+            if (postRetryCount.get() <= 3) {
+                updateTime(uriBuilder.getHost());
                 return post(url, data, headers, useProxy);
-            logger.severe("Exception happened again after " + postRetryCount + "retries");
-            throw e;
+            }
+            logger.severe("Exception happened again after " + postRetryCount.get() + " retries");
+//            throw e;
+            return null;
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+            return null;
         }
     }
 
-    private static String getPathAndQuery(URI uri) {
+    private String getPathAndQuery(URI uri) {
         String query = uri.getRawQuery() == null ? "" : uri.getRawQuery();
         if (query.equals(""))
             return uri.getPath();
@@ -187,11 +233,11 @@ public abstract class HttpDownloader {
             return uri.getPath() + "?" + query;
     }
 
-    private static URIBuilder buildUriBuilder(String url) throws DataRetrievingError {
+    private URIBuilder buildUriBuilder(String url) throws DataRetrievingError {
         return buildUriBuilder(url, DEFAULT_ENCODING);
     }
 
-    public static URIBuilder buildUriBuilder(String url, String encoding) throws DataRetrievingError {
+    public URIBuilder buildUriBuilder(String url, String encoding) throws DataRetrievingError {
         URIBuilder uriBuilder;
         try {
             uriBuilder = new URIBuilder(url);
@@ -202,14 +248,19 @@ public abstract class HttpDownloader {
         return uriBuilder;
     }
 
-    private static HttpHost buildTarget(URIBuilder uriBuilder) {
+    private HttpHost buildTarget(URIBuilder uriBuilder) {
         return new HttpHost(uriBuilder.getHost(), uriBuilder.getPort(), uriBuilder.getScheme());
     }
 
-    private static RequestConfig buildRequestConfig(boolean useProxy) throws InterruptedException {
+    private RequestConfig buildRequestConfig(String hostname, boolean useProxy) throws InterruptedException {
         RequestConfig.Builder b = RequestConfig.custom().setConnectTimeout(REQUEST_TIMEOUT).setSocketTimeout(REQUEST_TIMEOUT);
         if (useProxy) {
-            ProxyInfo proxyInfo = ProxyList.instance().getNext();
+            ProxyInfo proxyInfo;
+            if (hostname.equals(GOOGLE_HOST)) {
+                proxyInfo = ProxyList.instance().getGoogleNext();
+            } else {
+                proxyInfo = ProxyList.instance().getNext();
+            }
             HttpHost proxy = new HttpHost(proxyInfo.getIp(), proxyInfo.getPort());
             return b.setProxy(proxy).build();
         } else {
@@ -217,7 +268,7 @@ public abstract class HttpDownloader {
         }
     }
 
-    private static String getResponse(HttpResponse response, String encoding) throws IOException, InterruptedException {
+    private String getResponse(HttpResponse response, String encoding) throws IOException, InterruptedException {
         BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), encoding));
 
         StringBuilder sb = new StringBuilder();
@@ -231,7 +282,7 @@ public abstract class HttpDownloader {
         return sb.toString();
     }
 
-    private static void setHeaders(HttpRequestBase request, Map<String, String> headers) {
+    private void setHeaders(HttpRequestBase request, Map<String, String> headers) {
         if (headers != null) {
             Set<String> hs = headers.keySet();
             for (String key : hs) {
@@ -242,7 +293,7 @@ public abstract class HttpDownloader {
     }
 
     public static void main(String[] args) throws IOException, DataRetrievingError, InterruptedException {
-        String res = HttpDownloader.get(Urls.KAD_HOME);
+        String res = HttpDownloader.i().get(Urls.KAD_HOME);
         System.out.println(res);
     }
 }

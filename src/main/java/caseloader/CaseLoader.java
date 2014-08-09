@@ -4,6 +4,7 @@ import caseloader.kad.*;
 import eventsystem.DataEvent;
 import eventsystem.Event;
 import exceptions.DataRetrievingError;
+import util.HttpDownloader;
 import util.MyLogger;
 
 import java.io.IOException;

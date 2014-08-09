@@ -3,11 +3,22 @@ package proxy;
 public class ProxyInfo {
     private String ip;
     private int port;
-    private String country;
+    private String country = "";
     private int rating = 0;
     private int workingPerc = 0;
     private int responseTimePerc = 0;
     private int downloadSpeedPerc = 0;
+
+    public ProxyInfo(String ip, int port) {
+        this.ip = ip;
+        this.port = port;
+    }
+
+    public ProxyInfo(String ip, int port, String country) {
+        this.ip = ip;
+        this.port = port;
+        this.country = country;
+    }
 
     public ProxyInfo(String ip, int port, String country, int rating, int workingPerc, int responseTimePerc, int downloadSpeedPerc) {
         this.ip = ip;

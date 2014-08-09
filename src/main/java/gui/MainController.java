@@ -31,6 +31,7 @@ import org.controlsfx.control.MyCheckComboBox;
 import org.controlsfx.control.action.Action;
 import org.controlsfx.dialog.Dialog;
 import org.controlsfx.dialog.Dialogs;
+import util.HttpDownloader;
 import util.MyLogger;
 import util.ProxyListLoader;
 import util.ResourceControl;
@@ -211,6 +212,7 @@ public class MainController {
                 }
             }
         }
+        HttpDownloader.i().stop();
         MyLogger.close();
     }
     

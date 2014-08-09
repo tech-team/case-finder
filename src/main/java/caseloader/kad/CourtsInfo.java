@@ -23,11 +23,22 @@ public abstract class CourtsInfo {
 
     private static Set<String> retrieveCourts() throws IOException, DataRetrievingError, InterruptedException {
         if (courts.size() == 0) {
-            String kadHtml = HttpDownloader.get(Urls.KAD_HOME);
-            Document d = Jsoup.parse(kadHtml);
-            Elements courtsDOM = d.child(0).select("#Courts").first().children();
-            courtsDOM.stream().filter(c -> c.hasText() && c.hasAttr("value"))
-                              .forEach(c -> courts.put(c.text(), c.attr("value")));
+            for (int retry = 0; retry <= 3; ++retry) {
+                try {
+                    String kadHtml = HttpDownloader.i().get(Urls.KAD_HOME);
+                    if (kadHtml == null) {
+                        throw new NullPointerException();
+                    }
+                    Document d = Jsoup.parse(kadHtml);
+                    Elements courtsDOM = d.body().select("#Courts").first().children();
+                    courtsDOM.stream().filter(c -> c.hasText() && c.hasAttr("value"))
+                                      .forEach(c -> courts.put(c.text(), c.attr("value")));
+                    return courts.keySet();
+                } catch (NullPointerException e) {
+                    logger.warning("Error retrieving courts. Retry #" + retry+1);
+                }
+            }
+            logger.warning("Couldn't retrieve courts");
         }
         return courts.keySet();
     }
