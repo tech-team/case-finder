@@ -14,6 +14,7 @@ public class CaseLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
     public final DataEvent<Integer> totalCasesCountObtained = new DataEvent<>();
     public final Event caseProcessed = new Event();
     public final DataEvent<CaseContainerType> casesLoaded = new DataEvent<>();
+    public final DataEvent<String> onError = new DataEvent<>();
 
     private KadLoader<CaseContainerType> kadLoader = new KadLoader<>(totalCasesCountObtained, caseProcessed);
 
@@ -37,9 +38,11 @@ public class CaseLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
             try {
                 CaseContainerType data = kadLoader.retrieveData(request, outputContainer);
                 if (data == null) {
-                    // TODO: handle error
+                    onError.fire("Error retrieving Kad pages. Try again later");
+                    logger.info("CaseLoader finished with error");
+                } else {
+                    logger.info("Finished CaseLoader");
                 }
-                logger.info("Finished CaseLoader");
             } catch (InterruptedException ignored) {
                 logger.info("CaseLoader stopped");
             } catch (DataRetrievingError e) {
