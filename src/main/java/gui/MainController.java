@@ -32,6 +32,7 @@ import org.controlsfx.control.action.Action;
 import org.controlsfx.dialog.Dialog;
 import org.controlsfx.dialog.Dialogs;
 import util.MyLogger;
+import util.ProxyListLoader;
 import util.ResourceControl;
 
 import java.io.File;
@@ -100,6 +101,9 @@ public class MainController {
         //not in fxml because of JavaFX bug
         //http://stackoverflow.com/questions/22992458/javafx-thread-with-progressindicator-not-spinning-work-done-in-non-fxthread
         Platform.runLater(() -> progressIndicator.setVisible(false));
+
+        ProxyListLoader loader = new ProxyListLoader(System.out::println);
+        loader.load();
     }
 
     private void initializeCourtList() {
