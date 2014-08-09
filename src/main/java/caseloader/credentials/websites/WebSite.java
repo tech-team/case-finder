@@ -3,22 +3,18 @@ package caseloader.credentials.websites;
 import caseloader.credentials.Credentials;
 import caseloader.credentials.CredentialsSearchRequest;
 import exceptions.DataRetrievingError;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import util.HttpDownloader;
 import util.StringUtils;
 
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 public abstract class WebSite implements Comparable<WebSite> {
     public abstract String url();
-    public abstract Credentials findCredentials(final CredentialsSearchRequest request, final Credentials credentials) throws IOException, DataRetrievingError, InterruptedException;
+    public abstract Credentials findCredentials(final CredentialsSearchRequest request, final Credentials credentials) throws DataRetrievingError, InterruptedException;
     public abstract int getPriority();
     private static final double RELEVANCE_THRESHOLD = 0.5;
 
     @Override
+    @SuppressWarnings("NullableProblems")
     public int compareTo(WebSite site) {
         assert (site != null);
         return site.getPriority() - this.getPriority();
@@ -84,30 +80,18 @@ public abstract class WebSite implements Comparable<WebSite> {
         return sum / values.length;
     }
 
-    private static double similarity(List<String> list1, List<String> list2) {
-
-        return 0;
-    }
-
     public static double similarity(String s1, String s2) {
         if (s1 == null || s2 == null)
             return 0.0;
 
         String[] tokens1 = s1.split("\\s+");
         String[] tokens2 = s2.split("\\s+");
-        int minSize = Math.min(tokens1.length, tokens2.length);
         int maxSize = Math.max(tokens1.length, tokens2.length);
 
-        // TODO: not sure
-//        Arrays.sort(tokens1);
-//        Arrays.sort(tokens2);
-
-        int distanceThreshold = 3; // TODO: Why wouldn't it be 3?
 
         // TODO: can be optimized
         double[][] simMatrix = new double[tokens1.length][tokens2.length];
 
-        // TODO
         for (int i = 0; i < tokens1.length; ++i) {
             for (int j = 0; j < tokens2.length; ++j) {
                 double d = StringUtils.levensteinDistance(tokens1[i], tokens2[j]);
@@ -148,14 +132,12 @@ public abstract class WebSite implements Comparable<WebSite> {
         private String name;
         private String address;
         private final CredentialsSearchRequest request;
-        private final Credentials totalCreds;
 
-        public RelevanceInput(Credentials credentials, String name, String address, CredentialsSearchRequest request, Credentials totalCreds) {
+        public RelevanceInput(Credentials credentials, String name, String address, CredentialsSearchRequest request) {
             this.credentials = credentials;
             this.name = name;
             this.address = address;
             this.request = request;
-            this.totalCreds = totalCreds;
         }
 
         public Credentials getCredentials() {
@@ -172,10 +154,6 @@ public abstract class WebSite implements Comparable<WebSite> {
 
         public CredentialsSearchRequest getRequest() {
             return request;
-        }
-
-        public Credentials getTotalCreds() {
-            return totalCreds;
         }
     }
 }

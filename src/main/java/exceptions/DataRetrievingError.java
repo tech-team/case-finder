@@ -1,6 +1,6 @@
 package exceptions;
 
-public class DataRetrievingError extends Exception {
+public class DataRetrievingError extends IllegalArgumentException {
     public DataRetrievingError() {
         super("Error happened while retrieving data");
     }

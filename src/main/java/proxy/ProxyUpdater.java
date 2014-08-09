@@ -13,25 +13,24 @@ import org.jsoup.select.Elements;
 import util.HttpDownloader;
 import util.MyLogger;
 
-import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 class ProxyUpdater {
     class Urls {
-        public static final String HIDE_MY_ASS = "http://proxylist.hidemyass.com/";
+        public static final String HIDE_MY_ASS = "http://proxylist.hidemyass.com/search-1311573#listable";
         public static final String COOL_PROXY = "http://www.cool-proxy.net/proxies/http_proxy_list/sort:download_speed_average/direction:desc/country_code:/port:/anonymous:1";
-        public static final String COOL_PROXY2 = "http://www.cool-proxy.net/proxies/http_proxy_list/sort:download_speed_average/direction:desc/country_code:/port:/anonymous:0";
         public static final String GOOGLE_PROXY = "http://www.google-proxy.net/";
 
     }
 
     private static final int UPDATE_PERIOD = 30 * 60 * 1000; // 30 minutes
-    private static final int SLEEP_TIME = 100;
 
     private boolean doWork = false;
     private Logger logger = MyLogger.getLogger(this.getClass().toString());
@@ -47,24 +46,20 @@ class ProxyUpdater {
                     try {
                         newList = retrieveProxyListCoolProxy();
                         newGoogleList = retrieveProxyListGoogleProxies();
-                    } catch (IOException | DataRetrievingError e) {
-                        throw new RuntimeException(e);
                     } catch (InterruptedException e) {
                         logger.info("ProxyUpdater has been interrupted");
+                        return;
+                    } catch (DataRetrievingError e) {
+                        logger.log(Level.WARNING, "Exception happened", e);
                         return;
                     }
                     proxyList.loadNewList(newList);
                     proxyList.loadNewGoogleList(newGoogleList);
 
-                    int sleepCount = 0;
-                    while (doWork && sleepCount != (UPDATE_PERIOD / SLEEP_TIME)) {
-                        try {
-                            Thread.sleep(SLEEP_TIME);
-                            sleepCount += 1;
-                        } catch (InterruptedException e) {
-                            logger.info("ProxyUpdater has been interrupted");
-                            return;
-                        }
+                    try {
+                        Thread.sleep(UPDATE_PERIOD);
+                    } catch (InterruptedException e) {
+                        break;
                     }
                 }
                 logger.info("ProxyUpdater finished");
@@ -76,11 +71,7 @@ class ProxyUpdater {
         }
     }
 
-    public void stopWork() {
-        doWork = false;
-    }
-
-    private List<ProxyInfo> retrieveProxyListGoogleProxies() throws InterruptedException, DataRetrievingError, IOException {
+    private List<ProxyInfo> retrieveProxyListGoogleProxies() throws InterruptedException, DataRetrievingError {
         List<ProxyInfo> proxies = new ArrayList<>();
 
         String raw = HttpDownloader.i().get(Urls.GOOGLE_PROXY, false);
@@ -106,7 +97,7 @@ class ProxyUpdater {
         return proxies;
     }
 
-    private List<ProxyInfo> retrieveProxyListCoolProxy() throws IOException, DataRetrievingError, InterruptedException {
+    private List<ProxyInfo> retrieveProxyListCoolProxy() throws DataRetrievingError, InterruptedException {
         List<ProxyInfo> proxies = new ArrayList<>();
 
         String raw = HttpDownloader.i().get(Urls.COOL_PROXY, false);
@@ -166,6 +157,7 @@ class ProxyUpdater {
         return proxies;
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     public List<ProxyInfo> retrieveProxyListHideMyAss() throws InterruptedException {
         List<ProxyInfo> proxies = new ArrayList<>();
         final AtomicBoolean loaded = new AtomicBoolean(false);
@@ -203,7 +195,7 @@ class ProxyUpdater {
                         }
                     });
 
-            webEngine.load("http://proxylist.hidemyass.com/search-1311573#listable");
+            webEngine.load(Urls.HIDE_MY_ASS);
 
             stage.show();
         });

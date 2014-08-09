@@ -2,7 +2,6 @@ package caseloader.kad;
 
 import caseloader.CaseInfo;
 import caseloader.CaseSearchRequest;
-import util.ThreadPool;
 import caseloader.credentials.CredentialsLoader;
 import eventsystem.DataEvent;
 import eventsystem.Event;
@@ -11,8 +10,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import util.HttpDownloader;
 import util.MyLogger;
+import util.ThreadPool;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +43,7 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
                 ITEMS_COUNT_PER_REQUEST;
     }
 
-    public CaseContainerType retrieveData(CaseSearchRequest request, CaseContainerType data) throws IOException, DataRetrievingError {
+    public CaseContainerType retrieveData(CaseSearchRequest request, CaseContainerType data) throws DataRetrievingError, InterruptedException {
         long minCost = request.getMinCost();
         int searchLimit = request.getSearchLimit();
         int totalCountToLoad = searchLimit != 0 && searchLimit < TOTAL_MAX_COUNT ? searchLimit :
@@ -52,48 +51,52 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
 
         kadWorkerFactory = new KadWorkerFactory<>(totalCountToLoad, minCost, data, credentialsLoader, caseProcessed);
 
-        try {
-            int totalCasesCount = 0;
+        int totalCasesCount = 0;
 
-            int countPerRequest = countToLoadPerRequest(searchLimit);
-            searchLimit -= countPerRequest;
+        int countPerRequest = countToLoadPerRequest(searchLimit);
+        searchLimit -= countPerRequest;
 
-            request.setCount(countPerRequest);
-            KadResponse initial = retrieveKadResponse(request, 1);
+        request.setCount(countPerRequest);
+        KadResponse initial = retrieveKadResponse(request, 1);
+        if (initial == null)
+            return null;
 
-            if (initial.isSuccess()) {
+        if (initial.isSuccess()) {
+            if (Thread.currentThread().isInterrupted()) {
+                throw new InterruptedException();
+            }
+            processKadResponse(initial);
+            totalCasesCount += initial.getItems().size();
+
+            int iterationsCount = (int) Math.ceil(((double) totalCountToLoad) / initial.getPageSize());
+            for (int i = 2; i <= iterationsCount; ++i) {
+                countPerRequest = countToLoadPerRequest(searchLimit);
+                request.setCount(countPerRequest);
+
                 if (Thread.currentThread().isInterrupted()) {
                     throw new InterruptedException();
                 }
-                processKadResponse(initial);
-                totalCasesCount += initial.getItems().size();
 
-                int iterationsCount = (int) Math.ceil(((double) totalCountToLoad) / initial.getPageSize());
-                for (int i = 2; i <= iterationsCount; ++i) {
-                    countPerRequest = countToLoadPerRequest(searchLimit);
-                    request.setCount(countPerRequest);
-
-                    if (Thread.currentThread().isInterrupted()) {
-                        throw new InterruptedException();
-                    }
-
-                    KadResponse resp = retrieveKadResponse(request, i);
-                    if (resp.isSuccess()) {
-                        processKadResponse(resp);
-                        totalCasesCount += resp.getItems().size();
-                        searchLimit -= countPerRequest;
-                    } else {
-                        logger.warning("Couldn't load page #" + i + ". Retrying.");
-                        i -= 1;
-                    }
+                KadResponse resp = retrieveKadResponse(request, i);
+                if (resp == null) {
+                    Thread.sleep(10);
+                    logger.severe("Page #" + i + " was not loaded. Skipping.");
+                    continue;
                 }
-                totalCasesCountObtained.fire(totalCasesCount);
-            }
 
-            pool.waitForFinish();
-        } catch (InterruptedException e) {
-            System.out.println("We are stopped");
+                if (resp.isSuccess()) {
+                    processKadResponse(resp);
+                    totalCasesCount += resp.getItems().size();
+                    searchLimit -= countPerRequest;
+                } else {
+                    logger.warning("Couldn't load page #" + i + ". Retrying.");
+                    i -= 1;
+                }
+            }
+            totalCasesCountObtained.fire(totalCasesCount);
         }
+
+        pool.waitForFinish();
 
         return data;
     }
@@ -106,7 +109,7 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
         }
     }
 
-    private KadResponse retrieveKadResponse(CaseSearchRequest request, int page) throws IOException, DataRetrievingError, InterruptedException {
+    private KadResponse retrieveKadResponse(CaseSearchRequest request, int page) throws DataRetrievingError, InterruptedException {
         logger.info("Getting page #" + page);
         request.setPage(page);
 
@@ -123,17 +126,16 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
             return KadResponse.fromJSON(jsonObj);
         } catch (JSONException | NullPointerException e) {
             logger.warning("Retrying #" + retryCount);
-            if (retryCount < 3) {
+            if (retryCount <= 3) {
                 retryCount++;
                 Thread.sleep(50);
                 return retrieveKadResponse(request, page);
             }
-            throw e;
+            return null;
         }
     }
 
     public void stopExecution() {
-        credentialsLoader.stopExecution();
         pool.stopExecution();
     }
 

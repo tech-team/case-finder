@@ -6,14 +6,16 @@ import exceptions.DataRetrievingError;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.jsoup.Jsoup;
-import org.jsoup.select.Elements;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import util.HttpDownloader;
 import util.MyLogger;
 import util.StringUtils;
 
-import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 public class ListOrg extends WebSite {
@@ -39,7 +41,7 @@ public class ListOrg extends WebSite {
     }
 
     @Override
-    public Credentials findCredentials(CredentialsSearchRequest request, Credentials credentials) throws InterruptedException, IOException, DataRetrievingError {
+    public Credentials findCredentials(CredentialsSearchRequest request, Credentials credentials) throws InterruptedException, DataRetrievingError {
         List<Elements> searchResults = new ArrayList<>(2);
 
         if (request.getInn() != null) {
@@ -67,7 +69,8 @@ public class ListOrg extends WebSite {
         return PRIORITY;
     }
 
-    private Credentials parseSearchResults(Elements results, CredentialsSearchRequest request, Credentials credentials) throws IOException, InterruptedException, DataRetrievingError {
+    @SuppressWarnings("UnusedParameters")
+    private Credentials parseSearchResults(Elements results, CredentialsSearchRequest request, Credentials credentials) throws InterruptedException, DataRetrievingError {
 
         if (results.size() >= THRESHOLD) {
             logger.warning("Too many results. Skipping.");
@@ -121,7 +124,7 @@ public class ListOrg extends WebSite {
                 }
             }
 
-            RelevanceInput input = new RelevanceInput(creds, name, address, request, credentials);
+            RelevanceInput input = new RelevanceInput(creds, name, address, request);
             relevances.put(input, countRelevance(input));
         }
 
@@ -130,15 +133,15 @@ public class ListOrg extends WebSite {
 
 
 
-    private Elements executeSearch(List<NameValuePair> searchParams) throws InterruptedException, IOException, DataRetrievingError {
+    private Elements executeSearch(List<NameValuePair> searchParams) throws InterruptedException, DataRetrievingError {
         String resp = HttpDownloader.i().get(Urls.SEARCH, searchParams, null, false);
         return Jsoup.parse(resp)
                     .body()
                     .select(".main .content p");
     }
 
-    private Elements findByName(CredentialsSearchRequest request) throws InterruptedException, IOException, DataRetrievingError {
-        String val = StringUtils.removeNonLetters(request.getCompanyName()); // TODO:  Probably preprocess
+    private Elements findByName(CredentialsSearchRequest request) throws InterruptedException, DataRetrievingError {
+        String val = StringUtils.removeNonLetters(request.getCompanyName());
         if (val == null)
             return null;
         List<NameValuePair> params = new ArrayList<>();
@@ -147,7 +150,7 @@ public class ListOrg extends WebSite {
         return executeSearch(params);
     }
 
-    private Elements findByAddress(CredentialsSearchRequest request) throws InterruptedException, IOException, DataRetrievingError {
+    private Elements findByAddress(CredentialsSearchRequest request) throws InterruptedException, DataRetrievingError {
         String val = preprocessAddress(request.getAddress().getRaw());
         if (val == null)
             return null;
@@ -159,11 +162,10 @@ public class ListOrg extends WebSite {
 
     // TODO
     private String preprocessAddress(String address) {
-        String res = StringUtils.removeNonLetters(address);
-        return res;
+        return StringUtils.removeNonLetters(address);
     }
 
-    private Elements findByInn(CredentialsSearchRequest request) throws InterruptedException, IOException, DataRetrievingError {
+    private Elements findByInn(CredentialsSearchRequest request) throws InterruptedException, DataRetrievingError {
         String val = request.getInn();
         if (val == null)
             return null;
@@ -173,7 +175,7 @@ public class ListOrg extends WebSite {
         return executeSearch(params);
     }
 
-    private Elements findByOgrn(CredentialsSearchRequest request) throws InterruptedException, IOException, DataRetrievingError {
+    private Elements findByOgrn(CredentialsSearchRequest request) throws InterruptedException, DataRetrievingError {
         String val = request.getOgrn();
         if (val == null)
             return null;
@@ -185,7 +187,8 @@ public class ListOrg extends WebSite {
 
 
 
-    public static void main(String[] args) throws InterruptedException, IOException, DataRetrievingError {
+    @SuppressWarnings("UnusedDeclaration")
+    public static void main(String[] args) throws InterruptedException, DataRetrievingError {
         ListOrg lo = new ListOrg();
 
         CredentialsSearchRequest req = new CredentialsSearchRequest("ООО СТРОИТЕЛЬНАЯ КОМПАНИЯ НОВОСТРОЙ ИНЖИНИРИНГ", "unknown", null, null);

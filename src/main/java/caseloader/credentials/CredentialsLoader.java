@@ -6,10 +6,9 @@ import caseloader.credentials.websites.WebSite;
 import exceptions.DataRetrievingError;
 import util.MyLogger;
 
-import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
 import java.util.logging.Logger;
 
 public class CredentialsLoader {
@@ -31,9 +30,7 @@ public class CredentialsLoader {
     }
 
     private List<WebSiteBulk> webSites;
-//    private ThreadPool pool = new ThreadPool();
     private Logger logger = MyLogger.getLogger(this.getClass().toString());
-    private int count = 0;
 
     public CredentialsLoader() {
         webSites = new LinkedList<>();
@@ -43,7 +40,6 @@ public class CredentialsLoader {
 
     public Credentials retrieveCredentials(CredentialsSearchRequest request) throws InterruptedException {
         Credentials credentials = new Credentials();
-        boolean foundAnything = false;
 
         for (WebSiteBulk bulk : webSites) {
             Credentials found = null;
@@ -59,23 +55,12 @@ public class CredentialsLoader {
             }
 
             if (found != null) {
-                foundAnything = true;
-                System.out.println(++count + ") " + request.getCompanyName() + " found creds. Inn = " + found.getInn() + ". tels count = " + found.getTelephones().size());
                 break;
             }
         }
 
-        if (!foundAnything) {
-            System.out.println("CREDENTIALS ARE NULL");
-        }
-
         return credentials;
     }
-
-    public void stopExecution() {
-//        pool.stopExecution();
-    }
-
 
     private class CredentialsWorker implements Callable<Credentials> {
         private final WebSite webSite;
@@ -90,15 +75,21 @@ public class CredentialsLoader {
 
         @Override
         public Credentials call() throws InterruptedException {
-            for (int retry = 1; retry <= 3; ++retry) {
+            int maxRetries = 3;
+            for (int retry = 1; retry <= maxRetries + 1; ++retry) {
                 logger.info("Working on company: " + request.getCompanyName() + ". url: " + webSite.url());
 
-                Credentials found = null;
+                Credentials found;
                 try {
                     found = webSite.findCredentials(request, credentials);
-                } catch (IOException | DataRetrievingError e) {
-                    logger.warning("Error retrieving credentials. Retrying");
-                    continue;
+                } catch (DataRetrievingError e) {
+                    if (retry <= maxRetries) {
+                        Thread.sleep(50);
+                        logger.warning("Error retrieving credentials. Retry #" + retry);
+                        continue;
+                    } else {
+                        break;
+                    }
                 }
                 logger.info("Finished company: " + request.getCompanyName() + ". url: " + webSite.url());
                 return found;
@@ -109,6 +100,7 @@ public class CredentialsLoader {
     }
 
 
+    @SuppressWarnings("UnusedDeclaration")
     public static void main(String[] args) throws InterruptedException {
         CredentialsLoader credentialsLoader = new CredentialsLoader();
         Credentials creds =

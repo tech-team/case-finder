@@ -46,7 +46,7 @@ public class CaseSearchRequest {
         kadJson.put(Keys.WITH_VKS_INSTANCES, false);
     }
 
-    public CaseSearchRequest(final String[] courtsIds,
+    public CaseSearchRequest(final String[] courtsNames,
                              final String dateFrom,
                              final String dateTo,
                              final CaseType caseType,
@@ -76,33 +76,29 @@ public class CaseSearchRequest {
             kadJson.put(Keys.WITH_VKS_INSTANCES, withVKSInstances);
         }
 
-        if (courtsIds != null) {
-            for (final String court : courtsIds) {
-                kadJson.append(Keys.COURTS, court);
+        if (courtsNames != null) {
+            for (final String court : courtsNames) {
+                kadJson.append(Keys.COURTS, CourtsInfo.getCourtCode(court));
             }
         }
 
         kadJson.put(Keys.DATE_FROM, dateFrom);
         kadJson.put(Keys.DATE_TO, dateTo);
-
-//        if (judgesIds != null) { // TODO
-//            for (final String judgeId : judgesIds) {
-//                kadJson.append(Keys.JUDGES, judgeId);
-//            }
-//        }
     }
 
     public CaseType getCaseType() {
         String caseValue = JsonUtils.getString(kadJson, Keys.CASE_TYPE);
-        if (caseValue == null)
+        if (caseValue == null || caseValue.equals(""))
             return null;
         return CaseType.valueOf(caseValue);
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     public int getPage() {
         return kadJson.getInt(Keys.PAGE);
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     public int getCount() {
         return kadJson.getInt(Keys.COUNT);
     }

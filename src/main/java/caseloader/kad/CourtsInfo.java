@@ -8,11 +8,10 @@ import org.jsoup.select.Elements;
 import util.HttpDownloader;
 import util.MyLogger;
 
-import java.io.IOException;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public abstract class CourtsInfo {
@@ -21,9 +20,10 @@ public abstract class CourtsInfo {
 
     private static Logger logger = MyLogger.getLogger(CourtsInfo.class.toString());
 
-    private static Set<String> retrieveCourts() throws IOException, DataRetrievingError, InterruptedException {
+    private static Set<String> retrieveCourts() throws DataRetrievingError, InterruptedException {
         if (courts.size() == 0) {
-            for (int retry = 0; retry <= 3; ++retry) {
+            int maxRetries = 3;
+            for (int retry = 1; retry <= maxRetries + 1; ++retry) {
                 try {
                     String kadHtml = HttpDownloader.i().get(Urls.KAD_HOME);
                     if (kadHtml == null) {
@@ -35,7 +35,10 @@ public abstract class CourtsInfo {
                                       .forEach(c -> courts.put(c.text(), c.attr("value")));
                     return courts.keySet();
                 } catch (NullPointerException e) {
-                    logger.warning("Error retrieving courts. Retry #" + (retry+1));
+                    if (retry <= maxRetries)
+                        logger.warning("Error retrieving courts. Retry #" + retry);
+                    else
+                        break;
                 }
             }
             logger.warning("Couldn't retrieve courts");
@@ -50,13 +53,14 @@ public abstract class CourtsInfo {
                 Set<String> courts = null;
                 try {
                     courts = retrieveCourts();
-                } catch (IOException | DataRetrievingError e) {
-                    throw new RuntimeException(e);
                 } catch (InterruptedException e) {
                     logger.info("Retrieving courts has been interrupted");
                     return;
+                } catch (DataRetrievingError e) {
+                    logger.log(Level.WARNING, "Exception happened", e);
+                    return;
                 }
-                // TODO: NullPointerException
+
                 courtsLoadedEvent.fire(courts);
                 logger.info("Finished retrieving courts list");
             });
@@ -65,10 +69,10 @@ public abstract class CourtsInfo {
         } else {
             try {
                 courtsLoadedEvent.fire(retrieveCourts());
-            } catch (IOException | DataRetrievingError e) {
-                throw new RuntimeException(e);
             } catch (InterruptedException e) {
                 logger.info("Retrieving courts has been interrupted");
+            } catch (DataRetrievingError e) {
+                logger.log(Level.WARNING, "Exception happened", e);
             }
         }
     }

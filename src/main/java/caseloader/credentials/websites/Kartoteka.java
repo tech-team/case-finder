@@ -10,10 +10,11 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import util.HttpDownloader;
 import caseloader.util.RegionHelper;
+import util.MyLogger;
 import util.StringUtils;
 
-import java.io.IOException;
 import java.util.*;
+import java.util.logging.Logger;
 
 // For INN search
 public class Kartoteka extends WebSite {
@@ -37,7 +38,7 @@ public class Kartoteka extends WebSite {
     private static final int COUNT_TO_PARSE = 3;
     private static final int PRIORITY = 2;
 
-    private static int count = 0;
+    private final Logger logger = MyLogger.getLogger(this.getClass().getName());
 
 
     @Override
@@ -46,7 +47,7 @@ public class Kartoteka extends WebSite {
     }
 
     @Override
-    public Credentials findCredentials(CredentialsSearchRequest request, Credentials credentials) throws IOException, DataRetrievingError, InterruptedException {
+    public Credentials findCredentials(CredentialsSearchRequest request, Credentials credentials) throws DataRetrievingError, InterruptedException {
         String companyName = StringUtils.removeNonLetters(request.getCompanyName());
 
         String city = request.getAddress().getCity();
@@ -58,8 +59,11 @@ public class Kartoteka extends WebSite {
             params.add(new BasicNameValuePair(QueryKeys.REGION, RegionHelper.regionIdByCity(city)));
 
         String resp = HttpDownloader.i().get(Urls.SEARCH, params, null, true, ENCODING);
-        Credentials creds = parsePage(resp, request, credentials);
-//        System.out.println(++count + ") " + request.getCompanyName() + " kartoteka found creds. Inn = " + (creds == null ? null : creds.getInn()));
+        Credentials creds = parsePage(resp, request);
+        if (creds != null)
+            logger.info("<Kartoteka>: Found credentials for company: " + request.getCompanyName());
+        else
+            logger.warning("<Kartoteka>: Couldn't find credentials for company: " + request.getCompanyName());
         return creds;
     }
 
@@ -68,7 +72,7 @@ public class Kartoteka extends WebSite {
         return PRIORITY;
     }
 
-    private Credentials parsePage(String page, CredentialsSearchRequest request, Credentials totalCreds) {
+    private Credentials parsePage(String page, CredentialsSearchRequest request) {
         if (page == null) {
             return null;
         }
@@ -121,7 +125,7 @@ public class Kartoteka extends WebSite {
             }
 
 
-            RelevanceInput input = new RelevanceInput(creds, name, address, request, totalCreds);
+            RelevanceInput input = new RelevanceInput(creds, name, address, request);
             relevances.put(input, countRelevance(input));
         }
 
@@ -129,7 +133,8 @@ public class Kartoteka extends WebSite {
     }
 
 
-    public static void main(String[] args) throws DataRetrievingError, IOException, InterruptedException {
+    @SuppressWarnings("UnusedDeclaration")
+    public static void main(String[] args) throws DataRetrievingError, InterruptedException {
         Kartoteka k = new Kartoteka();
         CredentialsSearchRequest req = new CredentialsSearchRequest("ОАО Гамма Траст", "");
         Credentials creds = new Credentials();

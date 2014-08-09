@@ -1,13 +1,11 @@
 package caseloader;
 
-import caseloader.kad.*;
+import caseloader.kad.KadLoader;
 import eventsystem.DataEvent;
 import eventsystem.Event;
 import exceptions.DataRetrievingError;
-import util.HttpDownloader;
 import util.MyLogger;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,17 +32,23 @@ public class CaseLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
         }
 
         thread = new Thread(() -> {
+            logger.info("====================================");
             logger.info("Started CaseLoader");
             try {
-                kadLoader.retrieveData(request, outputContainer);
-            } catch (IOException | DataRetrievingError e) {
-                throw new RuntimeException(e);
+                CaseContainerType data = kadLoader.retrieveData(request, outputContainer);
+                if (data == null) {
+                    // TODO: handle error
+                }
+                logger.info("Finished CaseLoader");
+            } catch (InterruptedException ignored) {
+                logger.info("CaseLoader stopped");
+            } catch (DataRetrievingError e) {
+                logger.log(Level.WARNING, "Exception happened", e);
+            } finally {
+                casesLoaded.fire(outputContainer);
+                logger.info("====================================");
             }
-            logger.info("Finished CaseLoader");
-
-            casesLoaded.fire(outputContainer);
         });
-        thread.setDaemon(true);
         thread.start();
     }
 
@@ -60,6 +64,7 @@ public class CaseLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
 
 
 
+    @SuppressWarnings("UnusedDeclaration")
     public static void main(String[] args) throws InterruptedException {
         MyLogger.getGlobal().log(Level.INFO, "MAIN BEGIN");
         long beginTime = System.currentTimeMillis();

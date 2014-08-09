@@ -10,14 +10,16 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import util.HttpDownloader;
+import util.MyLogger;
 
-import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class RusProfile extends WebSite {
     private static final int PRIORITY = 0;
+    private final Logger logger = MyLogger.getLogger(this.getClass().getName());
 
     abstract class Urls {
         private static final String MAIN_PAGE = "http://www.rusprofile.ru/";
@@ -31,14 +33,33 @@ public class RusProfile extends WebSite {
     }
 
     @Override
-    public Credentials findCredentials(final CredentialsSearchRequest request, final Credentials credentials) throws IOException, DataRetrievingError, InterruptedException {
+    public Credentials findCredentials(final CredentialsSearchRequest request, final Credentials credentials) throws DataRetrievingError, InterruptedException {
+        return findCredentials(request, credentials, 1);
+    }
+
+    @SuppressWarnings("UnusedParameters")
+    private Credentials findCredentials(final CredentialsSearchRequest request, final Credentials credentials, int retryNo) throws DataRetrievingError, InterruptedException {
+        Credentials result;
         if (request.getInn() != null && !request.getInn().equals("")) {
-            return findByInn(request);
+            result = findByInn(request);
         } else if (request.getOgrn() != null && !request.getOgrn().equals("")) {
-            return findByOgrn(request);
+            result = findByOgrn(request);
         } else {
-            return findByNameAndAddress(request);
+            result = findByNameAndAddress(request);
         }
+
+        if (result == null) {
+            if (retryNo <= 2) {
+                logger.warning("<RusProfile>: Couldn't find credentials. Retry #" + retryNo);
+                findCredentials(request, credentials, retryNo + 1);
+            } else {
+                logger.warning("<RusProfile>: Couldn't retrieve credentials for company: " + request.getCompanyName());
+                return null;
+            }
+        }
+
+        logger.info("<RusProfile>: Found credentials for company: " + request.getCompanyName());
+        return result;
     }
 
     @Override
@@ -46,25 +67,25 @@ public class RusProfile extends WebSite {
         return PRIORITY;
     }
 
-    private Credentials findByInn(CredentialsSearchRequest request) throws IOException, DataRetrievingError, InterruptedException {
+    private Credentials findByInn(CredentialsSearchRequest request) throws DataRetrievingError, InterruptedException {
         String searchRequest = createGoogleRequest(request.getInn());
         String companyUrl = getCompanyUrl(searchRequest);
         return parseCompanyPage(companyUrl);
     }
 
-    private Credentials findByOgrn(CredentialsSearchRequest request) throws InterruptedException, DataRetrievingError, IOException {
+    private Credentials findByOgrn(CredentialsSearchRequest request) throws DataRetrievingError, InterruptedException {
         String searchRequest = createGoogleRequest(request.getOgrn());
         String companyUrl = getCompanyUrl(searchRequest);
         return parseCompanyPage(companyUrl);
     }
 
-    private Credentials findByNameAndAddress(CredentialsSearchRequest request) throws InterruptedException, DataRetrievingError, IOException {
+    private Credentials findByNameAndAddress(CredentialsSearchRequest request) throws DataRetrievingError, InterruptedException {
         String searchRequest = createGoogleRequest(request.getCompanyName() + " " + request.getAddress().getRaw());
         String companyUrl = getCompanyUrl(searchRequest);
         return parseCompanyPage(companyUrl);
     }
 
-    private Credentials parseCompanyPage(String companyUrl) throws InterruptedException, DataRetrievingError, IOException {
+    private Credentials parseCompanyPage(String companyUrl) throws InterruptedException, DataRetrievingError {
         if (companyUrl == null)
             return null;
         try {
@@ -110,13 +131,12 @@ public class RusProfile extends WebSite {
             creds.setOgrn(ogrn);
 
             return creds;
-        } catch (NullPointerException | IllegalArgumentException e) {
-            System.out.println("parseCompanyPage: Something is null");
+        } catch (NullPointerException | IllegalArgumentException ignored) {
         }
         return null;
     }
 
-    private String getCompanyUrl(String searchQuery) throws InterruptedException, DataRetrievingError, IOException {
+    private String getCompanyUrl(String searchQuery) throws InterruptedException, DataRetrievingError {
         List<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair("q", searchQuery));
         try {
@@ -142,8 +162,7 @@ public class RusProfile extends WebSite {
 
         } catch (URISyntaxException e) {
             e.printStackTrace();
-        } catch (NullPointerException | IllegalArgumentException e) {
-            System.out.println("getCompanyUrl: Something is null");
+        } catch (NullPointerException | IllegalArgumentException ignored) {
         }
         return null;
     }
@@ -152,7 +171,8 @@ public class RusProfile extends WebSite {
         return query + " site:" + Urls.GOOGLE_SITE_URL;
     }
 
-    public static void main(String[] args) throws IOException, DataRetrievingError, InterruptedException {
+    @SuppressWarnings("UnusedDeclaration")
+    public static void main(String[] args) throws DataRetrievingError, InterruptedException {
         RusProfile rp = new RusProfile();
 
         CredentialsSearchRequest req = new CredentialsSearchRequest(null, null, "1102017213", null);
