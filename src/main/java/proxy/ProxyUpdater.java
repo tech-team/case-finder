@@ -1,6 +1,11 @@
 package proxy;
 
 import exceptions.DataRetrievingError;
+import javafx.concurrent.Worker;
+import javafx.scene.Scene;
+import javafx.scene.web.WebEngine;
+import javafx.scene.web.WebView;
+import javafx.stage.Stage;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -9,6 +14,7 @@ import util.MyLogger;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -156,5 +162,40 @@ class ProxyUpdater {
             }
         }
         return proxies;
+    }
+
+    public void retrieveProxyListHideMyAss(Consumer<List<ProxyInfo>> onLoadedCallback) {
+        final Stage stage = new Stage();
+
+        final WebView webView = new WebView();
+        final WebEngine webEngine = webView.getEngine();
+        webView.setVisible(false);
+        stage.setScene(new Scene(webView, 1, 1));
+        stage.setTitle("Loading proxy list...");
+
+        webEngine.setUserAgent("Opera/9.80 (Windows NT 6.0) Presto/2.12.388 Version/12.14");
+        webEngine.getLoadWorker().stateProperty().addListener(
+                (ov, oldState, newState) -> {
+                    if (newState == Worker.State.SUCCEEDED) {
+                        String content = webEngine.executeScript("document.getElementById('listable').innerText").toString();
+
+                        List<ProxyInfo> proxyList = new ArrayList<>();
+                        Pattern regex = Pattern.compile("(\\d+\\.\\d+\\.\\d+\\.\\d+)\\s+(\\d+)");
+                        Matcher regexMatcher = regex.matcher(content);
+                        while (regexMatcher.find()) {
+                            proxyList.add(
+                                    new ProxyInfo(
+                                            regexMatcher.group(1),
+                                            Integer.parseInt(regexMatcher.group(2))));
+                        }
+
+                        onLoadedCallback.accept(proxyList);
+                        stage.close();
+                    }
+                });
+
+        webEngine.load("http://proxylist.hidemyass.com/search-1311573#listable");
+
+        stage.show();
     }
 }
