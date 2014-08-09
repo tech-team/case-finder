@@ -250,6 +250,7 @@ public class MainController {
                 caseLoader.casesLoaded.on((data) -> {
                     mode = Mode.DEFAULT;
                     searchButton.setText(res.getString("searchButtonDefault"));
+                    progressIndicator.setVisible(false);
 
                     String message = String.format(res.getString("loadingFinished"), casesData.size());
 
