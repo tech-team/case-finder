@@ -1,6 +1,7 @@
 package proxy;
 
 import exceptions.DataRetrievingError;
+import javafx.application.Platform;
 import javafx.concurrent.Worker;
 import javafx.scene.Scene;
 import javafx.scene.web.WebEngine;
@@ -14,6 +15,7 @@ import util.MyLogger;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -164,38 +166,51 @@ class ProxyUpdater {
         return proxies;
     }
 
-    public void retrieveProxyListHideMyAss(Consumer<List<ProxyInfo>> onLoadedCallback) {
-        final Stage stage = new Stage();
+    public List<ProxyInfo> retrieveProxyListHideMyAss() throws InterruptedException {
+        List<ProxyInfo> proxies = new ArrayList<>();
+        final AtomicBoolean loaded = new AtomicBoolean(false);
 
-        final WebView webView = new WebView();
-        final WebEngine webEngine = webView.getEngine();
-        webView.setVisible(false);
-        stage.setScene(new Scene(webView, 1, 1));
-        stage.setTitle("Loading proxy list...");
+        Platform.runLater(() -> {
+            final Stage stage = new Stage();
 
-        webEngine.setUserAgent("Opera/9.80 (Windows NT 6.0) Presto/2.12.388 Version/12.14");
-        webEngine.getLoadWorker().stateProperty().addListener(
-                (ov, oldState, newState) -> {
-                    if (newState == Worker.State.SUCCEEDED) {
-                        String content = webEngine.executeScript("document.getElementById('listable').innerText").toString();
+            final WebView webView = new WebView();
+            final WebEngine webEngine = webView.getEngine();
+            webView.setVisible(false);
+            stage.setScene(new Scene(webView, 1, 1));
+            stage.setTitle("Loading proxy list...");
 
-                        List<ProxyInfo> proxyList = new ArrayList<>();
-                        Pattern regex = Pattern.compile("(\\d+\\.\\d+\\.\\d+\\.\\d+)\\s+(\\d+)");
-                        Matcher regexMatcher = regex.matcher(content);
-                        while (regexMatcher.find()) {
-                            proxyList.add(
-                                    new ProxyInfo(
-                                            regexMatcher.group(1),
-                                            Integer.parseInt(regexMatcher.group(2))));
+
+
+            webEngine.setUserAgent("Opera/9.80 (Windows NT 6.0) Presto/2.12.388 Version/12.14");
+            webEngine.getLoadWorker().stateProperty().addListener(
+                    (ov, oldState, newState) -> {
+                        if (newState == Worker.State.SUCCEEDED) {
+                            String content = webEngine.executeScript("document.getElementById('listable').innerText").toString();
+
+//                        List<ProxyInfo> proxyList = new ArrayList<>();
+                            Pattern regex = Pattern.compile("(\\d+\\.\\d+\\.\\d+\\.\\d+)\\s+(\\d+)");
+                            Matcher regexMatcher = regex.matcher(content);
+                            while (regexMatcher.find()) {
+                                proxies.add(
+                                        new ProxyInfo(
+                                                regexMatcher.group(1),
+                                                Integer.parseInt(regexMatcher.group(2))));
+                            }
+
+//                        onLoadedCallback.accept(proxyList);
+                            stage.close();
+                            loaded.set(true);
                         }
+                    });
 
-                        onLoadedCallback.accept(proxyList);
-                        stage.close();
-                    }
-                });
+            webEngine.load("http://proxylist.hidemyass.com/search-1311573#listable");
 
-        webEngine.load("http://proxylist.hidemyass.com/search-1311573#listable");
+            stage.show();
+        });
 
-        stage.show();
+        while (!loaded.get()) {
+            Thread.sleep(100);
+        }
+        return proxies;
     }
 }

@@ -35,7 +35,7 @@ public abstract class CourtsInfo {
                                       .forEach(c -> courts.put(c.text(), c.attr("value")));
                     return courts.keySet();
                 } catch (NullPointerException e) {
-                    logger.warning("Error retrieving courts. Retry #" + retry+1);
+                    logger.warning("Error retrieving courts. Retry #" + (retry+1));
                 }
             }
             logger.warning("Couldn't retrieve courts");
