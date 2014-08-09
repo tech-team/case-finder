@@ -38,17 +38,27 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
         this.caseProcessed = caseProcessed;
     }
 
+    private int countToLoadPerRequest(int limit) {
+        return limit != 0
+                && limit < ITEMS_COUNT_PER_REQUEST ? limit :
+                ITEMS_COUNT_PER_REQUEST;
+    }
+
     public CaseContainerType retrieveData(CaseSearchRequest request, CaseContainerType data) throws IOException, DataRetrievingError {
         long minCost = request.getMinCost();
         int searchLimit = request.getSearchLimit();
-        int itemsCountToLoad = searchLimit != 0 && searchLimit < TOTAL_MAX_COUNT ? searchLimit :
+        int totalCountToLoad = searchLimit != 0 && searchLimit < TOTAL_MAX_COUNT ? searchLimit :
                                                                                    TOTAL_MAX_COUNT;
 
-        kadWorkerFactory = new KadWorkerFactory<>(itemsCountToLoad, minCost, data, credentialsLoader, caseProcessed);
+        kadWorkerFactory = new KadWorkerFactory<>(totalCountToLoad, minCost, data, credentialsLoader, caseProcessed);
 
         try {
             int totalCasesCount = 0;
-            request.setCount(ITEMS_COUNT_PER_REQUEST);
+
+            int countPerRequest = countToLoadPerRequest(searchLimit);
+            searchLimit -= countPerRequest;
+
+            request.setCount(countPerRequest);
             KadResponse initial = retrieveKadResponse(request, 1);
 
             if (initial.isSuccess()) {
@@ -57,10 +67,12 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
                 }
                 processKadResponse(initial);
                 totalCasesCount += initial.getItems().size();
-                request.setCount(initial.getPageSize());
 
-                int iterationsCount = itemsCountToLoad / initial.getPageSize();
+                int iterationsCount = (int) Math.ceil(((double) totalCountToLoad) / initial.getPageSize());
                 for (int i = 2; i <= iterationsCount; ++i) {
+                    countPerRequest = countToLoadPerRequest(searchLimit);
+                    request.setCount(countPerRequest);
+
                     if (Thread.currentThread().isInterrupted()) {
                         throw new InterruptedException();
                     }
@@ -69,6 +81,7 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
                     if (resp.isSuccess()) {
                         processKadResponse(resp);
                         totalCasesCount += resp.getItems().size();
+                        searchLimit -= countPerRequest;
                     } else {
                         logger.warning("Couldn't load page #" + i + ". Retrying.");
                         i -= 1;

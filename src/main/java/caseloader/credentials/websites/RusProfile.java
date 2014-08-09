@@ -80,9 +80,9 @@ public class RusProfile extends WebSite {
             for (Element tr : generalInfo) {
                 String key = tr.getElementsByTag("td").first().text();
                 String value = tr.getElementsByTag("td").last().text();
-                if (key.contains("телеф")) {
+                if (telephones == null && key.contains("телеф")) {
                     telephones = value;
-                } else if (key.contains("комп")) {
+                } else if (director == null && key.contains("комп")) {
                     director = value;
                 }
             }
@@ -94,9 +94,9 @@ public class RusProfile extends WebSite {
             for (Element tr : companyDetails) {
                 String key = tr.getElementsByTag("td").first().text();
                 String value = tr.getElementsByTag("td").last().text();
-                if (key.contains("ОГРН")) {
+                if (ogrn == null && key.contains("ОГРН")) {
                     ogrn = value;
-                } else if (key.contains("ИНН")) {
+                } else if (inn == null && key.contains("ИНН")) {
                     inn = value;
                 }
             }
