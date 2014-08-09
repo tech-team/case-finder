@@ -13,6 +13,7 @@ import util.MyLogger;
 import util.ThreadPool;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -25,6 +26,7 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
     private AtomicInteger casesProgressCount = new AtomicInteger(0);
     private ThreadPool pool = new ThreadPool(4);
     private KadWorkerFactory<CaseContainerType> kadWorkerFactory = null;
+    private List<CaseSearchRequest> brokenPages = new LinkedList<>();
     private final CredentialsLoader credentialsLoader = new CredentialsLoader();
 
     private final DataEvent<Integer> totalCasesCountObtained;
@@ -57,7 +59,8 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
         searchLimit -= countPerRequest;
 
         request.setCount(countPerRequest);
-        KadResponse initial = retrieveKadResponse(request, 1);
+        request.setPage(1);
+        KadResponse initial = retrieveKadResponse(request);
         if (initial == null)
             return null;
 
@@ -77,7 +80,8 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
                     throw new InterruptedException();
                 }
 
-                KadResponse resp = retrieveKadResponse(request, i);
+                request.setPage(i);
+                KadResponse resp = retrieveKadResponse(request);
                 if (resp == null) {
                     Thread.sleep(10);
                     logger.severe("Page #" + i + " was not loaded. Skipping.");
@@ -92,6 +96,29 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
                     logger.warning("Couldn't load page #" + i + ". Retrying.");
                     i -= 1;
                 }
+            }
+
+            if (brokenPages.size() != 0) {
+                logger.info("Retrying broken pages");
+                for (int i = 0; i < brokenPages.size(); i++) {
+                    CaseSearchRequest r = brokenPages.get(i);
+                    KadResponse resp = retrieveKadResponse(r);
+                    if (resp == null) {
+                        Thread.sleep(10);
+                        logger.severe("Page #" + i + " was not loaded. Skipping.");
+                        continue;
+                    }
+
+                    if (resp.isSuccess()) {
+                        processKadResponse(resp);
+                        totalCasesCount += resp.getItems().size();
+                        searchLimit -= countPerRequest;
+                    } else {
+                        logger.warning("Couldn't load page #" + i + ". Retrying.");
+                        i -= 1;
+                    }
+                }
+                logger.info("Finished broken pages");
             }
             totalCasesCountObtained.fire(totalCasesCount);
         }
@@ -109,9 +136,9 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
         }
     }
 
-    private KadResponse retrieveKadResponse(CaseSearchRequest request, int page) throws DataRetrievingError, InterruptedException {
+    private KadResponse retrieveKadResponse(CaseSearchRequest request) throws DataRetrievingError, InterruptedException {
+        int page = request.getPage();
         logger.info("Getting page #" + page);
-        request.setPage(page);
 
         String json = request.toString();
         Map<String, String> headers = new HashMap<>();
@@ -129,8 +156,9 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
             if (retryCount <= 3) {
                 retryCount++;
                 Thread.sleep(50);
-                return retrieveKadResponse(request, page);
+                return retrieveKadResponse(request);
             }
+            brokenPages.add(request.copy());
             return null;
         }
     }

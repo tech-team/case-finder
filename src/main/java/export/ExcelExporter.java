@@ -147,7 +147,7 @@ public class ExcelExporter {
 
         int rowId = 0;
 
-        String[] courts = request.getCourts();
+        String[] courts = request.getCourtsNames();
         String courtsString = StringUtils.join(courts, ", ");
         createKeyValueRow(sheet, styles, rowId++,
                 res.getString("requestCourt"), courtsString);

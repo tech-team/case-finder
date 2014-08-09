@@ -6,6 +6,7 @@ import org.json.JSONObject;
 import util.JsonUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class CaseSearchRequest {
@@ -28,22 +29,23 @@ public class CaseSearchRequest {
         public static final String CASES = "Cases";
         public static final String WITH_VKS_INSTANCES = "WithVKSInstances";
     }
-    private JSONObject kadJson = new JSONObject();
+    private JSONObject kadJson = null;
+    private CaseType caseType = null;
+    private int page = 1;
+    private int count = 25;
+    private String[] courtsNames = null;
+    private String dateFrom = "";
+    private String dateTo = "";
+    private Object[] judges = null;
+    private Object[] sides = null;
+    private Object[] cases = null;
+    private boolean withVKSInstances = false;
+
     private long minCost = 0;
     private int searchLimit = 0;
 
     public CaseSearchRequest() {
-        kadJson.put(Keys.CASE_TYPE, "");
-        kadJson.put(Keys.PAGE, 1);
-        kadJson.put(Keys.COUNT, 25);
-        kadJson.put(Keys.COURTS, new JSONArray());
-        kadJson.put(Keys.DATE_FROM, (Object) null);
-        kadJson.put(Keys.DATE_TO, (Object) null);
-        kadJson.put(Keys.JUDGES_EX, new JSONArray());
-        kadJson.put(Keys.JUDGES, new JSONArray());
-        kadJson.put(Keys.SIDES, new JSONArray());
-        kadJson.put(Keys.CASES, new JSONArray());
-        kadJson.put(Keys.WITH_VKS_INSTANCES, false);
+
     }
 
     public CaseSearchRequest(final String[] courtsNames,
@@ -51,82 +53,68 @@ public class CaseSearchRequest {
                              final String dateTo,
                              final CaseType caseType,
                              final Boolean withVKSInstances,
-                           /*final String[] judgesIds,
-                             final String[] sides,
-                             final String[] cases*/
                              final long minCost,
                              final int searchLimit) {
-        this();
-
         if (minCost < 0) {
-            throw new RuntimeException("Min cost is wrong. Should be greater than or equal to 0");
+            throw new IllegalArgumentException("Min cost is wrong. Should be greater than or equal to 0");
         }
         if (!(searchLimit > 0 && searchLimit <= 1000)) {
-            throw new RuntimeException("Search limit is wrong. Should be in (0; 1000]");
+            throw new IllegalArgumentException("Search limit is wrong. Should be in (0; 1000]");
         }
 
         this.minCost = minCost;
         this.searchLimit = searchLimit;
 
-        if (caseType != null) {
-            kadJson.put(Keys.CASE_TYPE, caseType.toString());
-        }
-
-        if (withVKSInstances != null) {
-            kadJson.put(Keys.WITH_VKS_INSTANCES, withVKSInstances);
-        }
-
-        if (courtsNames != null) {
-            for (final String court : courtsNames) {
-                kadJson.append(Keys.COURTS, CourtsInfo.getCourtCode(court));
-            }
-        }
-
-        kadJson.put(Keys.DATE_FROM, dateFrom);
-        kadJson.put(Keys.DATE_TO, dateTo);
+        this.courtsNames = courtsNames;
+        this.dateFrom = dateFrom;
+        this.dateTo = dateTo;
+        if (withVKSInstances != null)
+            this.withVKSInstances = withVKSInstances;
+        this.caseType = caseType;
     }
 
     public CaseType getCaseType() {
-        String caseValue = JsonUtils.getString(kadJson, Keys.CASE_TYPE);
-        if (caseValue == null || caseValue.equals(""))
-            return null;
-        return CaseType.valueOf(caseValue);
+        return caseType;
     }
 
-    @SuppressWarnings("UnusedDeclaration")
     public int getPage() {
-        return kadJson.getInt(Keys.PAGE);
+        return page;
     }
 
     @SuppressWarnings("UnusedDeclaration")
     public int getCount() {
-        return kadJson.getInt(Keys.COUNT);
+        return count;
     }
 
-    public String[] getCourts() {
-        if (!CourtsInfo.courtsLoaded())
-            return null;
-        JSONArray courtsJson = JsonUtils.getJSONArray(kadJson, Keys.COURTS);
-        List<String> courts = new ArrayList<>();
-        for (int i = 0; i < courtsJson.length(); ++i) {
-            String courtId = courtsJson.getString(i);
-            courts.add(CourtsInfo.getCourtName(courtId));
-        }
-
-        String[] courtsArray = new String[courts.size()];
-        return courts.toArray(courtsArray);
+    public String[] getCourtsNames() {
+        return courtsNames;
     }
 
     public String getDateFrom() {
-        return JsonUtils.getString(kadJson, Keys.DATE_FROM);
+        return dateFrom;
     }
 
     public String getDateTo() {
-        return JsonUtils.getString(kadJson, Keys.DATE_TO);
+        return dateTo;
     }
 
-    public Boolean isWithVKSInstances() {
-        return JsonUtils.getBoolean(kadJson, Keys.WITH_VKS_INSTANCES);
+    @SuppressWarnings("UnusedDeclaration")
+    public Object[] getJudges() {
+        return judges;
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    public Object[] getSides() {
+        return sides;
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    public Object[] getCases() {
+        return cases;
+    }
+
+    public boolean isWithVKSInstances() {
+        return withVKSInstances;
     }
 
     public long getMinCost() {
@@ -137,16 +125,72 @@ public class CaseSearchRequest {
         return searchLimit;
     }
 
-    public void setPage(final int page) {
-        kadJson.put(Keys.PAGE, page);
+    public void setPage(int page) {
+        this.page = page;
     }
 
-    public void setCount(final int count) {
-        kadJson.put(Keys.COUNT, count);
+    public void setCount(int count) {
+        this.count = count;
+    }
+
+    public CaseSearchRequest copy() {
+        CaseSearchRequest copy = new CaseSearchRequest();
+        copy.caseType = caseType;
+        copy.page = page;
+        copy.count = count;
+        copy.courtsNames = Arrays.copyOf(courtsNames, courtsNames.length);
+        copy.judges = Arrays.copyOf(judges, judges.length);
+        copy.cases = Arrays.copyOf(cases, cases.length);
+        copy.sides = Arrays.copyOf(sides, sides.length);
+        copy.dateFrom = dateFrom;
+        copy.dateTo = dateTo;
+        copy.withVKSInstances = withVKSInstances;
+        copy.minCost = minCost;
+        copy.searchLimit = searchLimit;
+        return copy;
+    }
+
+    private JSONObject buildJson() {
+        if (kadJson == null) {
+            kadJson = new JSONObject();
+
+            kadJson.put(Keys.CASE_TYPE, "");
+            kadJson.put(Keys.PAGE, page);
+            kadJson.put(Keys.COUNT, count);
+            kadJson.put(Keys.COURTS, new JSONArray());
+            kadJson.put(Keys.DATE_FROM, (Object) null);
+            kadJson.put(Keys.DATE_TO, (Object) null);
+            if (judges == null) {
+                kadJson.put(Keys.JUDGES_EX, new JSONArray());
+                kadJson.put(Keys.JUDGES, new JSONArray());
+            }
+            if (sides == null) {
+                kadJson.put(Keys.SIDES, new JSONArray());
+            }
+            if (cases == null) {
+                kadJson.put(Keys.CASES, new JSONArray());
+            }
+
+            if (caseType != null) {
+                kadJson.put(Keys.CASE_TYPE, caseType.toString());
+            }
+
+            kadJson.put(Keys.WITH_VKS_INSTANCES, withVKSInstances);
+
+            if (courtsNames != null) {
+                for (final String court : courtsNames) {
+                    kadJson.append(Keys.COURTS, CourtsInfo.getCourtCode(court));
+                }
+            }
+
+            kadJson.put(Keys.DATE_FROM, dateFrom);
+            kadJson.put(Keys.DATE_TO, dateTo);
+        }
+        return kadJson;
     }
 
     @Override
     public String toString() {
-        return kadJson.toString();
+        return buildJson().toString();
     }
 }
