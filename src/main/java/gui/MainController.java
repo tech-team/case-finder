@@ -90,7 +90,7 @@ public class MainController {
                     new UnexpectedException(
                             res.getString("unexpectedException"), e));
 
-            System.exit(1);
+            stage.close();
         });
 
         CaseLoaderEvents.instance().onError.on(this::errorHandler);
@@ -197,8 +197,7 @@ public class MainController {
             }
 
             default:
-                System.exit(1);
-                break;
+                stage.close();
         }
     }
 
