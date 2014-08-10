@@ -21,7 +21,7 @@ public class CaseSide {
         PLAINTIFF,
         DEFENDER;
 
-        private static SideType[] allValues = values();
+        private static final SideType[] allValues = values();
         public static SideType fromOrdinal(int n) {return allValues[n];}
     }
 

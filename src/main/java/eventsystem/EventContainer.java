@@ -1,8 +1,8 @@
 package eventsystem;
 
-public class EventContainer<T> {
-    private T handler;
-    private Thread thread;
+class EventContainer<T> {
+    private final T handler;
+    private final Thread thread;
 
     public EventContainer(T handler, Thread thread) {
         this.thread = thread;

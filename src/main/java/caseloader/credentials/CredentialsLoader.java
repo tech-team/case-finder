@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 
 public class CredentialsLoader {
     private class WebSiteBulk {
-        private List<WebSite> sites;
+        private final List<WebSite> sites;
 
         public WebSiteBulk() {
             sites = new LinkedList<>();
@@ -29,8 +29,8 @@ public class CredentialsLoader {
         }
     }
 
-    private List<WebSiteBulk> webSites;
-    private Logger logger = MyLogger.getLogger(this.getClass().toString());
+    private final List<WebSiteBulk> webSites;
+    private final Logger logger = MyLogger.getLogger(this.getClass().toString());
 
     public CredentialsLoader() {
         webSites = new LinkedList<>();

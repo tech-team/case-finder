@@ -12,10 +12,10 @@ import util.ResourceControl;
 import java.util.ResourceBundle;
 
 public class CaseTypeModel {
-    private StringProperty str = new SimpleStringProperty();
-    private ObjectProperty<CaseSearchRequest.CaseType> type = new SimpleObjectProperty<>();
+    private final StringProperty str = new SimpleStringProperty();
+    private final ObjectProperty<CaseSearchRequest.CaseType> type = new SimpleObjectProperty<>();
 
-    private static ObservableList<CaseTypeModel> collection = FXCollections.observableArrayList();
+    private static final ObservableList<CaseTypeModel> collection = FXCollections.observableArrayList();
 
     static {
         ResourceBundle res = ResourceBundle.getBundle("properties.export_strings", new ResourceControl("UTF-8"));

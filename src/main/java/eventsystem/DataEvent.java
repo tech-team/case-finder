@@ -7,7 +7,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 public class DataEvent<T> {
-    Set<EventContainer<Consumer<T>>> handlerContainers = new HashSet<>();
+    final Set<EventContainer<Consumer<T>>> handlerContainers = new HashSet<>();
 
     public void on(Consumer<T> handler) {
         handlerContainers.add(

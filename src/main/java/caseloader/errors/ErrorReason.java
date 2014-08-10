@@ -9,7 +9,7 @@ public enum ErrorReason {
     COURTS_RETRIEVAL_ERROR("courtsRetrievalError"),
     UNEXPECTED_ERROR("unexpectedError");
 
-    private String descResString;
+    private final String descResString;
 
     ErrorReason(String descResString) {
         this.descResString = descResString;

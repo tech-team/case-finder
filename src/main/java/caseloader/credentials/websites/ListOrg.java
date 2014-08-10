@@ -20,8 +20,7 @@ import java.util.logging.Logger;
 
 public class ListOrg extends WebSite {
     private static final int THRESHOLD = 5;
-    private static final int PRIORITY = 1;
-    private Logger logger = MyLogger.getLogger(this.getClass().toString());
+    private final Logger logger = MyLogger.getLogger(this.getClass().toString());
 
     abstract class Urls {
         private static final String MAIN_PAGE = "http://www.list-org.com";
@@ -62,11 +61,6 @@ public class ListOrg extends WebSite {
         }
 
         return null;
-    }
-
-    @Override
-    public int getPriority() {
-        return PRIORITY;
     }
 
     @SuppressWarnings("UnusedParameters")

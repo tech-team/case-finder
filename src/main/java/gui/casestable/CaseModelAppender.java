@@ -9,7 +9,7 @@ import javafx.collections.ObservableList;
 import java.util.Collection;
 
 public class CaseModelAppender implements util.Appendable<CaseInfo> {
-    private ObservableList<CaseModel> casesData;
+    private final ObservableList<CaseModel> casesData;
 
     public CaseModelAppender(ObservableList<CaseModel> casesData) {
         this.casesData = casesData;

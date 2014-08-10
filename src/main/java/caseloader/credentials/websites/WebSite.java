@@ -7,18 +7,10 @@ import util.StringUtils;
 
 import java.util.Map;
 
-public abstract class WebSite implements Comparable<WebSite> {
+public abstract class WebSite {
     public abstract String url();
     public abstract Credentials findCredentials(final CredentialsSearchRequest request, final Credentials credentials) throws MalformedUrlException, InterruptedException;
-    public abstract int getPriority();
     private static final double RELEVANCE_THRESHOLD = 0.5;
-
-    @Override
-    @SuppressWarnings("NullableProblems")
-    public int compareTo(WebSite site) {
-        assert (site != null);
-        return site.getPriority() - this.getPriority();
-    }
 
     protected Credentials findWithBestRelevance(Map<RelevanceInput, Double> relevances) {
         RelevanceInput best = null;
@@ -80,7 +72,7 @@ public abstract class WebSite implements Comparable<WebSite> {
         return sum / values.length;
     }
 
-    public static double similarity(String s1, String s2) {
+    private static double similarity(String s1, String s2) {
         if (s1 == null || s2 == null)
             return 0.0;
 
@@ -128,9 +120,9 @@ public abstract class WebSite implements Comparable<WebSite> {
 
 
     class RelevanceInput {
-        private Credentials credentials;
-        private String name;
-        private String address;
+        private final Credentials credentials;
+        private final String name;
+        private final String address;
         private final CredentialsSearchRequest request;
 
         public RelevanceInput(Credentials credentials, String name, String address, CredentialsSearchRequest request) {

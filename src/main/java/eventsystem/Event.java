@@ -4,7 +4,7 @@ import javafx.application.Platform;
 import java.util.ArrayList;
 
 public class Event {
-    ArrayList<EventContainer<EventHandler>> handlerContainers = new ArrayList<>();
+    final ArrayList<EventContainer<EventHandler>> handlerContainers = new ArrayList<>();
 
     public void on(EventHandler handler) {
         handlerContainers.add(

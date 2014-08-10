@@ -64,10 +64,10 @@ public class MainController {
 
     private final static String EXPORT_PATH_PROPERTY = "exportDirectory";
 
-    private ResourceBundle res = ResourceBundle.getBundle("properties.gui_strings", new ResourceControl("UTF-8"));
+    private final ResourceBundle res = ResourceBundle.getBundle("properties.gui_strings", new ResourceControl("UTF-8"));
 
-    private ObservableList<CaseModel> casesData = FXCollections.observableArrayList();
-    private ObservableList<String> courtsList = FXCollections.observableArrayList();
+    private final ObservableList<CaseModel> casesData = FXCollections.observableArrayList();
+    private final ObservableList<String> courtsList = FXCollections.observableArrayList();
 
     private Stage stage;
     private CaseLoader<CaseModelAppender> caseLoader = null;

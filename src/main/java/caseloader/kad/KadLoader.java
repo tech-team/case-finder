@@ -20,15 +20,15 @@ import java.util.logging.Logger;
 
 public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
     private static final int ITEMS_COUNT_PER_REQUEST = 100;
-    public static final int TOTAL_MAX_COUNT = 1000;
+    private static final int TOTAL_MAX_COUNT = 1000;
     private int retryCount = 1;
-    private AtomicInteger casesProgressCount = new AtomicInteger(0);
-    private ThreadPool pool = new ThreadPool(4);
+    private final AtomicInteger casesProgressCount = new AtomicInteger(0);
+    private final ThreadPool pool = new ThreadPool(4);
     private KadWorkerFactory<CaseContainerType> kadWorkerFactory = null;
-    private List<CaseSearchRequest> brokenPages = new LinkedList<>();
+    private final List<CaseSearchRequest> brokenPages = new LinkedList<>();
     private final CredentialsLoader credentialsLoader = new CredentialsLoader();
 
-    private Logger logger = MyLogger.getLogger(this.getClass().toString());
+    private final Logger logger = MyLogger.getLogger(this.getClass().toString());
 
     public KadLoader() {
     }
@@ -161,9 +161,4 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
         pool.stopExecution();
     }
 
-
-    public static void main(String[] args) {
-//        KadLoader kl = new KadLoader();
-//        KadData data = kl.retrieveData(new CaseSearchRequest());
-    }
 }

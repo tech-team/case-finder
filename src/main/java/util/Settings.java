@@ -11,8 +11,8 @@ import static java.lang.reflect.Modifier.isStatic;
 public abstract class Settings {
     static class Keys {
         static class Pair<T> {
-            private String key;
-            private T value;
+            private final String key;
+            private final T value;
 
             Pair(String key, T value) {
                 this.key = key;
@@ -70,7 +70,7 @@ public abstract class Settings {
         public static final Pair<String> LOG_LOCATION = new Pair<>("log_location", "log");
     }
 
-    private static Map<String, Object> settings = new HashMap<>();
+    private static final Map<String, Object> settings = new HashMap<>();
 
     static {
         // default set-up

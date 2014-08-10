@@ -4,14 +4,12 @@ import util.MyLogger;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.PriorityQueue;
-import java.util.Random;
 import java.util.logging.Logger;
 
 public class ProxyList {
     private static ProxyList instance = null;
 
-    private ProxyUpdater proxyUpdater = new ProxyUpdater();
+    private final ProxyUpdater proxyUpdater = new ProxyUpdater();
     private List<ProxyInfo> proxies = new ArrayList<>();
     private List<ProxyInfo> googleProxies = new ArrayList<>();
     private boolean proxiesLoaded = false;
@@ -20,7 +18,7 @@ public class ProxyList {
     private int currentGoogleId = 0;
     private final Object proxyLock = new Object();
     private final Object googleProxyLock = new Object();
-    private Logger logger = MyLogger.getLogger(this.getClass().toString());
+    private final Logger logger = MyLogger.getLogger(this.getClass().toString());
 
     private ProxyList() {
     }
