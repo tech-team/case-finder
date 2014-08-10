@@ -2,13 +2,13 @@ package caseloader.credentials.websites;
 
 import caseloader.credentials.Credentials;
 import caseloader.credentials.CredentialsSearchRequest;
-import util.DataRetrievingError;
+import util.net.MalformedUrlException;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import util.HttpDownloader;
+import util.net.HttpDownloader;
 import caseloader.util.RegionHelper;
 import util.MyLogger;
 import util.StringUtils;
@@ -47,7 +47,7 @@ public class Kartoteka extends WebSite {
     }
 
     @Override
-    public Credentials findCredentials(CredentialsSearchRequest request, Credentials credentials) throws DataRetrievingError, InterruptedException {
+    public Credentials findCredentials(CredentialsSearchRequest request, Credentials credentials) throws MalformedUrlException, InterruptedException {
         String companyName = StringUtils.removeNonLetters(request.getCompanyName());
 
         String city = request.getAddress().getCity();
@@ -134,7 +134,7 @@ public class Kartoteka extends WebSite {
 
 
     @SuppressWarnings("UnusedDeclaration")
-    public static void main(String[] args) throws DataRetrievingError, InterruptedException {
+    public static void main(String[] args) throws MalformedUrlException, InterruptedException {
         Kartoteka k = new Kartoteka();
         CredentialsSearchRequest req = new CredentialsSearchRequest("ОАО Гамма Траст", "");
         Credentials creds = new Credentials();

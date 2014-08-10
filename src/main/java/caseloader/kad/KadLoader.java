@@ -4,10 +4,10 @@ import caseloader.CaseInfo;
 import caseloader.CaseLoaderEvents;
 import caseloader.CaseSearchRequest;
 import caseloader.credentials.CredentialsLoader;
-import util.DataRetrievingError;
+import util.net.MalformedUrlException;
 import org.json.JSONException;
 import org.json.JSONObject;
-import util.HttpDownloader;
+import util.net.HttpDownloader;
 import util.MyLogger;
 import util.ThreadPool;
 
@@ -39,7 +39,7 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
                 ITEMS_COUNT_PER_REQUEST;
     }
 
-    public CaseContainerType retrieveData(CaseSearchRequest request, CaseContainerType data) throws DataRetrievingError, InterruptedException {
+    public CaseContainerType retrieveData(CaseSearchRequest request, CaseContainerType data) throws MalformedUrlException, InterruptedException {
         long minCost = request.getMinCost();
         int searchLimit = request.getSearchLimit();
         int totalCountToLoad = searchLimit != 0 && searchLimit < TOTAL_MAX_COUNT ? searchLimit :
@@ -78,7 +78,7 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
                 KadResponse resp = retrieveKadResponse(request);
                 if (resp == null) {
                     Thread.sleep(10);
-                    logger.severe("Page #" + i + " was not loaded. Skipping.");
+                    logger.severe("Page_" + i + " was not loaded. Skipping.");
                     continue;
                 }
 
@@ -87,7 +87,7 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
                     totalCasesCount += resp.getItems().size();
                     searchLimit -= countPerRequest;
                 } else {
-                    logger.warning("Couldn't load page #" + i + ". Retrying.");
+                    logger.warning("Couldn't load page_" + i + ". Retrying.");
                     i -= 1;
                 }
             }
@@ -99,7 +99,7 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
                     KadResponse resp = retrieveKadResponse(r);
                     if (resp == null) {
                         Thread.sleep(10);
-                        logger.severe("Page #" + i + " was not loaded. Skipping.");
+                        logger.severe("Page_" + i + " was not loaded. Skipping.");
                         continue;
                     }
 
@@ -108,7 +108,7 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
                         totalCasesCount += resp.getItems().size();
                         searchLimit -= countPerRequest;
                     } else {
-                        logger.warning("Couldn't load page #" + i + ". Retrying.");
+                        logger.warning("Couldn't load page_" + i + ". Retrying.");
                         i -= 1;
                     }
                 }
@@ -130,9 +130,9 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
         }
     }
 
-    private KadResponse retrieveKadResponse(CaseSearchRequest request) throws DataRetrievingError, InterruptedException {
+    private KadResponse retrieveKadResponse(CaseSearchRequest request) throws MalformedUrlException, InterruptedException {
         int page = request.getPage();
-        logger.info("Getting page #" + page);
+        logger.info("Getting page_" + page);
 
         String json = request.toString();
         Map<String, String> headers = new HashMap<>();

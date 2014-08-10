@@ -4,11 +4,11 @@ import caseloader.CaseLoaderEvents;
 import caseloader.errors.CaseLoaderError;
 import caseloader.errors.ErrorReason;
 import eventsystem.DataEvent;
-import util.DataRetrievingError;
+import util.net.MalformedUrlException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
-import util.HttpDownloader;
+import util.net.HttpDownloader;
 import util.MyLogger;
 
 import java.util.LinkedHashMap;
@@ -23,7 +23,7 @@ public abstract class CourtsInfo {
 
     private static Logger logger = MyLogger.getLogger(CourtsInfo.class.toString());
 
-    private static Set<String> retrieveCourts() throws DataRetrievingError, InterruptedException {
+    private static Set<String> retrieveCourts() throws MalformedUrlException, InterruptedException {
         if (courts.size() == 0) {
             int maxRetries = 3;
             for (int retry = 1; retry <= maxRetries + 1; ++retry) {
@@ -64,9 +64,9 @@ public abstract class CourtsInfo {
                 } catch (InterruptedException e) {
                     logger.info("Retrieving courts has been interrupted");
                     return;
-                } catch (DataRetrievingError e) {
+                } catch (MalformedUrlException e) {
                     logger.log(Level.SEVERE, "Exception happened", e);
-                    CaseLoaderEvents.instance().onError.fire(new CaseLoaderError(ErrorReason.UNEXPECTED_ERROR));
+                    CaseLoaderEvents.instance().onError.fire(new CaseLoaderError(ErrorReason.UNEXPECTED_ERROR, "Unexpected error happened: " + e.getMessage()));
                     return;
                 }
 
@@ -80,7 +80,7 @@ public abstract class CourtsInfo {
                 courtsLoadedEvent.fire(retrieveCourts());
             } catch (InterruptedException e) {
                 logger.info("Retrieving courts has been interrupted");
-            } catch (DataRetrievingError e) {
+            } catch (MalformedUrlException e) {
                 logger.log(Level.WARNING, "Exception happened", e);
             }
         }

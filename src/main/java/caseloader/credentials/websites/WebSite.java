@@ -2,14 +2,14 @@ package caseloader.credentials.websites;
 
 import caseloader.credentials.Credentials;
 import caseloader.credentials.CredentialsSearchRequest;
-import util.DataRetrievingError;
+import util.net.MalformedUrlException;
 import util.StringUtils;
 
 import java.util.Map;
 
 public abstract class WebSite implements Comparable<WebSite> {
     public abstract String url();
-    public abstract Credentials findCredentials(final CredentialsSearchRequest request, final Credentials credentials) throws DataRetrievingError, InterruptedException;
+    public abstract Credentials findCredentials(final CredentialsSearchRequest request, final Credentials credentials) throws MalformedUrlException, InterruptedException;
     public abstract int getPriority();
     private static final double RELEVANCE_THRESHOLD = 0.5;
 

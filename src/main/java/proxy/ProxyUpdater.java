@@ -1,6 +1,6 @@
 package proxy;
 
-import util.DataRetrievingError;
+import util.net.MalformedUrlException;
 import javafx.application.Platform;
 import javafx.concurrent.Worker;
 import javafx.scene.Scene;
@@ -10,7 +10,7 @@ import javafx.stage.Stage;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import util.HttpDownloader;
+import util.net.HttpDownloader;
 import util.MyLogger;
 
 import java.util.ArrayList;
@@ -49,7 +49,7 @@ class ProxyUpdater {
                     } catch (InterruptedException e) {
                         logger.info("ProxyUpdater has been interrupted");
                         return;
-                    } catch (DataRetrievingError e) {
+                    } catch (MalformedUrlException e) {
                         logger.log(Level.WARNING, "Exception happened", e);
                         return;
                     }
@@ -71,7 +71,7 @@ class ProxyUpdater {
         }
     }
 
-    private List<ProxyInfo> retrieveProxyListGoogleProxies() throws InterruptedException, DataRetrievingError {
+    private List<ProxyInfo> retrieveProxyListGoogleProxies() throws InterruptedException, MalformedUrlException {
         List<ProxyInfo> proxies = new ArrayList<>();
 
         String raw = HttpDownloader.i().get(Urls.GOOGLE_PROXY, false);
@@ -97,7 +97,7 @@ class ProxyUpdater {
         return proxies;
     }
 
-    private List<ProxyInfo> retrieveProxyListCoolProxy() throws DataRetrievingError, InterruptedException {
+    private List<ProxyInfo> retrieveProxyListCoolProxy() throws MalformedUrlException, InterruptedException {
         List<ProxyInfo> proxies = new ArrayList<>();
 
         String raw = HttpDownloader.i().get(Urls.COOL_PROXY, false);

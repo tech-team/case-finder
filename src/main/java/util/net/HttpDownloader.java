@@ -1,4 +1,4 @@
-package util;
+package util.net;
 
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
@@ -15,6 +15,8 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import proxy.ProxyInfo;
 import proxy.ProxyList;
+import util.MyLogger;
+import util.ThreadPool;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -76,31 +78,31 @@ public class HttpDownloader {
         LAST_TIMES.put(hostname, System.currentTimeMillis());
     }
 
-    public String get(String url, boolean useProxy) throws DataRetrievingError, InterruptedException {
+    public String get(String url, boolean useProxy) throws MalformedUrlException, InterruptedException {
         return get(url, null, null, useProxy, DEFAULT_ENCODING);
     }
 
-    public String get(String url) throws DataRetrievingError, InterruptedException {
+    public String get(String url) throws MalformedUrlException, InterruptedException {
         return get(url, null, null, USE_PROXY_DEFAULT, DEFAULT_ENCODING);
     }
 
-    public String get(String url, String encoding) throws DataRetrievingError, InterruptedException {
+    public String get(String url, String encoding) throws MalformedUrlException, InterruptedException {
         return get(url, null, null, USE_PROXY_DEFAULT, encoding);
     }
 
-    public String get(String url, List<NameValuePair> params, Map<String, String> headers) throws DataRetrievingError, InterruptedException {
+    public String get(String url, List<NameValuePair> params, Map<String, String> headers) throws MalformedUrlException, InterruptedException {
         return get(url, params, headers, USE_PROXY_DEFAULT, DEFAULT_ENCODING);
     }
 
-    public String get(String url, List<NameValuePair> params, Map<String, String> headers, boolean useProxy) throws DataRetrievingError, InterruptedException {
+    public String get(String url, List<NameValuePair> params, Map<String, String> headers, boolean useProxy) throws MalformedUrlException, InterruptedException {
         return get(url, params, headers, useProxy, DEFAULT_ENCODING);
     }
 
-    public String get(String url, List<NameValuePair> params, Map<String, String> headers, boolean useProxy, String encoding) throws DataRetrievingError, InterruptedException {
+    public String get(String url, List<NameValuePair> params, Map<String, String> headers, boolean useProxy, String encoding) throws MalformedUrlException, InterruptedException {
         return get(url, params, headers, useProxy, encoding, 1);
     }
 
-    private String get(String url, List<NameValuePair> params, Map<String, String> headers, boolean useProxy, String encoding, int retryNo) throws DataRetrievingError, InterruptedException {
+    private String get(String url, List<NameValuePair> params, Map<String, String> headers, boolean useProxy, String encoding, int retryNo) throws MalformedUrlException, InterruptedException {
         URIBuilder uriBuilder = buildUriBuilder(url, encoding);
 
         if (params != null) {
@@ -112,7 +114,7 @@ public class HttpDownloader {
             uri = uriBuilder.build();
         } catch (URISyntaxException e) {
             e.printStackTrace();
-            throw new RuntimeException(e);
+            throw new MalformedUrlException(e);
         }
 
         HttpGet request = new HttpGet(getPathAndQuery(uri));
@@ -136,13 +138,13 @@ public class HttpDownloader {
             }
 
             if (response == null)
-                throw new DataRetrievingError("Exception happened");
+                throw new DataRetrievingError(String.format("No response from the get request to %s", uri.getHost()));
 
             updateTime(uriBuilder.getHost());
             return getResponse(response, encoding);
         } catch (DataRetrievingError | IOException | TimeoutException e) {
-            logger.warning("Exception happened. Retry #" + retryNo);
             if (retryNo <= 3) {
+                logger.warning("Exception happened. Retry #" + retryNo);
                 Thread.sleep(50);
                 updateTime(uriBuilder.getHost());
                 return get(url, params, headers, useProxy, encoding, retryNo + 1);
@@ -156,11 +158,11 @@ public class HttpDownloader {
 
     }
 
-    public String post(String url, List<NameValuePair> formData, Map<String, String> headers) throws DataRetrievingError, InterruptedException {
+    public String post(String url, List<NameValuePair> formData, Map<String, String> headers) throws MalformedUrlException, InterruptedException {
         return post(url, formData, headers, USE_PROXY_DEFAULT);
     }
 
-    public String post(String url, List<NameValuePair> formData, Map<String, String> headers, boolean useProxy) throws DataRetrievingError, InterruptedException {
+    public String post(String url, List<NameValuePair> formData, Map<String, String> headers, boolean useProxy) throws MalformedUrlException, InterruptedException {
         try {
             return post(url, new UrlEncodedFormEntity(formData, DEFAULT_ENCODING), headers, useProxy);
         } catch (UnsupportedEncodingException ignored) {
@@ -168,19 +170,19 @@ public class HttpDownloader {
         }
     }
 
-    public String post(String url, String data, Map<String, String> headers) throws DataRetrievingError, InterruptedException {
+    public String post(String url, String data, Map<String, String> headers) throws MalformedUrlException, InterruptedException {
         return post(url, data, headers, USE_PROXY_DEFAULT);
     }
 
-    public String post(String url, String data, Map<String, String> headers, boolean useProxy) throws DataRetrievingError, InterruptedException {
+    public String post(String url, String data, Map<String, String> headers, boolean useProxy) throws MalformedUrlException, InterruptedException {
         return post(url, new StringEntity(data, DEFAULT_ENCODING), headers, useProxy);
     }
 
-    public String post(String url, AbstractHttpEntity data, Map<String, String> headers, boolean useProxy) throws DataRetrievingError, InterruptedException {
+    public String post(String url, AbstractHttpEntity data, Map<String, String> headers, boolean useProxy) throws MalformedUrlException, InterruptedException {
         return post(url, data, headers, useProxy, 1);
     }
 
-    private String post(String url, AbstractHttpEntity data, Map<String, String> headers, boolean useProxy, int retryNo) throws DataRetrievingError, InterruptedException {
+    private String post(String url, AbstractHttpEntity data, Map<String, String> headers, boolean useProxy, int retryNo) throws InterruptedException, MalformedUrlException {
         URIBuilder uriBuilder = buildUriBuilder(url);
 
         assert data != null;
@@ -190,7 +192,7 @@ public class HttpDownloader {
             uri = uriBuilder.build();
         } catch (URISyntaxException e) {
             e.printStackTrace();
-            throw new RuntimeException(e);
+            throw new MalformedUrlException(e);
         }
 
         HttpPost request = new HttpPost(getPathAndQuery(uri));
@@ -215,13 +217,13 @@ public class HttpDownloader {
             }
 
             if (response == null)
-                throw new DataRetrievingError("Exception happened");
+                throw new DataRetrievingError(String.format("No response from the post request to %s", uri.getHost()));
 
             updateTime(uriBuilder.getHost());
             return getResponse(response, DEFAULT_ENCODING);
         } catch (IOException | DataRetrievingError | TimeoutException e) {
-            logger.warning("Exception happened. Retry #" + retryNo);
             if (retryNo <= 3) {
+                logger.warning("Exception happened. Retry #" + retryNo);
                 Thread.sleep(50);
                 updateTime(uriBuilder.getHost());
                 return post(url, data, headers, useProxy, retryNo + 1);
@@ -242,16 +244,16 @@ public class HttpDownloader {
             return uri.getPath() + "?" + query;
     }
 
-    private URIBuilder buildUriBuilder(String url) throws DataRetrievingError {
+    private URIBuilder buildUriBuilder(String url) throws MalformedUrlException {
         return buildUriBuilder(url, DEFAULT_ENCODING);
     }
 
-    private URIBuilder buildUriBuilder(String url, String encoding) throws DataRetrievingError {
+    private URIBuilder buildUriBuilder(String url, String encoding) throws MalformedUrlException {
         URIBuilder uriBuilder;
         try {
             uriBuilder = new URIBuilder(url);
         } catch (URISyntaxException e) {
-            throw new DataRetrievingError(e);
+            throw new MalformedUrlException(e);
         }
         uriBuilder.setCharset(Charset.forName(encoding));
         return uriBuilder;

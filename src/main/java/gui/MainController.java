@@ -33,7 +33,7 @@ import org.controlsfx.control.MyCheckComboBox;
 import org.controlsfx.control.action.Action;
 import org.controlsfx.dialog.Dialog;
 import org.controlsfx.dialog.Dialogs;
-import util.HttpDownloader;
+import util.net.HttpDownloader;
 import util.MyLogger;
 import util.ResourceControl;
 

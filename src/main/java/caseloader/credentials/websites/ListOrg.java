@@ -2,13 +2,13 @@ package caseloader.credentials.websites;
 
 import caseloader.credentials.Credentials;
 import caseloader.credentials.CredentialsSearchRequest;
-import util.DataRetrievingError;
+import util.net.MalformedUrlException;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import util.HttpDownloader;
+import util.net.HttpDownloader;
 import util.MyLogger;
 import util.StringUtils;
 
@@ -41,7 +41,7 @@ public class ListOrg extends WebSite {
     }
 
     @Override
-    public Credentials findCredentials(CredentialsSearchRequest request, Credentials credentials) throws InterruptedException, DataRetrievingError {
+    public Credentials findCredentials(CredentialsSearchRequest request, Credentials credentials) throws InterruptedException, MalformedUrlException {
         List<Elements> searchResults = new ArrayList<>(2);
 
         if (request.getInn() != null) {
@@ -70,7 +70,7 @@ public class ListOrg extends WebSite {
     }
 
     @SuppressWarnings("UnusedParameters")
-    private Credentials parseSearchResults(Elements results, CredentialsSearchRequest request, Credentials credentials) throws InterruptedException, DataRetrievingError {
+    private Credentials parseSearchResults(Elements results, CredentialsSearchRequest request, Credentials credentials) throws InterruptedException, MalformedUrlException {
 
         if (results.size() >= THRESHOLD) {
             logger.warning("Too many results. Skipping.");
@@ -133,14 +133,14 @@ public class ListOrg extends WebSite {
 
 
 
-    private Elements executeSearch(List<NameValuePair> searchParams) throws InterruptedException, DataRetrievingError {
+    private Elements executeSearch(List<NameValuePair> searchParams) throws InterruptedException, MalformedUrlException {
         String resp = HttpDownloader.i().get(Urls.SEARCH, searchParams, null, false);
         return Jsoup.parse(resp)
                     .body()
                     .select(".main .content p");
     }
 
-    private Elements findByName(CredentialsSearchRequest request) throws InterruptedException, DataRetrievingError {
+    private Elements findByName(CredentialsSearchRequest request) throws InterruptedException, MalformedUrlException {
         String val = StringUtils.removeNonLetters(request.getCompanyName());
         if (val == null)
             return null;
@@ -150,7 +150,7 @@ public class ListOrg extends WebSite {
         return executeSearch(params);
     }
 
-    private Elements findByAddress(CredentialsSearchRequest request) throws InterruptedException, DataRetrievingError {
+    private Elements findByAddress(CredentialsSearchRequest request) throws InterruptedException, MalformedUrlException {
         String val = preprocessAddress(request.getAddress().getRaw());
         if (val == null)
             return null;
@@ -165,7 +165,7 @@ public class ListOrg extends WebSite {
         return StringUtils.removeNonLetters(address);
     }
 
-    private Elements findByInn(CredentialsSearchRequest request) throws InterruptedException, DataRetrievingError {
+    private Elements findByInn(CredentialsSearchRequest request) throws InterruptedException, MalformedUrlException {
         String val = request.getInn();
         if (val == null)
             return null;
@@ -175,7 +175,7 @@ public class ListOrg extends WebSite {
         return executeSearch(params);
     }
 
-    private Elements findByOgrn(CredentialsSearchRequest request) throws InterruptedException, DataRetrievingError {
+    private Elements findByOgrn(CredentialsSearchRequest request) throws InterruptedException, MalformedUrlException {
         String val = request.getOgrn();
         if (val == null)
             return null;
@@ -188,7 +188,7 @@ public class ListOrg extends WebSite {
 
 
     @SuppressWarnings("UnusedDeclaration")
-    public static void main(String[] args) throws InterruptedException, DataRetrievingError {
+    public static void main(String[] args) throws InterruptedException, MalformedUrlException {
         ListOrg lo = new ListOrg();
 
         CredentialsSearchRequest req = new CredentialsSearchRequest("ООО СТРОИТЕЛЬНАЯ КОМПАНИЯ НОВОСТРОЙ ИНЖИНИРИНГ", "unknown", null, null);

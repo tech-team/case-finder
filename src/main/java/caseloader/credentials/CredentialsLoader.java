@@ -3,7 +3,7 @@ package caseloader.credentials;
 import caseloader.credentials.websites.Kartoteka;
 import caseloader.credentials.websites.RusProfile;
 import caseloader.credentials.websites.WebSite;
-import util.DataRetrievingError;
+import util.net.MalformedUrlException;
 import util.MyLogger;
 
 import java.util.LinkedList;
@@ -82,7 +82,7 @@ public class CredentialsLoader {
                 Credentials found;
                 try {
                     found = webSite.findCredentials(request, credentials);
-                } catch (DataRetrievingError e) {
+                } catch (MalformedUrlException e) {
                     if (retry <= maxRetries) {
                         Thread.sleep(50);
                         logger.warning("Error retrieving credentials. Retry #" + retry);

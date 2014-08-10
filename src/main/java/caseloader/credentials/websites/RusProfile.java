@@ -2,14 +2,14 @@ package caseloader.credentials.websites;
 
 import caseloader.credentials.Credentials;
 import caseloader.credentials.CredentialsSearchRequest;
-import util.DataRetrievingError;
+import util.net.MalformedUrlException;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.message.BasicNameValuePair;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import util.HttpDownloader;
+import util.net.HttpDownloader;
 import util.MyLogger;
 
 import java.net.URISyntaxException;
@@ -33,12 +33,12 @@ public class RusProfile extends WebSite {
     }
 
     @Override
-    public Credentials findCredentials(final CredentialsSearchRequest request, final Credentials credentials) throws DataRetrievingError, InterruptedException {
+    public Credentials findCredentials(final CredentialsSearchRequest request, final Credentials credentials) throws MalformedUrlException, InterruptedException {
         return findCredentials(request, credentials, 1);
     }
 
     @SuppressWarnings("UnusedParameters")
-    private Credentials findCredentials(final CredentialsSearchRequest request, final Credentials credentials, int retryNo) throws DataRetrievingError, InterruptedException {
+    private Credentials findCredentials(final CredentialsSearchRequest request, final Credentials credentials, int retryNo) throws MalformedUrlException, InterruptedException {
         Credentials result;
         if (request.getInn() != null && !request.getInn().equals("")) {
             result = findByInn(request);
@@ -67,25 +67,25 @@ public class RusProfile extends WebSite {
         return PRIORITY;
     }
 
-    private Credentials findByInn(CredentialsSearchRequest request) throws DataRetrievingError, InterruptedException {
+    private Credentials findByInn(CredentialsSearchRequest request) throws MalformedUrlException, InterruptedException {
         String searchRequest = createGoogleRequest(request.getInn());
         String companyUrl = getCompanyUrl(searchRequest);
         return parseCompanyPage(companyUrl);
     }
 
-    private Credentials findByOgrn(CredentialsSearchRequest request) throws DataRetrievingError, InterruptedException {
+    private Credentials findByOgrn(CredentialsSearchRequest request) throws MalformedUrlException, InterruptedException {
         String searchRequest = createGoogleRequest(request.getOgrn());
         String companyUrl = getCompanyUrl(searchRequest);
         return parseCompanyPage(companyUrl);
     }
 
-    private Credentials findByNameAndAddress(CredentialsSearchRequest request) throws DataRetrievingError, InterruptedException {
+    private Credentials findByNameAndAddress(CredentialsSearchRequest request) throws MalformedUrlException, InterruptedException {
         String searchRequest = createGoogleRequest(request.getCompanyName() + " " + request.getAddress().getRaw());
         String companyUrl = getCompanyUrl(searchRequest);
         return parseCompanyPage(companyUrl);
     }
 
-    private Credentials parseCompanyPage(String companyUrl) throws InterruptedException, DataRetrievingError {
+    private Credentials parseCompanyPage(String companyUrl) throws InterruptedException, MalformedUrlException {
         if (companyUrl == null)
             return null;
         try {
@@ -136,7 +136,7 @@ public class RusProfile extends WebSite {
         return null;
     }
 
-    private String getCompanyUrl(String searchQuery) throws InterruptedException, DataRetrievingError {
+    private String getCompanyUrl(String searchQuery) throws InterruptedException, MalformedUrlException {
         List<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair("q", searchQuery));
         try {
@@ -172,7 +172,7 @@ public class RusProfile extends WebSite {
     }
 
     @SuppressWarnings("UnusedDeclaration")
-    public static void main(String[] args) throws DataRetrievingError, InterruptedException {
+    public static void main(String[] args) throws MalformedUrlException, InterruptedException {
         RusProfile rp = new RusProfile();
 
         CredentialsSearchRequest req = new CredentialsSearchRequest(null, null, "1102017213", null);

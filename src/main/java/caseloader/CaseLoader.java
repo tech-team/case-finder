@@ -3,7 +3,7 @@ package caseloader;
 import caseloader.errors.CaseLoaderError;
 import caseloader.errors.ErrorReason;
 import caseloader.kad.KadLoader;
-import util.DataRetrievingError;
+import util.net.MalformedUrlException;
 import util.MyLogger;
 
 import java.util.List;
@@ -25,10 +25,10 @@ public class CaseLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
 
     public void retrieveDataAsync(CaseSearchRequest request, CaseContainerType outputContainer) {
         if (request == null) {
-            throw new RuntimeException("Request is null");
+            throw new IllegalArgumentException("Request is null");
         }
         if (outputContainer == null) {
-            throw new RuntimeException("Output container is null");
+            throw new IllegalArgumentException("Output container is null");
         }
 
         thread = new Thread(() -> {
@@ -46,13 +46,13 @@ public class CaseLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
                 }
             } catch (InterruptedException ignored) {
                 logger.info("CaseLoader stopped");
-            } catch (DataRetrievingError e) {
+            } catch (MalformedUrlException e) {
                 logger.log(Level.SEVERE, "Exception happened", e);
-                events().onError.fire(new CaseLoaderError(ErrorReason.UNEXPECTED_ERROR, "Unexpected error happened"));
+                events().onError.fire(new CaseLoaderError(ErrorReason.UNEXPECTED_ERROR, "Unexpected error happened: " + e.getMessage()));
             } finally {
                 logger.info("====================================");
             }
-            CaseLoaderEvents.instance().casesLoaded.fire(outputContainer);
+            events().casesLoaded.fire(outputContainer);
         });
         thread.start();
     }

@@ -6,12 +6,12 @@ import caseloader.CaseSide;
 import caseloader.credentials.Credentials;
 import caseloader.credentials.CredentialsLoader;
 import caseloader.credentials.CredentialsSearchRequest;
-import util.DataRetrievingError;
+import util.net.MalformedUrlException;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
-import util.HttpDownloader;
+import util.net.HttpDownloader;
 import util.JsonUtils;
 import util.MyLogger;
 
@@ -97,7 +97,7 @@ public class KadWorkerFactory<CaseContainerType extends util.Appendable<CaseInfo
                         }
                         return;
 
-                    } catch (DataRetrievingError | JSONException | NullPointerException e) {
+                    } catch (MalformedUrlException | JSONException | NullPointerException e) {
                         if (retry > maxRetries) {
                             break;
                         }

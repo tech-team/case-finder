@@ -1,6 +1,6 @@
-package util;
+package util.net;
 
-public class DataRetrievingError extends IllegalArgumentException {
+class DataRetrievingError extends Exception {
     public DataRetrievingError() {
         super("Error happened while retrieving data");
     }
