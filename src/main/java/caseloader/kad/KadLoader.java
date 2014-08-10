@@ -146,8 +146,8 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
             logger.info("Got page #" + page);
             return KadResponse.fromJSON(jsonObj);
         } catch (JSONException | NullPointerException e) {
-            logger.warning("Retrying #" + retryCount);
             if (retryCount <= 3) {
+                logger.warning("Retrying #" + retryCount);
                 retryCount++;
                 Thread.sleep(50);
                 return retrieveKadResponse(request);
