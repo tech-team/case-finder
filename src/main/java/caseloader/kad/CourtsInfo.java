@@ -44,8 +44,7 @@ public abstract class CourtsInfo {
                         break;
                 }
             }
-            logger.severe("Couldn't retrieve courts");
-            CaseLoaderEvents.instance().onError.fire(new CaseLoaderError(ErrorReason.COURTS_RETRIEVAL_ERROR));
+            return null;
         }
         return courts.keySet();
     }
@@ -57,6 +56,11 @@ public abstract class CourtsInfo {
                 Set<String> courts = null;
                 try {
                     courts = retrieveCourts();
+                    if (courts == null) {
+                        logger.severe("Couldn't retrieve courts");
+                        CaseLoaderEvents.instance().onError.fire(new CaseLoaderError(ErrorReason.COURTS_RETRIEVAL_ERROR));
+                        return;
+                    }
                 } catch (InterruptedException e) {
                     logger.info("Retrieving courts has been interrupted");
                     return;
