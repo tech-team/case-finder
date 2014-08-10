@@ -352,7 +352,7 @@ public class MainController {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Export to Excel");
 
-        DateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
+        DateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH.mm.ss");
         Date date = new Date();
         fileChooser.setInitialFileName("CaseFinder Report "
                 + dateFormat.format(date));

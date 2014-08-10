@@ -10,7 +10,7 @@ import java.util.logging.*;
 
 public abstract class MyLogger {
     private static final boolean APPEND_BY_DEFAULT = false;
-    private static final String CURRENT_DATE = new SimpleDateFormat("[yyyy.MM.dd HH:mm:ss]").format(new Date());
+    private static final String CURRENT_DATE = new SimpleDateFormat("[yyyy.MM.dd HH.mm.ss]").format(new Date());
     private static final String LOGGER_NAME = "casefinderlog " + CURRENT_DATE;
     private static final String LOG_PATH = Settings.getLogLocation();
     private static final String FILENAME = LOG_PATH + File.separator + LOGGER_NAME + ".log";
