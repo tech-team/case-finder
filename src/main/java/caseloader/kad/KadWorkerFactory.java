@@ -1,11 +1,11 @@
 package caseloader.kad;
 
 import caseloader.CaseInfo;
+import caseloader.CaseLoaderEvents;
 import caseloader.CaseSide;
 import caseloader.credentials.Credentials;
 import caseloader.credentials.CredentialsLoader;
 import caseloader.credentials.CredentialsSearchRequest;
-import eventsystem.Event;
 import exceptions.DataRetrievingError;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
@@ -27,14 +27,12 @@ public class KadWorkerFactory<CaseContainerType extends util.Appendable<CaseInfo
     private final int searchLimit;
     private final long minCost;
     private final CredentialsLoader credentialsLoader;
-    private final Event caseProcessed;
 
-    public KadWorkerFactory(int searchLimit, long minCost, CaseContainerType data, CredentialsLoader credentialsLoader, Event caseProcessed) {
+    public KadWorkerFactory(int searchLimit, long minCost, CaseContainerType data, CredentialsLoader credentialsLoader) {
         this.searchLimit = searchLimit;
         this.minCost = minCost;
         this.data = data;
         this.credentialsLoader = credentialsLoader;
-        this.caseProcessed = caseProcessed;
     }
 
     public Runnable buildWorker(final int id, final CaseInfo caseInfo) {
@@ -87,7 +85,7 @@ public class KadWorkerFactory<CaseContainerType extends util.Appendable<CaseInfo
                                     data.append(caseInfo);
                                 }
                             }
-                            caseProcessed.fire();
+                            CaseLoaderEvents.instance().caseProcessed.fire();
                             logger.info(String.format("-- Finished case %d/%d = %s", id, searchLimit, caseInfo.getCaseNumber()));
                         } else {
                             if (retry > maxRetries) {
@@ -109,7 +107,7 @@ public class KadWorkerFactory<CaseContainerType extends util.Appendable<CaseInfo
                         return;
                     }
                 }
-                caseProcessed.fire();
+                CaseLoaderEvents.instance().caseProcessed.fire();
                 logger.warning("-- Couldn't retrieve case " + caseInfo.getCaseNumber() + ". Breaking");
             }
         };

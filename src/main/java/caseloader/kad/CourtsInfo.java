@@ -1,5 +1,8 @@
 package caseloader.kad;
 
+import caseloader.CaseLoaderEvents;
+import caseloader.errors.CaseLoaderError;
+import caseloader.errors.ErrorReason;
 import eventsystem.DataEvent;
 import exceptions.DataRetrievingError;
 import org.jsoup.Jsoup;
@@ -41,7 +44,8 @@ public abstract class CourtsInfo {
                         break;
                 }
             }
-            logger.warning("Couldn't retrieve courts");
+            logger.severe("Couldn't retrieve courts");
+            CaseLoaderEvents.instance().onError.fire(new CaseLoaderError(ErrorReason.COURTS_RETRIEVAL_ERROR));
         }
         return courts.keySet();
     }
@@ -57,7 +61,8 @@ public abstract class CourtsInfo {
                     logger.info("Retrieving courts has been interrupted");
                     return;
                 } catch (DataRetrievingError e) {
-                    logger.log(Level.WARNING, "Exception happened", e);
+                    logger.log(Level.SEVERE, "Exception happened", e);
+                    CaseLoaderEvents.instance().onError.fire(new CaseLoaderError(ErrorReason.UNEXPECTED_ERROR));
                     return;
                 }
 

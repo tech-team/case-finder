@@ -241,13 +241,13 @@ public class MainController {
                 CaseModelAppender caseModelAppender = new CaseModelAppender(casesData);
                 casesData.clear();
 
-                caseLoader.totalCasesCountObtained.on(progressIndicator::setLimit);
+                caseLoader.events().totalCasesCountObtained.on(progressIndicator::setLimit);
 
-                caseLoader.caseProcessed.on(() -> {
+                caseLoader.events().caseProcessed.on(() -> {
                     progressIndicator.add(1);
                 });
 
-                caseLoader.casesLoaded.on((data) -> {
+                caseLoader.events().casesLoaded.on((data) -> {
                     mode = Mode.DEFAULT;
                     searchButton.setText(res.getString("searchButtonDefault"));
                     progressIndicator.setVisible(false);

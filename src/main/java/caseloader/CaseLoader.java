@@ -1,5 +1,7 @@
 package caseloader;
 
+import caseloader.errors.CaseLoaderError;
+import caseloader.errors.ErrorReason;
 import caseloader.kad.KadLoader;
 import eventsystem.DataEvent;
 import eventsystem.Event;
@@ -11,17 +13,16 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class CaseLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
-    public final DataEvent<Integer> totalCasesCountObtained = new DataEvent<>();
-    public final Event caseProcessed = new Event();
-    public final DataEvent<CaseContainerType> casesLoaded = new DataEvent<>();
-    public final DataEvent<String> onError = new DataEvent<>();
-
-    private KadLoader<CaseContainerType> kadLoader = new KadLoader<>(totalCasesCountObtained, caseProcessed);
+    private KadLoader<CaseContainerType> kadLoader = new KadLoader<>();
 
     private Thread thread = null;
     private Logger logger = MyLogger.getLogger(this.getClass().toString());
 
     public CaseLoader() {
+    }
+
+    public CaseLoaderEvents<CaseContainerType> events() {
+        return CaseLoaderEvents.instance();
     }
 
     public void retrieveDataAsync(CaseSearchRequest request, CaseContainerType outputContainer) {
@@ -38,19 +39,22 @@ public class CaseLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
             try {
                 CaseContainerType data = kadLoader.retrieveData(request, outputContainer);
                 if (data == null) {
-                    onError.fire("Error retrieving Kad pages. Try again later");
-                    logger.info("CaseLoader finished with error");
+                    CaseLoaderError error = new CaseLoaderError(ErrorReason.KAD_PAGE_ERROR, "Error retrieving Kad pages. Try again later");
+                    events().onError.fire(error);
+                    logger.info("CaseLoader finished with error: " + error.getReason());
+                    return;
                 } else {
                     logger.info("Finished CaseLoader");
                 }
             } catch (InterruptedException ignored) {
                 logger.info("CaseLoader stopped");
             } catch (DataRetrievingError e) {
-                logger.log(Level.WARNING, "Exception happened", e);
+                logger.log(Level.SEVERE, "Exception happened", e);
+                events().onError.fire(new CaseLoaderError(ErrorReason.UNEXPECTED_ERROR, "Unexpected error happened"));
             } finally {
-                casesLoaded.fire(outputContainer);
                 logger.info("====================================");
             }
+            CaseLoaderEvents.instance().casesLoaded.fire(outputContainer);
         });
         thread.start();
     }
@@ -74,7 +78,7 @@ public class CaseLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
 
         CaseLoader<CasesData> cl = new CaseLoader<>();
 
-        cl.casesLoaded.on((data) -> {
+        cl.events().casesLoaded.on((data) -> {
             List<CaseInfo> cases = data.getCollection();
             System.out.println("Cases loaded successfully");
         });

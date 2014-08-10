@@ -1,10 +1,9 @@
 package caseloader.kad;
 
 import caseloader.CaseInfo;
+import caseloader.CaseLoaderEvents;
 import caseloader.CaseSearchRequest;
 import caseloader.credentials.CredentialsLoader;
-import eventsystem.DataEvent;
-import eventsystem.Event;
 import exceptions.DataRetrievingError;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -29,14 +28,9 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
     private List<CaseSearchRequest> brokenPages = new LinkedList<>();
     private final CredentialsLoader credentialsLoader = new CredentialsLoader();
 
-    private final DataEvent<Integer> totalCasesCountObtained;
-    private final Event caseProcessed;
-
     private Logger logger = MyLogger.getLogger(this.getClass().toString());
 
-    public KadLoader(DataEvent<Integer> totalCasesCountObtained, Event caseProcessed) {
-        this.totalCasesCountObtained = totalCasesCountObtained;
-        this.caseProcessed = caseProcessed;
+    public KadLoader() {
     }
 
     private int countToLoadPerRequest(int limit) {
@@ -51,7 +45,7 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
         int totalCountToLoad = searchLimit != 0 && searchLimit < TOTAL_MAX_COUNT ? searchLimit :
                                                                                    TOTAL_MAX_COUNT;
 
-        kadWorkerFactory = new KadWorkerFactory<>(totalCountToLoad, minCost, data, credentialsLoader, caseProcessed);
+        kadWorkerFactory = new KadWorkerFactory<>(totalCountToLoad, minCost, data, credentialsLoader);
 
         int totalCasesCount = 0;
 
@@ -120,7 +114,7 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
                 }
                 logger.info("Finished broken pages");
             }
-            totalCasesCountObtained.fire(totalCasesCount);
+            CaseLoaderEvents.instance().totalCasesCountObtained.fire(totalCasesCount);
         }
 
         pool.waitForFinish();
