@@ -2,7 +2,7 @@ package caseloader.credentials.websites;
 
 import caseloader.credentials.Credentials;
 import caseloader.credentials.CredentialsSearchRequest;
-import exceptions.DataRetrievingError;
+import util.DataRetrievingError;
 import util.StringUtils;
 
 import java.util.Map;

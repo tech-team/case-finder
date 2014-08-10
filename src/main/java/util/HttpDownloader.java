@@ -1,6 +1,5 @@
 package util;
 
-import exceptions.DataRetrievingError;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;

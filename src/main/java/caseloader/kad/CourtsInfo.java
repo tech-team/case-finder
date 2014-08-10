@@ -4,7 +4,7 @@ import caseloader.CaseLoaderEvents;
 import caseloader.errors.CaseLoaderError;
 import caseloader.errors.ErrorReason;
 import eventsystem.DataEvent;
-import exceptions.DataRetrievingError;
+import util.DataRetrievingError;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;

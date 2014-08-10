@@ -4,7 +4,7 @@ import caseloader.CaseInfo;
 import caseloader.CaseLoaderEvents;
 import caseloader.CaseSearchRequest;
 import caseloader.credentials.CredentialsLoader;
-import exceptions.DataRetrievingError;
+import util.DataRetrievingError;
 import org.json.JSONException;
 import org.json.JSONObject;
 import util.HttpDownloader;
