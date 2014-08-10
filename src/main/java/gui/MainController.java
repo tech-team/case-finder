@@ -3,6 +3,7 @@ package gui;
 import caseloader.CaseLoader;
 import caseloader.CaseLoaderEvents;
 import caseloader.CaseSearchRequest;
+import caseloader.errors.CaseLoaderError;
 import caseloader.kad.CourtsInfo;
 import export.ExcelExporter;
 import export.ExportException;
@@ -92,24 +93,7 @@ public class MainController {
             System.exit(1);
         });
 
-        CaseLoaderEvents.instance().onError.on(error -> {
-            String errorMessage = error.getReason()
-                    .getLocalizedDescription(error.getDescription());
-
-            Dialogs.create()
-                    .message(errorMessage)
-                    .showError();
-
-            switch (error.getReason()) {
-                case KAD_PAGE_ERROR:
-                    stopSearching();
-                    break;
-
-                default:
-                    System.exit(1);
-                    break;
-            }
-        });
+        CaseLoaderEvents.instance().onError.on(this::errorHandler);
 
         initializeCourtList();
         initializeCaseModel();
@@ -185,6 +169,37 @@ public class MainController {
         */
 
         casesTable.setItems(casesData);
+    }
+
+    private void errorHandler(CaseLoaderError error) {
+        String errorMessage = error.getReason()
+                .getLocalizedDescription(error.getDescription());
+
+        Dialogs.create()
+                .message(errorMessage)
+                .showError();
+
+        switch (error.getReason()) {
+            case KAD_PAGE_ERROR:
+                stopSearching();
+                break;
+
+            case COURTS_RETRIEVAL_ERROR: {
+                Action action = Dialogs.create()
+                        .message(res.getString("retryCourtsRetrieval"))
+                        .actions(Dialog.Actions.YES, Dialog.Actions.NO)
+                        .showConfirm();
+
+                if (action == Dialog.Actions.YES)
+                    initializeCourtList();
+
+                break;
+            }
+
+            default:
+                System.exit(1);
+                break;
+        }
     }
 
     public void onClose(WindowEvent event) {
