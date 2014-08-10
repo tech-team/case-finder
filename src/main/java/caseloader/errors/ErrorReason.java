@@ -15,10 +15,10 @@ public enum ErrorReason {
         this.descResString = descResString;
     }
 
-    public String getLocalizedDescription() {
+    public String getLocalizedDescription(String details) {
         ResourceBundle res = ResourceBundle.getBundle("properties.error_strings",
                 new ResourceControl("UTF-8"));
 
-        return res.getString(descResString);
+        return String.format(res.getString(descResString), details);
     }
 }

@@ -1,6 +1,7 @@
 package gui;
 
 import caseloader.CaseLoader;
+import caseloader.CaseLoaderEvents;
 import caseloader.CaseSearchRequest;
 import caseloader.kad.CourtsInfo;
 import export.ExcelExporter;
@@ -89,6 +90,25 @@ public class MainController {
                             res.getString("unexpectedException"), e));
 
             System.exit(1);
+        });
+
+        CaseLoaderEvents.instance().onError.on(error -> {
+            String errorMessage = error.getReason()
+                    .getLocalizedDescription(error.getDescription());
+
+            Dialogs.create()
+                    .message(errorMessage)
+                    .showError();
+
+            switch (error.getReason()) {
+                case KAD_PAGE_ERROR:
+                    stopSearching();
+                    break;
+
+                default:
+                    System.exit(1);
+                    break;
+            }
         });
 
         initializeCourtList();
@@ -214,21 +234,13 @@ public class MainController {
     
     public void casesSearchClick(ActionEvent actionEvent) {
         if (mode == Mode.SEARCHING) {
-            if (caseLoader != null) {
-                Action action = Dialogs.create()
-                        .message(res.getString("onStopDialog"))
-                        .actions(Dialog.Actions.YES, Dialog.Actions.NO)
-                        .showConfirm();
+            Action action = Dialogs.create()
+                    .message(res.getString("onStopDialog"))
+                    .actions(Dialog.Actions.YES, Dialog.Actions.NO)
+                    .showConfirm();
 
-                if (action == Dialog.Actions.YES)
-                    caseLoader.stopExecution();
-                else
-                    return;
-            }
-
-            mode = Mode.DEFAULT;
-            searchButton.setText(res.getString("searchButtonDefault"));
-            progressIndicator.setVisible(false);
+            if (action == Dialog.Actions.YES)
+                stopSearching();
         } else {
             if (prepareRequest()) {
                 mode = Mode.SEARCHING;
@@ -262,6 +274,15 @@ public class MainController {
                 caseLoader.retrieveDataAsync(currentRequest, caseModelAppender);
             }
         }
+    }
+
+    private void stopSearching() {
+        if (caseLoader != null)
+            caseLoader.stopExecution();
+
+        mode = Mode.DEFAULT;
+        searchButton.setText(res.getString("searchButtonDefault"));
+        progressIndicator.setVisible(false);
     }
 
     private boolean prepareRequest() {
