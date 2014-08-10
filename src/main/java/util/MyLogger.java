@@ -4,12 +4,14 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.*;
 
 public abstract class MyLogger {
     public static final boolean APPEND_BY_DEFAULT = false;
-    public static final String LOGGER_NAME = "casefinder";
+    public static final String CURRENT_DATE = new SimpleDateFormat("[yyyy.MM.dd HH:mm:ss]").format(new Date());
+    public static final String LOGGER_NAME = "casefinderlog " + CURRENT_DATE;
     public static final String LOG_PATH = Settings.getLogLocation();
     public static final String FILENAME = LOG_PATH + File.separator + LOGGER_NAME + ".log";
     public static final Level DEFAULT_LEVEL = Settings.getLogLevel();
