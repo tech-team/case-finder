@@ -3,7 +3,6 @@ package util;
 import java.util.concurrent.*;
 
 public class ThreadPool {
-    private static final int WAIT_TIMEOUT = 5 * 60;
     private int threadsCount = 2;
 
     private ExecutorService executor = null;

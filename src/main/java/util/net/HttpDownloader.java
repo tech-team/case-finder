@@ -33,7 +33,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class HttpDownloader {
-    public static final String USER_AGENT = "Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)";
+    private static final String USER_AGENT = "Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)";
     private static final int REQUEST_TIMEOUT = 20 * 1000;
     private static final long WAIT_DELTA = 2 * 1000;
     private static final boolean USE_PROXY_DEFAULT = true;
@@ -43,8 +43,8 @@ public class HttpDownloader {
     private static final String GOOGLE_HOST = "www.google.ru";
 
     private static HttpDownloader instance = null;
-    private ThreadPool pool = new ThreadPool(1);
-    private Logger logger = MyLogger.getLogger(HttpDownloader.class.toString());
+    private final ThreadPool pool = new ThreadPool(1);
+    private final Logger logger = MyLogger.getLogger(HttpDownloader.class.toString());
 
     private HttpDownloader() {
     }

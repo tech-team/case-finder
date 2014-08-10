@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.logging.Logger;
 
 public class RusProfile extends WebSite {
-    private static final int PRIORITY = 0;
     private final Logger logger = MyLogger.getLogger(this.getClass().getName());
 
     abstract class Urls {
@@ -60,11 +59,6 @@ public class RusProfile extends WebSite {
 
         logger.info("<RusProfile>: Found credentials for company: " + request.getCompanyName());
         return result;
-    }
-
-    @Override
-    public int getPriority() {
-        return PRIORITY;
     }
 
     private Credentials findByInn(CredentialsSearchRequest request) throws MalformedUrlException, InterruptedException {

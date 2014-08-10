@@ -11,10 +11,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class CaseLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
-    private KadLoader<CaseContainerType> kadLoader = new KadLoader<>();
+    private final KadLoader<CaseContainerType> kadLoader = new KadLoader<>();
 
     private Thread thread = null;
-    private Logger logger = MyLogger.getLogger(this.getClass().toString());
+    private final Logger logger = MyLogger.getLogger(this.getClass().toString());
 
     public CaseLoader() {
     }

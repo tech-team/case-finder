@@ -36,7 +36,6 @@ public class Kartoteka extends WebSite {
 
     private static final String ENCODING = "cp1251";
     private static final int COUNT_TO_PARSE = 3;
-    private static final int PRIORITY = 2;
 
     private final Logger logger = MyLogger.getLogger(this.getClass().getName());
 
@@ -65,11 +64,6 @@ public class Kartoteka extends WebSite {
         else
             logger.warning("<Kartoteka>: Couldn't find credentials for company: " + request.getCompanyName());
         return creds;
-    }
-
-    @Override
-    public int getPriority() {
-        return PRIORITY;
     }
 
     private Credentials parsePage(String page, CredentialsSearchRequest request) {

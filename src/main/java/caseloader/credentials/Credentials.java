@@ -1,11 +1,13 @@
 package caseloader.credentials;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 public class Credentials {
-    private Map<String, List<String>> directors = new HashMap<>();
-    private Map<String, List<String>> telephones = new HashMap<>();
+    private final Map<String, List<String>> directors = new HashMap<>();
+    private final Map<String, List<String>> telephones = new HashMap<>();
     private String inn = "";
     private String ogrn = "";
     private String link = "";

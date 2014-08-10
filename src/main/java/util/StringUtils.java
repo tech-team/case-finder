@@ -10,7 +10,7 @@ public abstract class StringUtils {
         if (str == null)
             return null;
         String nonLettersRegex = "[^a-zA-Zа-яА-Я ]";
-        String s = str.replaceAll(nonLettersRegex, " "); // TODO: replace several spaces
+        String s = String.join(" ", str.replaceAll(nonLettersRegex, " ").split("\\s+"));
         return s.trim().toLowerCase();
     }
 

@@ -18,10 +18,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public abstract class CourtsInfo {
-    private static Map<String, String> courts = new LinkedHashMap<>();
-    public static DataEvent<Set<String>> courtsLoadedEvent = new DataEvent<>();
+    private static final Map<String, String> courts = new LinkedHashMap<>();
+    public static final DataEvent<Set<String>> courtsLoadedEvent = new DataEvent<>();
 
-    private static Logger logger = MyLogger.getLogger(CourtsInfo.class.toString());
+    private static final Logger logger = MyLogger.getLogger(CourtsInfo.class.toString());
 
     private static Set<String> retrieveCourts() throws MalformedUrlException, InterruptedException {
         if (courts.size() == 0) {

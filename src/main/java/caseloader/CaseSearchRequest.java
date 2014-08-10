@@ -3,11 +3,8 @@ package caseloader;
 import caseloader.kad.CourtsInfo;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import util.JsonUtils;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 public class CaseSearchRequest {
     public enum CaseType {

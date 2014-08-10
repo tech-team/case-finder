@@ -33,7 +33,7 @@ class ProxyUpdater {
     private static final int UPDATE_PERIOD = 30 * 60 * 1000; // 30 minutes
 
     private boolean doWork = false;
-    private Logger logger = MyLogger.getLogger(this.getClass().toString());
+    private final Logger logger = MyLogger.getLogger(this.getClass().toString());
 
     public void run(ProxyList proxyList) {
         if (!doWork) {

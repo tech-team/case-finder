@@ -6,7 +6,7 @@ import util.ResourceControl;
 import java.util.ResourceBundle;
 
 public class Address {
-    private String rawAddress;
+    private final String rawAddress;
     private String city;
     private String region;
 
@@ -14,7 +14,7 @@ public class Address {
         return new Address(address);
     }
 
-    public Address(String address) {
+    private Address(String address) {
         rawAddress = address;
 
         parseCity();

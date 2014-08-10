@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-public class KadWorkerFactory<CaseContainerType extends util.Appendable<CaseInfo> > {
+class KadWorkerFactory<CaseContainerType extends util.Appendable<CaseInfo> > {
     private final CaseContainerType data;
     private static final Object dataLock = new Object();
     private final int searchLimit;
