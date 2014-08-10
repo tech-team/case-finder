@@ -1,6 +1,6 @@
 package proxy;
 
-import exceptions.DataRetrievingError;
+import util.DataRetrievingError;
 import javafx.application.Platform;
 import javafx.concurrent.Worker;
 import javafx.scene.Scene;

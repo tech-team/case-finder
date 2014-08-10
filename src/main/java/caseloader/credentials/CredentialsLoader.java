@@ -3,7 +3,7 @@ package caseloader.credentials;
 import caseloader.credentials.websites.Kartoteka;
 import caseloader.credentials.websites.RusProfile;
 import caseloader.credentials.websites.WebSite;
-import exceptions.DataRetrievingError;
+import util.DataRetrievingError;
 import util.MyLogger;
 
 import java.util.LinkedList;

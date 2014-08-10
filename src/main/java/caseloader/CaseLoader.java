@@ -3,9 +3,7 @@ package caseloader;
 import caseloader.errors.CaseLoaderError;
 import caseloader.errors.ErrorReason;
 import caseloader.kad.KadLoader;
-import eventsystem.DataEvent;
-import eventsystem.Event;
-import exceptions.DataRetrievingError;
+import util.DataRetrievingError;
 import util.MyLogger;
 
 import java.util.List;
