@@ -2,18 +2,20 @@ package caseloader.credentials.websites;
 
 import caseloader.credentials.Credentials;
 import caseloader.credentials.CredentialsSearchRequest;
-import util.net.MalformedUrlException;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import util.net.HttpDownloader;
-import caseloader.util.RegionHelper;
 import util.MyLogger;
 import util.StringUtils;
+import util.net.HttpDownloader;
+import util.net.MalformedUrlException;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 // For INN search
