@@ -2,6 +2,7 @@ package caseloader.credentials.websites;
 
 import caseloader.credentials.Credentials;
 import caseloader.credentials.CredentialsSearchRequest;
+import caseloader.util.RegionHelper;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.jsoup.Jsoup;
