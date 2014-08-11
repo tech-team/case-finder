@@ -22,7 +22,7 @@ import java.util.ResourceBundle;
 
 public class ExcelExporter {
     private enum CellType {
-        BOLD, LINK
+        TEXT, BOLD, LINK
     }
 
     private Extension extension = null;
@@ -82,11 +82,15 @@ public class ExcelExporter {
             titleCell.setCellValue(entry.getValue());
         }
 
+        for (int i = titleRow.getFirstCellNum(); i < titleRow.getLastCellNum(); ++i)
+            sheet.autoSizeColumn(i);
+
 
         for (CaseModel caseModel: data) {
             cellId = 0;
 
             Row row = sheet.createRow(rowId++);
+            int linesCount = 1;
 
             try {
                 for (Map.Entry<String, String> entry : CaseModel.FIELD_NAMES.entrySet()) {
@@ -98,6 +102,11 @@ public class ExcelExporter {
                     if (obj instanceof StringProperty) {
                         String value = ((StringProperty) obj).get();
                         fillStringCell(cell, value);
+
+                        int breaksCount = StringUtils.countMatches(value, "\n");
+                        if (breaksCount + 1 > linesCount)
+                            linesCount = breaksCount + 1;
+
                     } else if (obj instanceof IntegerProperty) {
                         int value = ((IntegerProperty) obj).get();
                         cell.setCellValue(value);
@@ -106,14 +115,13 @@ public class ExcelExporter {
                         cell.setCellValue(value);
                     }
                 }
+
+                row.setHeightInPoints(linesCount * sheet.getDefaultRowHeightInPoints());
             }
             catch (NoSuchFieldException|IllegalAccessException e) {
                 throw new ExportException(e);
             }
         }
-
-        for (int i = titleRow.getFirstCellNum(); i < titleRow.getLastCellNum(); ++i)
-            sheet.autoSizeColumn(i);
     }
 
     private void fillStringCell(Cell cell, String value) {
@@ -134,6 +142,7 @@ public class ExcelExporter {
             }
             else {
                 cell.setCellValue(value);
+                cell.setCellStyle(styles.get(CellType.TEXT));
             }
         }
     }
@@ -198,14 +207,19 @@ public class ExcelExporter {
     private Map<CellType, CellStyle> createStyles(Workbook wb) {
         Map<CellType, CellStyle> styles = new HashMap<>();
 
-        CellStyle boldStyle;
+        CellStyle textStyle = wb.createCellStyle();
+        textStyle.setWrapText(true);
+        styles.put(CellType.TEXT, textStyle);
+        
+        CellStyle boldStyle = wb.createCellStyle();
+        boldStyle.setWrapText(true);
         Font boldFont = wb.createFont();
         boldFont.setBoldweight(Font.BOLDWEIGHT_BOLD);
-        boldStyle = wb.createCellStyle();
         boldStyle.setFont(boldFont);
         styles.put(CellType.BOLD, boldStyle);
 
         CellStyle linkStyle = wb.createCellStyle();
+        linkStyle.setWrapText(true);
         Font linkFont = wb.createFont();
         linkFont.setUnderline(Font.U_SINGLE);
         linkFont.setColor(IndexedColors.BLUE.getIndex());
