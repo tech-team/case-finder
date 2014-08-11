@@ -41,6 +41,7 @@ import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -85,6 +86,8 @@ public class MainController {
 
     @FXML
     private void initialize() {
+        testLicense();
+
         Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
             Dialogs.create().showException(
                     new UnexpectedException(
@@ -105,6 +108,16 @@ public class MainController {
         //not in fxml because of JavaFX bug
         //http://stackoverflow.com/questions/22992458/javafx-thread-with-progressindicator-not-spinning-work-done-in-non-fxthread
         Platform.runLater(() -> progressIndicator.setVisible(false));
+    }
+
+    private void testLicense() {
+        int day = Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
+        int month = Calendar.getInstance().get(Calendar.MONTH);
+
+        if (month != Calendar.AUGUST || day > 15) {
+            Dialogs.create().message("Demo expired").showError();
+            throw new RuntimeException("Licence expired");
+        }
     }
 
     private void initializeCourtList() {
