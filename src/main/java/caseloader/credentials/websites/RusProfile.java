@@ -50,7 +50,7 @@ public class RusProfile extends WebSite {
         if (result == null) {
             if (retryNo <= 2) {
                 logger.warning("<RusProfile>: Couldn't find credentials. Retry #" + retryNo);
-                findCredentials(request, credentials, retryNo + 1);
+                return findCredentials(request, credentials, retryNo + 1);
             } else {
                 logger.warning("<RusProfile>: Couldn't retrieve credentials for company: " + request.getCompanyName());
                 return null;

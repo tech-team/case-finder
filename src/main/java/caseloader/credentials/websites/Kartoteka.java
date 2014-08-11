@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 // For INN search
 public class Kartoteka extends WebSite {
@@ -57,8 +58,15 @@ public class Kartoteka extends WebSite {
         List<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair(QueryKeys.QUERY, companyName));
         params.add(new BasicNameValuePair(QueryKeys.COUNTRY, Countries.RUSSIA));
-        if (city != null)
-            params.add(new BasicNameValuePair(QueryKeys.REGION, RegionHelper.regionIdByCity(city)));
+        if (city != null) {
+            List<String> possibleRegions = RegionHelper.regionsIdsByCity(city);
+            if (possibleRegions.size() != 1) {
+                System.out.println("Several regions found");
+            }
+            params.addAll(possibleRegions.stream()
+                                         .map(region -> new BasicNameValuePair(QueryKeys.REGION, region))
+                                         .collect(Collectors.toList()));
+        }
 
         String resp = HttpDownloader.i().get(Urls.SEARCH, params, null, true, ENCODING);
         Credentials creds = parsePage(resp, request);
