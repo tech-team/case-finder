@@ -49,6 +49,9 @@ public class ConfigReader {
     }
 
     public List<String> getList(String key) {
-        return map.get(key);
+        List<String> res = map.get(key);
+        if (res == null)
+            return new ArrayList<>();
+        return res;
     }
 }

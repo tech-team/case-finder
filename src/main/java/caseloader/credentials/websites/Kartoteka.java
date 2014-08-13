@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -81,60 +82,66 @@ public class Kartoteka extends WebSite {
         if (page == null) {
             return null;
         }
-        Elements items = Jsoup.parse(page)
-                              .body()
-                              .getElementsByClass("page-content-company");
 
-        int size = Math.min(COUNT_TO_PARSE, items.size());
-        Map<RelevanceInput, Double> relevances = new HashMap<>(size);
+        try {
+            Elements items = Jsoup.parse(page)
+                    .body()
+                    .getElementsByClass("page-content-company");
 
-        for (int i = 0; i < size; ++i) {
-            Element item = items.get(i);
-            Credentials creds = new Credentials();
-            String name = item.getElementsByTag("h2").first().text();
-            String address = "";
+            int size = Math.min(COUNT_TO_PARSE, items.size());
+            Map<RelevanceInput, Double> relevances = new HashMap<>(size);
 
-            Elements tableRow = item.getElementsByTag("table").first()
-                                    .getElementsByTag("tr").first()
-                                    .getElementsByTag("td");
+            for (int i = 0; i < size; ++i) {
+                Element item = items.get(i);
+                Credentials creds = new Credentials();
+                String name = item.getElementsByTag("h2").first().text();
+                String address = "";
 
-            Elements firstCol = tableRow.first().children();
-            int addressIndex = -1;
-            for (int j = 0; j < firstCol.size(); ++j) {
-                Element elem = firstCol.get(j);
-                if (elem.tagName().equals("i")
-                        && elem.className().equals("fa-map-marker")
-                        && j + 1 < firstCol.size()) {
-                    addressIndex = j + 1;
-                    break;
+                Elements tableRow = item.getElementsByTag("table").first()
+                        .getElementsByTag("tr").first()
+                        .getElementsByTag("td");
+
+                Elements firstCol = tableRow.first().children();
+                int addressIndex = -1;
+                for (int j = 0; j < firstCol.size(); ++j) {
+                    Element elem = firstCol.get(j);
+                    if (elem.tagName().equals("i")
+                            && elem.className().equals("fa-map-marker")
+                            && j + 1 < firstCol.size()) {
+                        addressIndex = j + 1;
+                        break;
+                    }
                 }
-            }
 
-            if (addressIndex != -1) {
-                address = firstCol.get(addressIndex).ownText();
-            }
-
-            Elements secondCol = tableRow.last().children();
-            for (Element div : secondCol) {
-                String header = div.getElementsByClass("page-content-company-information-rekvizity")
-                                   .first()
-                                   .text();
-                String value = div.getElementsByClass("page-content-company-information-rekvizity-date")
-                                  .first()
-                                  .text();
-                if (header.startsWith("ОГРН")) {
-                    creds.setOgrn(value);
-                } else if (header.startsWith("ИНН")) {
-                    creds.setInn(value);
+                if (addressIndex != -1) {
+                    address = firstCol.get(addressIndex).ownText();
                 }
+
+                Elements secondCol = tableRow.last().children();
+                for (Element div : secondCol) {
+                    String header = div.getElementsByClass("page-content-company-information-rekvizity")
+                            .first()
+                            .text();
+                    String value = div.getElementsByClass("page-content-company-information-rekvizity-date")
+                            .first()
+                            .text();
+                    if (header.startsWith("ОГРН")) {
+                        creds.setOgrn(value);
+                    } else if (header.startsWith("ИНН")) {
+                        creds.setInn(value);
+                    }
+                }
+
+
+                RelevanceInput input = new RelevanceInput(creds, name, address, request);
+                relevances.put(input, countRelevance(input));
             }
 
-
-            RelevanceInput input = new RelevanceInput(creds, name, address, request);
-            relevances.put(input, countRelevance(input));
+            return findWithBestRelevance(relevances);
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Unexpected exception.", e);
+            return null;
         }
-
-        return findWithBestRelevance(relevances);
     }
 
 
