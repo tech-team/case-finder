@@ -86,7 +86,7 @@ public class MainController {
 
     @FXML
     private void initialize() {
-        testLicense();
+        //testLicense();
 
         Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
             Dialogs.create().showException(
