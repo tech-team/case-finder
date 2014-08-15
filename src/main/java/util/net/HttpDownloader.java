@@ -43,7 +43,7 @@ public class HttpDownloader {
     private static final String GOOGLE_HOST = "www.google.ru";
 
     private static HttpDownloader instance = null;
-    private final ThreadPool pool = new ThreadPool(1);
+    private final ThreadPool pool = new ThreadPool(4);
     private final Logger logger = MyLogger.getLogger(HttpDownloader.class.toString());
 
     private HttpDownloader() {
@@ -145,7 +145,7 @@ public class HttpDownloader {
         } catch (DataRetrievingError | IOException | TimeoutException e) {
             if (retryNo <= 3) {
                 logger.warning("Exception happened. Retry #" + retryNo);
-                Thread.sleep(50);
+                Thread.sleep(100);
                 updateTime(uriBuilder.getHost());
                 return get(url, params, headers, useProxy, encoding, retryNo + 1);
             }

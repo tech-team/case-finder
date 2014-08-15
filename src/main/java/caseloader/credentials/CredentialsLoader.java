@@ -51,6 +51,8 @@ public class CredentialsLoader {
                     request.setOgrn(credentials.getOgrn());
 
                 found = new CredentialsWorker(site, request, credentials).call();
+                if (found == null)
+                    break;
                 credentials.merge(found);
             }
 

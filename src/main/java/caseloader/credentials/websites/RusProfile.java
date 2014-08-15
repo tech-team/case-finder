@@ -48,7 +48,7 @@ public class RusProfile extends WebSite {
         }
 
         if (result == null) {
-            if (retryNo <= 2) {
+            if (retryNo <= 1) {
                 logger.warning("<RusProfile>: Couldn't find credentials. Retry #" + retryNo);
                 return findCredentials(request, credentials, retryNo + 1);
             } else {
