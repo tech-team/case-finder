@@ -162,7 +162,7 @@ public class RusProfile extends WebSite {
     }
 
     private String createGoogleRequest(String query) {
-        return query + " site:" + Urls.GOOGLE_SITE_URL;
+        return " site:" + Urls.GOOGLE_SITE_URL + " " + query;
     }
 
     @SuppressWarnings("UnusedDeclaration")

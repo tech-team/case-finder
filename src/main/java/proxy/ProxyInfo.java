@@ -1,6 +1,6 @@
 package proxy;
 
-public class ProxyInfo {
+public class ProxyInfo implements Comparable<ProxyInfo> {
     private String ip;
     private int port;
     private String country = "";
@@ -8,6 +8,8 @@ public class ProxyInfo {
     private int workingPerc = 0;
     private int responseTimePerc = 0;
     private int downloadSpeedPerc = 0;
+
+    private int unreliability = 0;
 
     public ProxyInfo(String ip, int port) {
         this.ip = ip;
@@ -84,5 +86,26 @@ public class ProxyInfo {
 
     public void setDownloadSpeedPerc(int downloadSpeedPerc) {
         this.downloadSpeedPerc = downloadSpeedPerc;
+    }
+
+
+    public ProxyInfo increaseReliability() {
+        unreliability += 1;
+        return this;
+    }
+
+    public ProxyInfo decreaseReliability() {
+        unreliability -= 1;
+        return this;
+    }
+
+    public int getUnreliability() {
+        return unreliability;
+    }
+
+
+    @Override
+    public int compareTo(ProxyInfo o) {
+        return this.unreliability - o.unreliability;
     }
 }

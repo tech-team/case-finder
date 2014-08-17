@@ -13,9 +13,13 @@ import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Element;
 import proxy.ProxyInfo;
 import proxy.ProxyList;
+import util.BasicPair;
 import util.MyLogger;
+import util.Pair;
 import util.ThreadPool;
 
 import java.io.BufferedReader;
@@ -118,7 +122,8 @@ public class HttpDownloader {
         }
 
         HttpGet request = new HttpGet(getPathAndQuery(uri));
-        request.setConfig(buildRequestConfig(uri.getHost(), useProxy));
+        Pair<RequestConfig, ProxyInfo> config = buildRequestConfig(uri.getHost(), useProxy);
+        request.setConfig(config.getFirst());
         setHeaders(request, headers);
 
         checkSleep(uriBuilder.getHost());
@@ -141,7 +146,13 @@ public class HttpDownloader {
                 throw new DataRetrievingError(String.format("No response from the get request to %s", uri.getHost()));
 
             updateTime(uriBuilder.getHost());
-            return getResponse(response, encoding);
+            String result = getResponse(response, encoding);
+
+            if (useProxy && uriBuilder.getHost().equals(GOOGLE_HOST)) {
+                checkForBan(result, config.getSecond());
+            }
+
+            return result;
         } catch (DataRetrievingError | IOException | TimeoutException e) {
             if (retryNo <= 3) {
                 logger.warning("Exception happened. Retry #" + retryNo);
@@ -156,6 +167,19 @@ public class HttpDownloader {
             return null;
         }
 
+    }
+
+    private void checkForBan(String response, ProxyInfo usedProxy) throws InterruptedException {
+        usedProxy.increaseReliability();
+
+        Element captcha = Jsoup.parse(response)
+                               .body()
+                               .getElementById("captcha");
+        if (captcha != null) {
+            usedProxy.increaseReliability(); // one more increment
+        }
+
+        ProxyList.instance().returnGoogleProxy(usedProxy);
     }
 
     public String post(String url, List<NameValuePair> formData, Map<String, String> headers) throws MalformedUrlException, InterruptedException {
@@ -197,7 +221,7 @@ public class HttpDownloader {
 
         HttpPost request = new HttpPost(getPathAndQuery(uri));
         request.setEntity(data);
-        request.setConfig(buildRequestConfig(uri.getHost(), useProxy));
+        request.setConfig(buildRequestConfig(uri.getHost(), useProxy).getFirst());
         setHeaders(request, headers);
 
         checkSleep(uriBuilder.getHost());
@@ -263,7 +287,7 @@ public class HttpDownloader {
         return new HttpHost(uriBuilder.getHost(), uriBuilder.getPort(), uriBuilder.getScheme());
     }
 
-    private RequestConfig buildRequestConfig(String hostname, boolean useProxy) throws InterruptedException {
+    private Pair<RequestConfig, ProxyInfo> buildRequestConfig(String hostname, boolean useProxy) throws InterruptedException {
         RequestConfig.Builder b = RequestConfig.custom().setConnectTimeout(REQUEST_TIMEOUT).setSocketTimeout(REQUEST_TIMEOUT);
         if (useProxy) {
             ProxyInfo proxyInfo;
@@ -273,9 +297,9 @@ public class HttpDownloader {
                 proxyInfo = ProxyList.instance().getNext();
             }
             HttpHost proxy = new HttpHost(proxyInfo.getIp(), proxyInfo.getPort());
-            return b.setProxy(proxy).build();
+            return new BasicPair<>(b.setProxy(proxy).build(), proxyInfo);
         } else {
-            return b.build();
+            return new BasicPair<>(b.build(), null);
         }
     }
 

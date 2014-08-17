@@ -3,7 +3,9 @@ package proxy;
 import util.MyLogger;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.PriorityQueue;
 import java.util.logging.Logger;
 
 public class ProxyList {
@@ -11,11 +13,11 @@ public class ProxyList {
 
     private final ProxyUpdater proxyUpdater = new ProxyUpdater();
     private List<ProxyInfo> proxies = new ArrayList<>();
-    private List<ProxyInfo> googleProxies = new ArrayList<>();
+    private PriorityQueue<ProxyInfo> googleProxies = new PriorityQueue<>();
     private boolean proxiesLoaded = false;
     private boolean googleProxiesLoaded = false;
     private int currentId = 0;
-    private int currentGoogleId = 0;
+//    private int currentGoogleId = 0;
     private final Object proxyLock = new Object();
     private final Object googleProxyLock = new Object();
     private final Logger logger = MyLogger.getLogger(this.getClass().toString());
@@ -42,9 +44,9 @@ public class ProxyList {
 
     public void loadNewGoogleList(List<ProxyInfo> list) {
         if (list != null) {
-            googleProxies = list;
+            googleProxies.addAll(list);
             logger.info("Google Proxies count: " + googleProxies.size());
-            currentGoogleId = 0;
+//            currentGoogleId = 0;
             googleProxiesLoaded = true;
         }
     }
@@ -93,13 +95,20 @@ public class ProxyList {
     public ProxyInfo getGoogleNext() throws InterruptedException {
         synchronized (googleProxyLock) {
             waitForGoogleProxiesLoaded();
-            logger.fine("currentGoogleProxyId = " + currentGoogleId);
-            ProxyInfo proxyInfo = googleProxies.get(currentGoogleId);
-            currentGoogleId += 1;
-            int size = googleProxies.size();
-            if (currentGoogleId >= size)
-                currentGoogleId -= size;
+//            logger.fine("currentGoogleProxyId = " + currentGoogleId);
+            ProxyInfo proxyInfo = googleProxies.poll();
+//            currentGoogleId += 1;
+//            int size = googleProxies.size();
+//            if (currentGoogleId >= size)
+//                currentGoogleId -= size;
             return proxyInfo;
+        }
+    }
+
+    public void returnGoogleProxy(ProxyInfo proxy) throws InterruptedException {
+        synchronized (googleProxyLock) {
+            waitForGoogleProxiesLoaded();
+            googleProxies.add(proxy);
         }
     }
 
