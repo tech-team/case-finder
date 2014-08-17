@@ -15,6 +15,14 @@ public class CaseLoaderEvents <CaseContainerType extends util.Appendable<CaseInf
     private CaseLoaderEvents() {
     }
 
+    public void offSubscribers() {
+        totalCasesCountObtained.off();
+        caseProcessed.off();
+        casesLoaded.off();
+        onError.off();
+    }
+
+
     @SuppressWarnings("unchecked")
     public static <CaseContainerType extends util.Appendable<CaseInfo>> CaseLoaderEvents<CaseContainerType> instance() {
         if (instance == null) {

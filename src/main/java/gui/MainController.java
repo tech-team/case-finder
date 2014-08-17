@@ -276,6 +276,9 @@ public class MainController {
                 progressIndicator.reset();
                 progressIndicator.setVisible(true);
 
+                CaseLoaderEvents.instance().offSubscribers();
+                CaseLoaderEvents.instance().onError.on(this::errorHandler);
+
                 this.caseLoader = new CaseLoader<>();
                 CaseModelAppender caseModelAppender = new CaseModelAppender(casesData);
                 casesData.clear();

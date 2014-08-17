@@ -18,6 +18,10 @@ public class DataEvent<T> {
         handlerContainers.removeIf(container -> container.getHandler() == handler);
     }
 
+    public void off() {
+        handlerContainers.clear();
+    }
+
     public void fire(T data) {
         handlerContainers.forEach(handlerContainer -> {
             if (Thread.currentThread() == handlerContainer.getThread()

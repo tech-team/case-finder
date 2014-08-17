@@ -15,6 +15,10 @@ public class Event {
         handlerContainers.removeIf(container -> container.getHandler() == handler);
     }
 
+    public void off() {
+        handlerContainers.clear();
+    }
+
     public void fire() {
         handlerContainers.forEach(handlerContainer -> {
             if (Thread.currentThread() == handlerContainer.getThread()

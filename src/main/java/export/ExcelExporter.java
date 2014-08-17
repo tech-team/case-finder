@@ -26,9 +26,9 @@ public class ExcelExporter {
     }
 
     private Extension extension = null;
-    Workbook wb = null;
-    CreationHelper ch = null;
-    Map<CellType, CellStyle> styles = null;
+    private Workbook wb = null;
+    private CreationHelper ch = null;
+    private Map<CellType, CellStyle> styles = null;
 
     public ExcelExporter(Extension extension) throws UnsupportedExtensionException {
         this.extension = extension;
@@ -82,10 +82,6 @@ public class ExcelExporter {
             titleCell.setCellValue(entry.getValue());
         }
 
-        for (int i = titleRow.getFirstCellNum(); i < titleRow.getLastCellNum(); ++i)
-            sheet.autoSizeColumn(i);
-
-
         for (CaseModel caseModel: data) {
             cellId = 0;
 
@@ -122,13 +118,22 @@ public class ExcelExporter {
                 throw new ExportException(e);
             }
         }
+
+        for (int i = titleRow.getFirstCellNum(); i < titleRow.getLastCellNum(); ++i) {
+            sheet.autoSizeColumn(i);
+            int maxColumnWidth = sheet.getDefaultColumnWidth() * 3;
+            if (sheet.getColumnWidth(i) > maxColumnWidth)
+                sheet.setColumnWidth(i, maxColumnWidth);
+        }
     }
 
     private void fillStringCell(Cell cell, String value) {
         List<HypertextNode> nodes = HypertextParser.parse(value);
 
-        if (nodes.size() > 1) //multiple links in one cell are not supported by Excel unfortunately
+        if (nodes.size() > 1) { //multiple links in one cell are not supported by Excel unfortunately
             cell.setCellValue(value);
+            cell.setCellStyle(styles.get(CellType.LINK));
+        }
         else if (nodes.size() == 1) {
             HypertextNode node = nodes.get(0);
 

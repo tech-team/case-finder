@@ -6,6 +6,8 @@
 <JVMSearchPath>jdkpath</JVMSearchPath>
 <JVMSearchPath>exepath</JVMSearchPath>
 <JVMSearchPath>jview</JVMSearchPath>
+<arguments></arguments>
+<bundledJVMPath>.</bundledJVMPath>
 <embeddedJar>true</embeddedJar>
 <executableName>target\case-finder.exe</executableName>
 <iconLocation>icon.png</iconLocation>
