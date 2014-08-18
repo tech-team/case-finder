@@ -121,7 +121,7 @@ public class ExcelExporter {
 
         for (int i = titleRow.getFirstCellNum(); i < titleRow.getLastCellNum(); ++i) {
             sheet.autoSizeColumn(i);
-            int maxColumnWidth = sheet.getDefaultColumnWidth() * 3;
+            int maxColumnWidth = 32*256;
             if (sheet.getColumnWidth(i) > maxColumnWidth)
                 sheet.setColumnWidth(i, maxColumnWidth);
         }
