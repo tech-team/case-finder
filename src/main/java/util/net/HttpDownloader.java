@@ -170,13 +170,14 @@ public class HttpDownloader {
     }
 
     private void checkForBan(String response, ProxyInfo usedProxy) throws InterruptedException {
-        usedProxy.increaseReliability();
+        usedProxy.decreaseReliability();
 
         Element captcha = Jsoup.parse(response)
                                .body()
                                .getElementById("captcha");
         if (captcha != null) {
-            usedProxy.increaseReliability(); // one more increment
+            System.out.println(String.format("Banned proxy. unreliability=%d, ip=%s, port=%d", usedProxy.getUnreliability(), usedProxy.getIp(), usedProxy.getPort()));
+            usedProxy.decreaseReliability(4);
         }
 
         ProxyList.instance().returnGoogleProxy(usedProxy);

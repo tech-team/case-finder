@@ -3,7 +3,6 @@ package proxy;
 import util.MyLogger;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.logging.Logger;
@@ -44,6 +43,7 @@ public class ProxyList {
 
     public void loadNewGoogleList(List<ProxyInfo> list) {
         if (list != null) {
+            googleProxies.clear();
             googleProxies.addAll(list);
             logger.info("Google Proxies count: " + googleProxies.size());
 //            currentGoogleId = 0;

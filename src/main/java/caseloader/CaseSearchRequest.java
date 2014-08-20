@@ -124,10 +124,12 @@ public class CaseSearchRequest {
 
     public void setPage(int page) {
         this.page = page;
+        kadJson = null;
     }
 
     public void setCount(int count) {
         this.count = count;
+        kadJson = null;
     }
 
     public CaseSearchRequest copy() {

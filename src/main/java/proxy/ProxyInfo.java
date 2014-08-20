@@ -89,14 +89,12 @@ public class ProxyInfo implements Comparable<ProxyInfo> {
     }
 
 
-    public ProxyInfo increaseReliability() {
-        unreliability += 1;
-        return this;
+    public void increaseReliability() {
+        unreliability -= 1;
     }
 
-    public ProxyInfo decreaseReliability() {
-        unreliability -= 1;
-        return this;
+    public void decreaseReliability() {
+        decreaseReliability(1);
     }
 
     public int getUnreliability() {
@@ -107,5 +105,9 @@ public class ProxyInfo implements Comparable<ProxyInfo> {
     @Override
     public int compareTo(ProxyInfo o) {
         return this.unreliability - o.unreliability;
+    }
+
+    public void decreaseReliability(int count) {
+        unreliability += count;
     }
 }
