@@ -10,6 +10,7 @@ public class ProxyInfo implements Comparable<ProxyInfo> {
     private int downloadSpeedPerc = 0;
 
     private int unreliability = 0;
+    private int era;
 
     public ProxyInfo(String ip, int port) {
         this.ip = ip;
@@ -109,5 +110,13 @@ public class ProxyInfo implements Comparable<ProxyInfo> {
 
     public void decreaseReliability(int count) {
         unreliability += count;
+    }
+
+    public void setEra(int era) {
+        this.era = era;
+    }
+
+    public int getEra() {
+        return era;
     }
 }

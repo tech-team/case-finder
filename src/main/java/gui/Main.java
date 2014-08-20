@@ -7,6 +7,7 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
+import java.util.PriorityQueue;
 import java.util.prefs.Preferences;
 
 public class Main extends Application {

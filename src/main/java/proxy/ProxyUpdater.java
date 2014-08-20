@@ -27,34 +27,31 @@ class ProxyUpdater {
         public static final String HIDE_MY_ASS = "http://proxylist.hidemyass.com/search-1311573#listable";
         public static final String COOL_PROXY = "http://www.cool-proxy.net/proxies/http_proxy_list/sort:download_speed_average/direction:desc/country_code:/port:/anonymous:1";
         public static final String GOOGLE_PROXY = "http://www.google-proxy.net/";
-
     }
 
     private static final int UPDATE_PERIOD = 30 * 60 * 1000; // 30 minutes
+    private static final int GOOGLE_UPDATE_PERIOD = 12 * 60 * 1000; // 10 minutes
 
     private boolean doWork = false;
     private final Logger logger = MyLogger.getLogger(this.getClass().toString());
 
     public void run(ProxyList proxyList) {
         if (!doWork) {
-            Thread th = new Thread(() -> {
-                logger.info("ProxyUpdater started");
+            Thread ordinalThread = new Thread(() -> {
+                logger.info("ProxyUpdater for ordinal proxies started");
                 doWork = true;
                 while (doWork) {
                     List<ProxyInfo> newList = null;
-                    List<ProxyInfo> newGoogleList = null;
                     try {
                         newList = retrieveProxyListCoolProxy();
-                        newGoogleList = retrieveProxyListGoogleProxies();
                     } catch (InterruptedException e) {
-                        logger.info("ProxyUpdater has been interrupted");
+                        logger.info("ProxyUpdater for ordinal proxies has been interrupted");
                         return;
                     } catch (MalformedUrlException e) {
                         logger.log(Level.WARNING, "Exception happened", e);
                         return;
                     }
                     proxyList.loadNewList(newList);
-                    proxyList.loadNewGoogleList(newGoogleList);
 
                     try {
                         Thread.sleep(UPDATE_PERIOD);
@@ -62,10 +59,38 @@ class ProxyUpdater {
                         break;
                     }
                 }
-                logger.info("ProxyUpdater finished");
+                logger.info("ProxyUpdater for ordinal proxies finished");
             });
-            th.setDaemon(true);
-            th.start();
+
+            Thread googleThread = new Thread(() -> {
+                logger.info("ProxyUpdater for google proxies started");
+                doWork = true;
+                while (doWork) {
+                    List<ProxyInfo> newGoogleList = null;
+                    try {
+                        newGoogleList = retrieveProxyListGoogleProxies();
+                    } catch (InterruptedException e) {
+                        logger.info("ProxyUpdater for google proxies has been interrupted");
+                        return;
+                    } catch (MalformedUrlException e) {
+                        logger.log(Level.WARNING, "Exception happened", e);
+                        return;
+                    }
+                    proxyList.loadNewGoogleList(newGoogleList);
+
+                    try {
+                        Thread.sleep(GOOGLE_UPDATE_PERIOD);
+                    } catch (InterruptedException e) {
+                        break;
+                    }
+                }
+                logger.info("ProxyUpdater for google proxies finished");
+            });
+            ordinalThread.setDaemon(true);
+            googleThread.setDaemon(true);
+
+            ordinalThread.start();
+            googleThread.start();
         } else {
             throw new RuntimeException("ProxyUpdater is already running");
         }

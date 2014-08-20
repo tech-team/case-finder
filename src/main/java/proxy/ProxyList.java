@@ -16,9 +16,12 @@ public class ProxyList {
     private boolean proxiesLoaded = false;
     private boolean googleProxiesLoaded = false;
     private int currentId = 0;
-//    private int currentGoogleId = 0;
     private final Object proxyLock = new Object();
     private final Object googleProxyLock = new Object();
+
+    private int proxiesEra = 0;
+    private int googleProxiesEra = 0;
+
     private final Logger logger = MyLogger.getLogger(this.getClass().toString());
 
     private ProxyList() {
@@ -34,20 +37,36 @@ public class ProxyList {
 
     public void loadNewList(List<ProxyInfo> list) {
         if (list != null) {
-            proxies = list;
-            logger.info("Proxies count: " + proxies.size());
-            currentId = 0;
-            proxiesLoaded = true;
+            proxiesLoaded = false;
+            synchronized (proxyLock) {
+                proxiesEra += 1;
+
+                proxies = new ArrayList<>();
+                for (ProxyInfo proxy : list) {
+                    proxy.setEra(proxiesEra);
+                    proxies.add(proxy);
+                }
+                logger.info("Proxies count: " + proxies.size());
+                currentId = 0;
+                proxiesLoaded = true;
+            }
         }
     }
 
     public void loadNewGoogleList(List<ProxyInfo> list) {
         if (list != null) {
-            googleProxies.clear();
-            googleProxies.addAll(list);
-            logger.info("Google Proxies count: " + googleProxies.size());
-//            currentGoogleId = 0;
             googleProxiesLoaded = true;
+            synchronized (googleProxyLock) {
+                googleProxiesEra += 1;
+
+                googleProxies.clear();
+                for (ProxyInfo proxy : list) {
+                    proxy.setEra(googleProxiesEra);
+                    googleProxies.add(proxy);
+                }
+                logger.info("Google Proxies count: " + googleProxies.size());
+                googleProxiesLoaded = true;
+            }
         }
     }
 
@@ -80,8 +99,8 @@ public class ProxyList {
     }
 
     public ProxyInfo getNext() throws InterruptedException {
+        waitForProxiesLoaded();
         synchronized (proxyLock) {
-            waitForProxiesLoaded();
             logger.fine("currentProxyId = " + currentId);
             ProxyInfo proxyInfo = proxies.get(currentId);
             currentId += 1;
@@ -93,22 +112,18 @@ public class ProxyList {
     }
 
     public ProxyInfo getGoogleNext() throws InterruptedException {
+        waitForGoogleProxiesLoaded();
         synchronized (googleProxyLock) {
-            waitForGoogleProxiesLoaded();
-//            logger.fine("currentGoogleProxyId = " + currentGoogleId);
-            ProxyInfo proxyInfo = googleProxies.poll();
-//            currentGoogleId += 1;
-//            int size = googleProxies.size();
-//            if (currentGoogleId >= size)
-//                currentGoogleId -= size;
-            return proxyInfo;
+            return googleProxies.poll();
         }
     }
 
     public void returnGoogleProxy(ProxyInfo proxy) throws InterruptedException {
+        waitForGoogleProxiesLoaded();
         synchronized (googleProxyLock) {
-            waitForGoogleProxiesLoaded();
-            googleProxies.add(proxy);
+            if (proxy.getEra() == googleProxiesEra) {
+                googleProxies.add(proxy);
+            }
         }
     }
 
