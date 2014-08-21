@@ -55,7 +55,7 @@ public class ProxyList {
 
     public void loadNewGoogleList(List<ProxyInfo> list) {
         if (list != null) {
-            googleProxiesLoaded = true;
+            googleProxiesLoaded = false;
             synchronized (googleProxyLock) {
                 googleProxiesEra += 1;
 
@@ -113,7 +113,7 @@ public class ProxyList {
 
     public ProxyInfo getGoogleNext() throws InterruptedException {
         waitForGoogleProxiesLoaded();
-        synchronized (googleProxyLock) {
+            synchronized (googleProxyLock) {
             return googleProxies.poll();
         }
     }
