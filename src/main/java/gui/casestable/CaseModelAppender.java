@@ -19,9 +19,9 @@ public class CaseModelAppender implements util.Appendable<CaseInfo> {
     public void append(CaseInfo caseInfo) {
         CaseModel caseModel = new CaseModel();
 
-        caseModel.number.setValue(caseInfo.getCaseNumber());
-        caseModel.url.setValue(caseInfo.getUrl());
-        caseModel.createdDate.setValue(caseInfo.getDate());
+        caseModel.number.setValue(orElse(caseInfo.getCaseNumber(), ""));
+        caseModel.url.setValue(orElse(caseInfo.getUrl(), ""));
+        caseModel.createdDate.setValue(orElse(caseInfo.getDate(), ""));
 
         caseModel.plaintiff.setValue(caseInfo.getPlaintiffs()
                 .stream()
@@ -102,8 +102,8 @@ public class CaseModelAppender implements util.Appendable<CaseInfo> {
                 .orElse(""));
 
         caseModel.cost.setValue(caseInfo.getCost());
-        caseModel.caseType.setValue(caseInfo.getCaseType());
-        caseModel.court.setValue(caseInfo.getCourt());
+        caseModel.caseType.setValue(orElse(caseInfo.getCaseType(), ""));
+        caseModel.court.setValue(orElse(caseInfo.getCourt(), ""));
 
         Platform.runLater(() -> casesData.add(caseModel));
     }
@@ -111,5 +111,12 @@ public class CaseModelAppender implements util.Appendable<CaseInfo> {
     @Override
     public Collection<CaseInfo> getCollection() {
         throw new RuntimeException("No getter for collection here");
+    }
+
+    private String orElse(String value, String alternative) {
+        if (value != null)
+            return value;
+        else
+            return alternative;
     }
 }

@@ -31,7 +31,7 @@ public class TextFlowCell<S, T> extends TableCell<S, T> {
     public void updateItem(T item, boolean empty) {
         super.updateItem(item, empty);
 
-        if (empty) {
+        if (empty || item == null) {
             setText(null);
             setGraphic(null);
         }
