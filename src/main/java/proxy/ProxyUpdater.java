@@ -122,6 +122,20 @@ class ProxyUpdater {
         return proxies;
     }
 
+    private static String rot13(String s) {
+        String out = "";
+        for (Character c : s.toCharArray()) {
+            char c_lower = c.toString().toLowerCase().toCharArray()[0];
+            if (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z') {
+                int adder = c_lower < 'n' ? 13 : -13;
+                out += (char) (c + adder);
+            } else {
+                out += c;
+            }
+        }
+        return out;
+    }
+
     private List<ProxyInfo> retrieveProxyListCoolProxy() throws MalformedUrlException, InterruptedException {
         List<ProxyInfo> proxies = new ArrayList<>();
 
@@ -138,7 +152,7 @@ class ProxyUpdater {
                 Matcher m = ipBase64Pattern.matcher(ipBase64String);
                 String ip = "";
                 while (m.find()) {
-                    ip = new String(Base64.getDecoder().decode(m.group(1)));
+                    ip = new String(Base64.getDecoder().decode(rot13(m.group(1))));
                 }
 
                 int port = Integer.parseInt(tr.child(1).text());
@@ -229,5 +243,10 @@ class ProxyUpdater {
             Thread.sleep(100);
         }
         return proxies;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(ProxyUpdater.rot13("ZGp4YwZlYwplYwV2"));
+
     }
 }

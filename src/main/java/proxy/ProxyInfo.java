@@ -119,4 +119,9 @@ public class ProxyInfo implements Comparable<ProxyInfo> {
     public int getEra() {
         return era;
     }
+
+    @Override
+    public String toString() {
+        return ip + ":" + port;
+    }
 }
