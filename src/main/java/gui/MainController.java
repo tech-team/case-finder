@@ -90,9 +90,9 @@ public class MainController {
 
         Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
             e.printStackTrace();
-//            Dialogs.create().showException(
-//                    new UnexpectedException(
-//                            res.getString("unexpectedException"), e));
+            Dialogs.create().showException(
+                    new UnexpectedException(
+                            res.getString("unexpectedException"), e));
 
             stage.close();
         });
