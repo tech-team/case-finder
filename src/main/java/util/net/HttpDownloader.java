@@ -177,7 +177,7 @@ public class HttpDownloader {
                                .getElementById("captcha");
         if (captcha != null) {
             usedProxy.decreaseReliability(4);
-            System.out.println(String.format("Banned proxy. unreliability=%d, ip=%s, port=%d", usedProxy.getUnreliability(), usedProxy.getIp(), usedProxy.getPort()));
+            logger.info(String.format("Banned proxy. unreliability=%d, ip=%s, port=%d", usedProxy.getUnreliability(), usedProxy.getIp(), usedProxy.getPort()));
         }
 
         ProxyList.instance().returnGoogleProxy(usedProxy);
