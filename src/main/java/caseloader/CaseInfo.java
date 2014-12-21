@@ -5,8 +5,10 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import util.JsonUtils;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public class CaseInfo {
     abstract class Keys {
@@ -15,7 +17,7 @@ public class CaseInfo {
         public static final String CASE_TYPE = "CaseType";
         public static final String CATEGORY_DISPUTE = "CategoryDispute";
         public static final String CATEGORY_DISPUTE_ID = "CategoryDisputeId";
-        public static final String COURT = "Court";
+        public static final String COURT_NAME = "CourtName";
         public static final String COURT_TAG = "CourtTag";
         public static final String DATE = "Date";
         public static final String DEFENDANTS_COUNT = "DefendantsCount";
@@ -29,54 +31,42 @@ public class CaseInfo {
         public static final String PLAINTIFFS_COUNT = "PlaintiffsCount";
         public static final String SIDES = "Sides";
         public static final String SUBSCRIPTION_ID = "SubscriptionId";
+        public static final String PLAINTIFFS = "Plaintiffs";
+        public static final String COUNT = "Count";
+        public static final String PARTICIPANTS = "Participants";
+        public static final String RESPONDENTS = "Respondents";
     }
 
     private String caseId = null;
     private String caseNumber = null;
     private String caseType = null;
-    private String categoryDispute = null;
-    private String categoryDisputeId = null;
-    private String court = null;
-    private String courtTag = null;
+    private String courtName = null;
     private String date = null;
-    private Integer defendantsCount = null;
-    private Object event = null;
-    private String instanceNumber = null;
-    private Boolean isFinished = null;
     private Boolean isSimpleJustice = null;
-    private String judgeName = null;
-    private String judgeId = null;
-    private Integer plaintiffsCount = null;
-    private List<CaseSide> sides = null;
-    private Object subscriptionId = null;
+    private Object judge;
+    private List<CaseSide> plaintiffs = new LinkedList<>();
+    private Map<String, CaseSide> plaintiffsIndex  = new HashMap<>();
+    private List<CaseSide> respondents = new LinkedList<>();
+    private Map<String, CaseSide> respondentsIndex = new HashMap<>();
 
-    private List<CaseSide> defendants = null;
-    private List<CaseSide> plaintiffs  = null;
-    private double cost = 0.0;
+//    private String categoryDispute = null;
+//    private String categoryDisputeId = null;
+//
+//    private String courtTag = null;
+//
+//    private Integer respondentsCount = null;
+//    private Object event = null;
+//    private String instanceNumber = null;
+//    private Boolean isFinished = null;
+//    private String judgeName = null;
+//    private String judgeId = null;
+//    private Integer plaintiffsCount = null;
+//    private Object subscriptionId = null;
+
+
+    private Double cost = null;
 
     private CaseInfo() {
-    }
-
-    public void splitSides() {
-        if (sides == null) {
-            return;
-        }
-
-        defendants = new LinkedList<>();
-        plaintiffs = new LinkedList<>();
-
-        for (CaseSide side : sides) {
-            switch (side.getSideType()) {
-                case PLAINTIFF:
-                    plaintiffs.add(side);
-                    break;
-                case DEFENDER:
-                    defendants.add(side);
-                    break;
-            }
-        }
-
-        sides = null;
     }
 
     public String getCaseId() {
@@ -91,68 +81,20 @@ public class CaseInfo {
         return caseType;
     }
 
-    public String getCategoryDispute() {
-        return categoryDispute;
-    }
-
-    public String getCategoryDisputeId() {
-        return categoryDisputeId;
-    }
-
-    public String getCourt() {
-        return court;
-    }
-
-    public String getCourtTag() {
-        return courtTag;
+    public String getCourtName() {
+        return courtName;
     }
 
     public String getDate() {
         return date;
     }
 
-    public Integer getDefendantsCount() {
-        return defendantsCount;
-    }
-
-    public Object getEvent() {
-        return event;
-    }
-
-    public String getInstanceNumber() {
-        return instanceNumber;
-    }
-
-    public Boolean isFinished() {
-        return isFinished;
-    }
-
     public Boolean isSimpleJustice() {
         return isSimpleJustice;
     }
 
-    public String getJudgeName() {
-        return judgeName;
-    }
-
-    public String getJudgeId() {
-        return judgeId;
-    }
-
-    public Integer getPlaintiffsCount() {
-        return plaintiffsCount;
-    }
-
-    public List<CaseSide> getSides() {
-        return sides;
-    }
-
-    public Object getSubscriptionId() {
-        return subscriptionId;
-    }
-
-    public List<CaseSide> getDefendants() {
-        return defendants;
+    public List<CaseSide> getRespondents() {
+        return respondents;
     }
 
     public List<CaseSide> getPlaintiffs() {
@@ -177,35 +119,62 @@ public class CaseInfo {
         res.caseId = JsonUtils.getString(obj, Keys.CASE_ID);
         res.caseNumber = JsonUtils.getString(obj, Keys.CASE_NUMBER);
         res.caseType = JsonUtils.getString(obj, Keys.CASE_TYPE);
-        res.categoryDispute = JsonUtils.getString(obj, Keys.CATEGORY_DISPUTE);
-        res.categoryDisputeId = JsonUtils.getString(obj, Keys.CATEGORY_DISPUTE_ID);
-        res.court = JsonUtils.getString(obj, Keys.COURT);
-        res.courtTag = JsonUtils.getString(obj, Keys.COURT_TAG);
+        res.courtName = JsonUtils.getString(obj, Keys.COURT_NAME);
         res.date = JsonUtils.getString(obj, Keys.DATE);
-        res.defendantsCount = JsonUtils.getInteger(obj, Keys.DEFENDANTS_COUNT);
-        res.event = JsonUtils.getObject(obj, Keys.EVENT);
-        res.instanceNumber = JsonUtils.getString(obj, Keys.INSTANCE_NUMBER);
-        res.isFinished = JsonUtils.getBoolean(obj, Keys.IS_FINISHED);
         res.isSimpleJustice = JsonUtils.getBoolean(obj, Keys.IS_SIMPLE_JUSTICE);
+        res.judge = JsonUtils.getObject(obj, Keys.JUDGE);
 
-        JSONObject judge = JsonUtils.getJSONObject(obj, Keys.JUDGE);
-        if (judge != null) {
-            res.judgeName = JsonUtils.getString(judge, Keys.JUDGE_NAME);
-            res.judgeId = JsonUtils.getString(judge, Keys.JUDGE_ID);
+        JSONObject plaintiffsObj = JsonUtils.getJSONObject(obj, Keys.PLAINTIFFS);
+        if (plaintiffsObj != null) {
+            JSONArray plaintiffsParticipants = JsonUtils.getJSONArray(plaintiffsObj, Keys.PARTICIPANTS);
+            for (int i = 0; i < plaintiffsParticipants.length(); ++i) {
+                res.addPlaintiff(CaseSide.fromJSON(plaintiffsParticipants.getJSONObject(i)));
+            }
         }
 
-        res.plaintiffsCount = JsonUtils.getInteger(obj, Keys.PLAINTIFFS_COUNT);
-        res.subscriptionId = JsonUtils.getInteger(obj, Keys.SUBSCRIPTION_ID);
 
-        JSONArray sides = JsonUtils.getJSONArray(obj, Keys.SIDES);
-
-        if (sides != null) {
-            res.sides = new LinkedList<>();
-            for (int i = 0; i < sides.length(); ++i) {
-                res.sides.add(CaseSide.fromJSON(sides.getJSONObject(i)));
+        JSONObject respondentsObj = JsonUtils.getJSONObject(obj, Keys.RESPONDENTS);
+        if (respondentsObj != null) {
+            JSONArray respondentsParticipants = JsonUtils.getJSONArray(respondentsObj, Keys.PARTICIPANTS);
+            for (int i = 0; i < respondentsParticipants.length(); ++i) {
+                res.addRespondent(CaseSide.fromJSON(respondentsParticipants.getJSONObject(i)));
             }
         }
 
         return res;
+    }
+
+    private void addRespondent(CaseSide caseSide) {
+        this.respondents.add(caseSide);
+        this.respondentsIndex.put(caseSide.getName(), caseSide);
+    }
+
+    private void addPlaintiff(CaseSide caseSide) {
+        this.plaintiffs.add(caseSide);
+        this.plaintiffsIndex.put(caseSide.getName(), caseSide);
+    }
+
+    public void loadAdditionalInfo(JSONObject caseData) {
+        Double cost = JsonUtils.getDouble(caseData, "ClaimSum");
+        if (cost != null) {
+            setCost(cost);
+        }
+
+        JSONObject sides = JsonUtils.getJSONObject(caseData, "Sides");
+        if (sides != null) {
+            JSONArray plaintiffs = sides.getJSONObject("Plaintiffs").getJSONArray("Items");
+            for (int i = 0; i < plaintiffs.length(); ++i) {
+                JSONObject plaintiff = plaintiffs.getJSONObject(i);
+                CaseSide cs = this.plaintiffsIndex.get(plaintiff.getString("Name"));
+                cs.setCaseSideInfo(plaintiff);
+            }
+
+            JSONArray defendants = sides.getJSONObject("Defendants").getJSONArray("Items");
+            for (int i = 0; i < defendants.length(); ++i) {
+                JSONObject defendant = defendants.getJSONObject(i);
+                CaseSide cs = this.respondentsIndex.get(defendant.getString("Name"));
+                cs.setCaseSideInfo(defendant);
+            }
+        }
     }
 }

@@ -29,13 +29,13 @@ public class CaseModelAppender implements util.Appendable<CaseInfo> {
                 .reduce((s1, s2) -> s1 + "\n" + s2)
                 .orElse(""));
 
-        caseModel.defendant.setValue(caseInfo.getDefendants()
+        caseModel.defendant.setValue(caseInfo.getRespondents()
                 .stream()
                 .map(CaseSide::getName)
                 .reduce((s1, s2) -> s1 + "\n" + s2)
                 .orElse(""));
 
-        caseModel.inn.setValue(caseInfo.getDefendants()
+        caseModel.inn.setValue(caseInfo.getRespondents()
                 .stream()
                 .map(caseSide -> {
                     Credentials credentials = caseSide.getCredentials();
@@ -47,7 +47,7 @@ public class CaseModelAppender implements util.Appendable<CaseInfo> {
                 .reduce((s1, s2) -> s1 + "\n" + s2)
                 .orElse(""));
 
-        caseModel.ogrn.setValue(caseInfo.getDefendants()
+        caseModel.ogrn.setValue(caseInfo.getRespondents()
                 .stream()
                 .map(caseSide -> {
                     Credentials credentials = caseSide.getCredentials();
@@ -59,7 +59,7 @@ public class CaseModelAppender implements util.Appendable<CaseInfo> {
                 .reduce((s1, s2) -> s1 + "\n" + s2)
                 .orElse(""));
 
-        caseModel.phone.setValue(caseInfo.getDefendants()
+        caseModel.phone.setValue(caseInfo.getRespondents()
                 .stream()
                 .map(caseSide -> {
                     Credentials credentials = caseSide.getCredentials();
@@ -74,7 +74,7 @@ public class CaseModelAppender implements util.Appendable<CaseInfo> {
                 .reduce((s1, s2) -> s1 + "\n" + s2)
                 .orElse(""));
 
-        caseModel.fullName.setValue(caseInfo.getDefendants()
+        caseModel.fullName.setValue(caseInfo.getRespondents()
                 .stream()
                 .map(caseSide -> {
                     Credentials credentials = caseSide.getCredentials();
@@ -89,7 +89,7 @@ public class CaseModelAppender implements util.Appendable<CaseInfo> {
                 .reduce((s1, s2) -> s1 + "\n" + s2)
                 .orElse(""));
 
-        caseModel.credentialsLink.setValue(caseInfo.getDefendants()
+        caseModel.credentialsLink.setValue(caseInfo.getRespondents()
                 .stream()
                 .map(caseSide -> {
                     Credentials credentials = caseSide.getCredentials();
@@ -103,7 +103,7 @@ public class CaseModelAppender implements util.Appendable<CaseInfo> {
 
         caseModel.cost.setValue(caseInfo.getCost());
         caseModel.caseType.setValue(orElse(caseInfo.getCaseType(), ""));
-        caseModel.court.setValue(orElse(caseInfo.getCourt(), ""));
+        caseModel.court.setValue(orElse(caseInfo.getCourtName(), ""));
 
         Platform.runLater(() -> casesData.add(caseModel));
     }

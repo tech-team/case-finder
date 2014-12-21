@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
-    private static final int ITEMS_COUNT_PER_REQUEST = 100;
+    private static final int ITEMS_COUNT_PER_REQUEST = 25;
     private static final int TOTAL_MAX_COUNT = 1000;
     private int retryCount = 1;
     private final AtomicInteger casesProgressCount = new AtomicInteger(0);
@@ -139,7 +139,7 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
         headers.put("X-Requested-With", "XMLHttpRequest");
         headers.put("Content-Type", "application/json");
         headers.put("Accept", "application/json, text/javascript, */*");
-        String resp = HttpDownloader.i().post(Urls.KAD_SEARCH, json, headers);
+        String resp = HttpDownloader.i().post(Urls.KAD_SEARCH, json, headers, false);
         try {
             JSONObject jsonObj = new JSONObject(resp);
             retryCount = 1;

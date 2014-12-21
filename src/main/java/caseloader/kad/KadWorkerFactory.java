@@ -55,17 +55,16 @@ class KadWorkerFactory<CaseContainerType extends util.Appendable<CaseInfo> > {
                     String json;
 
                     try {
-                        json = HttpDownloader.i().get(Urls.KAD_CARD, params, headers);
+                        json = HttpDownloader.i().get(Urls.KAD_CARD, params, headers, false);
                         caseJson = new JSONObject(json);
 
                         if (JsonUtils.getBoolean(caseJson, "Success")) {
                             JSONObject result = JsonUtils.getJSONObject(caseJson, "Result");
-                            Double cost = JsonUtils.getDouble(result, "ClaimSum");
-                            if (minCost == 0 || (cost != null && cost >= minCost)) {
-                                caseInfo.setCost(cost);
+                            caseInfo.loadAdditionalInfo(result);
+                            Double cost = caseInfo.getCost();
 
-                                caseInfo.splitSides();
-                                for (CaseSide defendant : caseInfo.getDefendants()) {
+                            if (minCost == 0 || (cost != null && cost >= minCost)) {
+                                for (CaseSide defendant : caseInfo.getRespondents()) {
                                     if (!defendant.isPhysical()) {
                                         CredentialsSearchRequest credentialsSearchRequest =
                                                 new CredentialsSearchRequest(defendant.getName(),

@@ -89,10 +89,11 @@ public class MainController {
         //testLicense();
 
         Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
+            System.out.println("ERROR");
             e.printStackTrace();
-//            Dialogs.create().showException(
-//                    new UnexpectedException(
-//                            res.getString("unexpectedException"), e));
+            Dialogs.create().showException(
+                    new UnexpectedException(
+                            res.getString("unexpectedException"), e));
 
             stage.close();
         });
