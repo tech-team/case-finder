@@ -5,10 +5,10 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import util.JsonUtils;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class CaseInfo {
     abstract class Keys {
@@ -86,7 +86,22 @@ public class CaseInfo {
     }
 
     public String getDate() {
-        return date;
+        if (date == null) {
+            return null;
+        }
+        String outDate = "0";
+        Pattern p = Pattern.compile(".*(\\d+).*");
+        Matcher m = p.matcher(date);
+        if (m.find()) {
+            outDate = m.group(1);
+        }
+
+        try {
+            Date d = new Date(Long.parseLong(outDate));
+            return new SimpleDateFormat("dd.MM.YYYY").format(d);
+        } catch (NumberFormatException ignored) {
+            return null;
+        }
     }
 
     public Boolean isSimpleJustice() {
