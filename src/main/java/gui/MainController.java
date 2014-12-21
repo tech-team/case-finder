@@ -381,8 +381,11 @@ public class MainController {
 
         //get last export's directory
         Preferences prefs = Preferences.userNodeForPackage(MainController.class);
-        String exportDirectory = prefs.get(EXPORT_PATH_PROPERTY, System.getProperty("user.dir"));
-        fileChooser.setInitialDirectory(new File(exportDirectory));
+        String exportDirectoryPath = prefs.get(EXPORT_PATH_PROPERTY, System.getProperty("user.dir"));
+
+        File exportDirectory = new File(exportDirectoryPath);
+        if (exportDirectory.exists() && exportDirectory.isDirectory() && exportDirectory.canWrite())
+            fileChooser.setInitialDirectory(exportDirectory);
 
 
         File selectedFile = fileChooser.showSaveDialog(stage);
