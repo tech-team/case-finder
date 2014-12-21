@@ -5,12 +5,12 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import util.JsonUtils;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class CaseInfo {
+
     abstract class Keys {
         public static final String CASE_ID = "CaseId";
         public static final String CASE_NUMBER = "CaseNumber";
@@ -85,23 +85,17 @@ public class CaseInfo {
         return courtName;
     }
 
-    public String getDate() {
-        if (date == null) {
-            return null;
-        }
-        String outDate = "0";
-        Pattern p = Pattern.compile(".*(\\d+).*");
-        Matcher m = p.matcher(date);
-        if (m.find()) {
-            outDate = m.group(1);
-        }
-
+    public void setDate(String date) {
         try {
-            Date d = new Date(Long.parseLong(outDate));
-            return new SimpleDateFormat("dd.MM.YYYY").format(d);
-        } catch (NumberFormatException ignored) {
-            return null;
+            Date d = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(date);
+            this.date = new SimpleDateFormat("dd.MM.yyyy").format(d);
+        } catch (ParseException ignored) {
+            this.date = null;
         }
+    }
+
+    public String getDate() {
+        return date;
     }
 
     public Boolean isSimpleJustice() {
@@ -135,7 +129,7 @@ public class CaseInfo {
         res.caseNumber = JsonUtils.getString(obj, Keys.CASE_NUMBER);
         res.caseType = JsonUtils.getString(obj, Keys.CASE_TYPE);
         res.courtName = JsonUtils.getString(obj, Keys.COURT_NAME);
-        res.date = JsonUtils.getString(obj, Keys.DATE);
+        res.setDate(JsonUtils.getString(obj, Keys.DATE));
         res.isSimpleJustice = JsonUtils.getBoolean(obj, Keys.IS_SIMPLE_JUSTICE);
         res.judge = JsonUtils.getObject(obj, Keys.JUDGE);
 

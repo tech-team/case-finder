@@ -137,6 +137,7 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
         String json = request.toString();
         Map<String, String> headers = new HashMap<>();
         headers.put("X-Requested-With", "XMLHttpRequest");
+        headers.put("x-date-format", "iso");
         headers.put("Content-Type", "application/json");
         headers.put("Accept", "application/json, text/javascript, */*");
         String resp = HttpDownloader.i().post(Urls.KAD_SEARCH, json, headers, false);
