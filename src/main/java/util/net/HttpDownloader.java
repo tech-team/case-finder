@@ -45,6 +45,7 @@ public class HttpDownloader {
     private final ConcurrentHashMap<String, Long> LAST_TIMES = new ConcurrentHashMap<>();
 
     private static final String GOOGLE_HOST = "www.google.ru";
+    private static final String YANDEX_HOST = "www.yandex.ru";
 
     private static HttpDownloader instance = null;
     private final ThreadPool pool = new ThreadPool(4);
@@ -292,7 +293,7 @@ public class HttpDownloader {
         RequestConfig.Builder b = RequestConfig.custom().setConnectTimeout(REQUEST_TIMEOUT).setSocketTimeout(REQUEST_TIMEOUT);
         if (useProxy) {
             ProxyInfo proxyInfo;
-            if (hostname.equals(GOOGLE_HOST)) {
+            if (hostname.equals(GOOGLE_HOST) || hostname.equals(YANDEX_HOST)) {
                 proxyInfo = ProxyList.instance().getGoogleNext();
             } else {
                 proxyInfo = ProxyList.instance().getNext();

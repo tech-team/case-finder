@@ -12,7 +12,9 @@ import org.jsoup.select.Elements;
 import util.net.HttpDownloader;
 import util.MyLogger;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -24,6 +26,7 @@ public class RusProfile extends WebSite {
         private static final String MAIN_PAGE = "http://www.rusprofile.ru/";
         private static final String GOOGLE_SITE_URL = "rusprofile.ru";
         private static final String SEARCH = "https://www.google.ru/search";
+        private static final String SEARCH_YANDEX = "http://www.yandex.ru/yandsearch";
     }
 
     @Override
@@ -63,19 +66,19 @@ public class RusProfile extends WebSite {
 
     private Credentials findByInn(CredentialsSearchRequest request) throws MalformedUrlException, InterruptedException {
         String searchRequest = createGoogleRequest(request.getInn());
-        String companyUrl = getCompanyUrl(searchRequest);
+        String companyUrl = getCompanyUrlGoogle(searchRequest);
         return parseCompanyPage(companyUrl);
     }
 
     private Credentials findByOgrn(CredentialsSearchRequest request) throws MalformedUrlException, InterruptedException {
         String searchRequest = createGoogleRequest(request.getOgrn());
-        String companyUrl = getCompanyUrl(searchRequest);
+        String companyUrl = getCompanyUrlGoogle(searchRequest);
         return parseCompanyPage(companyUrl);
     }
 
     private Credentials findByNameAndAddress(CredentialsSearchRequest request) throws MalformedUrlException, InterruptedException {
         String searchRequest = createGoogleRequest(request.getCompanyName() + " " + request.getAddress().getRaw());
-        String companyUrl = getCompanyUrl(searchRequest);
+        String companyUrl = getCompanyUrlGoogle(searchRequest);
         return parseCompanyPage(companyUrl);
     }
 
@@ -130,7 +133,29 @@ public class RusProfile extends WebSite {
         return null;
     }
 
-    private String getCompanyUrl(String searchQuery) throws InterruptedException, MalformedUrlException {
+    private String getCompanyUrlYandex(String searchQuery) throws InterruptedException, MalformedUrlException {
+        List<NameValuePair> params = new ArrayList<>();
+        params.add(new BasicNameValuePair("text", searchQuery));
+
+        String yaResp = HttpDownloader.i().get(Urls.SEARCH_YANDEX, params, null);
+        if (yaResp == null)
+            throw new NullPointerException();
+        Elements results = Jsoup.parse(yaResp)
+                .body()
+                .getElementsByClass("serp-list").first()
+                .getElementsByClass("serp-block").first()
+                .getElementsByClass("serp-item");
+
+        String companyUrl = results.first()
+                                    .getElementsByTag("h2").first()
+                                    .getElementsByTag("a").first()
+                                    .attr("href");
+
+
+        return companyUrl;
+    }
+
+    private String getCompanyUrlGoogle(String searchQuery) throws InterruptedException, MalformedUrlException {
         List<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair("q", searchQuery));
         try {
@@ -162,7 +187,7 @@ public class RusProfile extends WebSite {
     }
 
     private String createGoogleRequest(String query) {
-        return " site:" + Urls.GOOGLE_SITE_URL + " " + query;
+        return "site:" + Urls.GOOGLE_SITE_URL + " " + query;
     }
 
     @SuppressWarnings("UnusedDeclaration")
