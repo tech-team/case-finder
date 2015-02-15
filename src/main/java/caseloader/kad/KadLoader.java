@@ -23,7 +23,7 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
     private static final int TOTAL_MAX_COUNT = 1000;
     private int retryCount = 1;
     private final AtomicInteger casesProgressCount = new AtomicInteger(0);
-    private final ThreadPool pool = new ThreadPool(4);
+    private final ThreadPool pool = new ThreadPool(1);
     private KadWorkerFactory<CaseContainerType> kadWorkerFactory = null;
     private final List<CaseSearchRequest> brokenPages = new LinkedList<>();
     private final CredentialsLoader credentialsLoader = new CredentialsLoader();
@@ -65,7 +65,8 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
             processKadResponse(initial);
             totalCasesCount += initial.getItems().size();
 
-            int iterationsCount = (int) Math.ceil(((double) totalCountToLoad) / initial.getPageSize());
+//            int iterationsCount = (int) Math.ceil(((double) totalCountToLoad) / initial.getPageSize());
+            int iterationsCount = 4;
             for (int i = 2; i <= iterationsCount; ++i) {
                 countPerRequest = countToLoadPerRequest(searchLimit);
                 request.setCount(countPerRequest);
@@ -126,7 +127,9 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
         List<CaseInfo> items = resp.getItems();
         for (CaseInfo item : items) {
             casesProgressCount.incrementAndGet();
-            pool.execute(kadWorkerFactory.buildWorker(casesProgressCount.get(), item));
+            Runnable w = kadWorkerFactory.buildWorker(casesProgressCount.get(), item);
+            w.run();
+//            pool.execute(kadWorkerFactory.buildWorker(casesProgressCount.get(), item));
         }
     }
 

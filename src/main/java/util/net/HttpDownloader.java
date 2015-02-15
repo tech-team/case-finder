@@ -40,12 +40,14 @@ public class HttpDownloader {
     private static final String USER_AGENT = "Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)";
     private static final int REQUEST_TIMEOUT = 20 * 1000;
     private static final long WAIT_DELTA = 2 * 1000;
+    private static final long KAD_WAIT_DELTA = 30 * 1000;
     private static final boolean USE_PROXY_DEFAULT = true;
     private static final String DEFAULT_ENCODING = "UTF-8";
     private final ConcurrentHashMap<String, Long> LAST_TIMES = new ConcurrentHashMap<>();
 
     private static final String GOOGLE_HOST = "www.google.ru";
     private static final String YANDEX_HOST = "www.yandex.ru";
+    private static final String KAD_ARBITR_HOST = "kad.arbitr.ru";
 
     private static HttpDownloader instance = null;
     private final ThreadPool pool = new ThreadPool(4);
@@ -66,13 +68,20 @@ public class HttpDownloader {
     }
 
     private void checkSleep(String hostname) throws InterruptedException {
+        long waitDelta;
+        if (hostname.equalsIgnoreCase(KAD_ARBITR_HOST)) {
+            waitDelta = KAD_WAIT_DELTA;
+        } else {
+            waitDelta = WAIT_DELTA;
+        }
+
         Long lastTime = LAST_TIMES.get(hostname);
         if (lastTime != null) {
             long time = System.currentTimeMillis();
             long delta = time - lastTime;
-            if (delta < WAIT_DELTA) {
-                logger.fine("Sleeping for " + (WAIT_DELTA - delta));
-                Thread.sleep(WAIT_DELTA - delta);
+            if (delta < waitDelta) {
+                logger.fine("Sleeping for " + (waitDelta - delta));
+                Thread.sleep(waitDelta - delta);
                 logger.fine("Sleep finished");
             }
         }

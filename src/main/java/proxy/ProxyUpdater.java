@@ -30,7 +30,7 @@ class ProxyUpdater {
     }
 
     private static final int UPDATE_PERIOD = 30 * 60 * 1000; // 30 minutes
-    private static final int GOOGLE_UPDATE_PERIOD = 12 * 60 * 1000; // 10 minutes
+    private static final int GOOGLE_UPDATE_PERIOD = 12 * 60 * 1000; // 12 minutes
 
     private boolean doWork = false;
     private final Logger logger = MyLogger.getLogger(this.getClass().toString());

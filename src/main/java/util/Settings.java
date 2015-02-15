@@ -66,7 +66,7 @@ public abstract class Settings {
 
 
         // All default properties go here
-        public static final Pair<Integer> LOG_LEVEL = new Pair<>("log_level", 3);
+        public static final Pair<Integer> LOG_LEVEL = new Pair<>("log_level", 4);
         public static final Pair<String> LOG_LOCATION = new Pair<>("log_location", "log");
     }
 
@@ -104,6 +104,8 @@ public abstract class Settings {
                 return Level.INFO;
             case 3:
                 return Level.ALL;
+            case 4:
+                return Level.FINE;
             default:
                 return getLogLevel(Keys.LOG_LEVEL.getValue());
         }
