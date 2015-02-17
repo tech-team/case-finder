@@ -6,8 +6,11 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import util.MyLogger;
+import util.ResourceControl;
 
-import java.util.PriorityQueue;
+import java.util.ResourceBundle;
+import java.util.logging.Level;
 import java.util.prefs.Preferences;
 
 public class Main extends Application {
@@ -22,18 +25,20 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        Preferences prefs = Preferences.userNodeForPackage(Main.class);
+        ResourceBundle appRes = ResourceBundle.getBundle("properties.app", new ResourceControl("UTF-8"));
+        String title = appRes.getString("name") + " " + appRes.getString("version");
+        MyLogger.getGlobal().log(Level.INFO, title);
 
         FXMLLoader loader = new FXMLLoader(Main.class.getResource("/fxml/main.fxml"));
         Parent root = loader.load();
 
+        Preferences prefs = Preferences.userNodeForPackage(Main.class);
         double width = prefs.getDouble(WIDTH_PROPERTY, 1024);
         double height = prefs.getDouble(HEIGHT_PROPERTY, 768);
 
         Scene scene = new Scene(root, width, height);
         scene.getStylesheets().add("css/styles.css");
-
-        primaryStage.setTitle("Case Finder");
+        primaryStage.setTitle(title);
         primaryStage.setScene(scene);
 
         MainController controller = loader.getController();

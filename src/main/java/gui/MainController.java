@@ -33,9 +33,9 @@ import org.controlsfx.control.MyCheckComboBox;
 import org.controlsfx.control.action.Action;
 import org.controlsfx.dialog.Dialog;
 import org.controlsfx.dialog.Dialogs;
-import util.net.HttpDownloader;
 import util.MyLogger;
 import util.ResourceControl;
+import util.net.HttpDownloader;
 
 import java.io.File;
 import java.text.DateFormat;
@@ -45,6 +45,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 import java.util.prefs.Preferences;
 
 public class MainController {
@@ -80,10 +81,18 @@ public class MainController {
 
     private Mode mode = Mode.DEFAULT;
 
+    /**
+     * Should be be called manually
+     * @param stage
+     */
     public void setStage(Stage stage) {
         this.stage = stage;
     }
 
+    /**
+     * Will be called automatically by FXML loader
+     * Please note, that at this step stage == null
+     */
     @FXML
     private void initialize() {
         //testLicense();
