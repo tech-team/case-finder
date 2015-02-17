@@ -5,6 +5,7 @@ import caseloader.credentials.CredentialsSearchRequest;
 import caseloader.util.RegionHelper;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -26,13 +27,15 @@ public class Kartoteka extends WebSite {
 
     abstract class Urls {
         private static final String MAIN_PAGE = "http://www.kartoteka.ru/";
-        private static final String SEARCH = "http://www.kartoteka.ru/poisk_po_rekvizitam/";
+        private static final String SEARCH_FORM = "http://www.kartoteka.ru/poisk_po_rekvizitam/";
+        private static final String SEARCH_REQUEST = "http://www.kartoteka.ru/poisk_po_rekvizitam//?action=Hash";
     }
 
     abstract class QueryKeys {
         private static final String QUERY = "query";
         private static final String COUNTRY = "oksm[]";
         private static final String REGION = "regions[]";
+        private static final String VALIDATE = "validate";
     }
 
     abstract class Countries {
@@ -52,12 +55,48 @@ public class Kartoteka extends WebSite {
 
     @Override
     public Credentials findCredentials(CredentialsSearchRequest request, Credentials credentials) throws MalformedUrlException, InterruptedException {
+        // make request to get "validate" value from HTML
+        String validate = getValidateValue();
+
+        // make search request to get "hash" from JSON
+        String hash = getHashValue(request, validate);
+
+        String resultsUrl = Urls.SEARCH_FORM + hash + "/";
+        String resp = HttpDownloader.i().get(Urls.SEARCH_FORM, null, null, true, ENCODING);
+        Credentials creds = parsePage(resp, request);
+        if (creds != null)
+            logger.info("<Kartoteka>: Found credentials for company: " + request.getCompanyName());
+        else
+            logger.warning("<Kartoteka>: Couldn't find credentials for company: " + request.getCompanyName());
+        return creds;
+    }
+
+    private String getValidateValue()
+            throws MalformedUrlException, InterruptedException {
+
+        String page = HttpDownloader.i().get(Urls.SEARCH_FORM, null, null, true, ENCODING);
+
+        Elements input = Jsoup.parse(page)
+                .body()
+                .getElementsByAttributeValue("name", "validate");
+
+        if (!input.isEmpty())
+            return input.get(0).val();
+        else
+            return null;
+    }
+
+    private String getHashValue(CredentialsSearchRequest request, String validate)
+            throws MalformedUrlException, InterruptedException {
+
         String companyName = StringUtils.removeNonLetters(request.getCompanyName());
 
         String city = request.getAddress().getCity();
 
         List<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair(QueryKeys.QUERY, companyName));
+        params.add(new BasicNameValuePair(QueryKeys.VALIDATE, validate));
+
         params.add(new BasicNameValuePair(QueryKeys.COUNTRY, Countries.RUSSIA));
         if (city != null) {
             List<String> possibleRegions = RegionHelper.regionsIdsByCity(city);
@@ -65,17 +104,18 @@ public class Kartoteka extends WebSite {
                 System.out.println("Several regions found");
             }
             params.addAll(possibleRegions.stream()
-                                         .map(region -> new BasicNameValuePair(QueryKeys.REGION, region))
-                                         .collect(Collectors.toList()));
+                    .map(region -> new BasicNameValuePair(QueryKeys.REGION, region))
+                    .collect(Collectors.toList()));
         }
 
-        String resp = HttpDownloader.i().get(Urls.SEARCH, params, null, true, ENCODING);
-        Credentials creds = parsePage(resp, request);
-        if (creds != null)
-            logger.info("<Kartoteka>: Found credentials for company: " + request.getCompanyName());
-        else
-            logger.warning("<Kartoteka>: Couldn't find credentials for company: " + request.getCompanyName());
-        return creds;
+
+        // post as formData
+        String resp = HttpDownloader.i().post(Urls.SEARCH_REQUEST, params, null, true);
+
+        JSONObject json = new JSONObject(resp);
+        String hash = json.getString("hash");
+
+        return hash;
     }
 
     private Credentials parsePage(String page, CredentialsSearchRequest request) {
