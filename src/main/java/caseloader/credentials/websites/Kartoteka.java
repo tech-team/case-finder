@@ -5,10 +5,15 @@ import caseloader.credentials.CredentialsSearchRequest;
 import caseloader.util.RegionHelper;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.htmlunit.HtmlUnitDriver;
 import util.MyLogger;
 import util.StringUtils;
 import util.net.HttpDownloader;
@@ -45,8 +50,37 @@ public class Kartoteka extends WebSite {
     private static final String ENCODING = "cp1251";
     private static final int COUNT_TO_PARSE = 3;
 
+    private static String validate = null;
+
     private final Logger logger = MyLogger.getLogger(this.getClass().getName());
 
+    /**
+     * Retrieves "validate" key from site using Selenium (for JS processing)
+     */
+    synchronized public static void initialize() {
+        WebDriver driver = new HtmlUnitDriver(true);
+        driver.get(Urls.SEARCH_FORM);
+
+        String validate;
+        final int TEST_PERIOD = 100;
+
+        // wait while "validate" become non-ip string
+        do {
+            WebElement validateInput = driver.findElement(By.name("validate"));
+            validate = validateInput.getAttribute("value");
+            try {
+                Thread.sleep(TEST_PERIOD);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        } while (validate != null && validate.matches("\\d+\\.\\d+\\.\\d+\\.\\d+"));
+
+        Kartoteka.validate = validate;
+    }
+
+    public static boolean isInitialised() {
+        return validate != null;
+    }
 
     @Override
     public String url() {
@@ -55,11 +89,10 @@ public class Kartoteka extends WebSite {
 
     @Override
     public Credentials findCredentials(CredentialsSearchRequest request, Credentials credentials) throws MalformedUrlException, InterruptedException {
-        // make request to get "validate" value from HTML
-        String validate = getValidateValue();
-
         // make search request to get "hash" from JSON
         String hash = getHashValue(request, validate);
+        if (hash == null)
+            return null;
 
         String resultsUrl = Urls.SEARCH_FORM + hash + "/";
         String resp = HttpDownloader.i().get(Urls.SEARCH_FORM, null, null, true, ENCODING);
@@ -71,6 +104,11 @@ public class Kartoteka extends WebSite {
         return creds;
     }
 
+    /**
+     * Do not use
+     * see initialize instead
+     */
+    @Deprecated
     private String getValidateValue()
             throws MalformedUrlException, InterruptedException {
 
@@ -112,8 +150,14 @@ public class Kartoteka extends WebSite {
         // post as formData
         String resp = HttpDownloader.i().post(Urls.SEARCH_REQUEST, params, null, true);
 
-        JSONObject json = new JSONObject(resp);
-        String hash = json.getString("hash");
+        String hash;
+        try {
+            JSONObject json = new JSONObject(resp);
+            hash = json.getString("hash");
+        } catch (JSONException e) {
+            logger.severe("Unable to parse JSON: " + resp);
+            return null;
+        }
 
         return hash;
     }

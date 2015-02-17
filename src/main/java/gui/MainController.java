@@ -3,6 +3,7 @@ package gui;
 import caseloader.CaseLoader;
 import caseloader.CaseLoaderEvents;
 import caseloader.CaseSearchRequest;
+import caseloader.credentials.websites.Kartoteka;
 import caseloader.errors.CaseLoaderError;
 import caseloader.kad.CourtsInfo;
 import export.ExcelExporter;
@@ -45,7 +46,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
 import java.util.ResourceBundle;
-import java.util.logging.Level;
 import java.util.prefs.Preferences;
 
 public class MainController {
@@ -63,6 +63,8 @@ public class MainController {
     @FXML private MyProgressIndicator progressIndicator;
     @FXML private Button searchButton;
     @FXML private Button exportButton;
+
+    private Thread sitesInitializerThread = null;
 
     private final static String EXPORT_PATH_PROPERTY = "exportDirectory";
 
@@ -113,12 +115,22 @@ public class MainController {
         initializeCaseModel();
         initializeTableView();
 
+        initializeSites();
+
         caseType.setItems(CaseTypeModel.getCollection());
         caseType.setValue(CaseTypeModel.getCollection().get(0));
 
         //not in fxml because of JavaFX bug
         //http://stackoverflow.com/questions/22992458/javafx-thread-with-progressindicator-not-spinning-work-done-in-non-fxthread
         Platform.runLater(() -> progressIndicator.setVisible(false));
+    }
+
+    private void initializeSites() {
+        if (sitesInitializerThread != null && sitesInitializerThread.isAlive())
+            sitesInitializerThread.interrupt();
+
+        sitesInitializerThread = new Thread(Kartoteka::initialize);
+        sitesInitializerThread.start();
     }
 
     private void testLicense() {
@@ -271,6 +283,18 @@ public class MainController {
     }
     
     public void casesSearchClick(ActionEvent actionEvent) {
+        if (!sitesInitialised()) {
+            Action action = Dialogs.create()
+                    .message(res.getString("sitesNotInitialised"))
+                    .actions(Dialog.Actions.YES, Dialog.Actions.NO)
+                    .showConfirm();
+
+            if (action == Dialog.Actions.YES)
+                initializeSites();
+
+            return;
+        }
+
         if (mode == Mode.SEARCHING) {
             Action action = Dialogs.create()
                     .message(res.getString("onStopDialog"))
@@ -315,6 +339,10 @@ public class MainController {
                 caseLoader.retrieveDataAsync(currentRequest, caseModelAppender);
             }
         }
+    }
+
+    private boolean sitesInitialised() {
+        return Kartoteka.isInitialised();
     }
 
     private void stopSearching() {
