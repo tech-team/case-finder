@@ -65,8 +65,7 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
             processKadResponse(initial);
             totalCasesCount += initial.getItems().size();
 
-//            int iterationsCount = (int) Math.ceil(((double) totalCountToLoad) / initial.getPageSize());
-            int iterationsCount = 4;
+            int iterationsCount = (int) Math.ceil(((double) totalCountToLoad) / initial.getPageSize());
             for (int i = 2; i <= iterationsCount; ++i) {
                 countPerRequest = countToLoadPerRequest(searchLimit);
                 request.setCount(countPerRequest);

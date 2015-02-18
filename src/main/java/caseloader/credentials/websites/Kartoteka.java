@@ -52,7 +52,7 @@ public class Kartoteka extends WebSite {
 
     private static String validate = null;
 
-    private final Logger logger = MyLogger.getLogger(this.getClass().getName());
+    private static final Logger logger = MyLogger.getLogger(Kartoteka.class.getName());
 
     /**
      * Retrieves "validate" key from site using Selenium (for JS processing)
@@ -76,6 +76,7 @@ public class Kartoteka extends WebSite {
         } while (validate != null && validate.matches("\\d+\\.\\d+\\.\\d+\\.\\d+"));
 
         Kartoteka.validate = validate;
+        logger.fine("Validation key obtained: " + validate);
     }
 
     public static boolean isInitialised() {
@@ -95,7 +96,7 @@ public class Kartoteka extends WebSite {
             return null;
 
         String resultsUrl = Urls.SEARCH_FORM + hash + "/";
-        String resp = HttpDownloader.i().get(Urls.SEARCH_FORM, null, null, true, ENCODING);
+        String resp = HttpDownloader.i().get(Urls.SEARCH_FORM, null, null, false, ENCODING);
         Credentials creds = parsePage(resp, request);
         if (creds != null)
             logger.info("<Kartoteka>: Found credentials for company: " + request.getCompanyName());
@@ -112,7 +113,7 @@ public class Kartoteka extends WebSite {
     private String getValidateValue()
             throws MalformedUrlException, InterruptedException {
 
-        String page = HttpDownloader.i().get(Urls.SEARCH_FORM, null, null, true, ENCODING);
+        String page = HttpDownloader.i().get(Urls.SEARCH_FORM, null, null, false, ENCODING);
 
         Elements input = Jsoup.parse(page)
                 .body()
@@ -148,7 +149,7 @@ public class Kartoteka extends WebSite {
 
 
         // post as formData
-        String resp = HttpDownloader.i().post(Urls.SEARCH_REQUEST, params, null, true);
+        String resp = HttpDownloader.i().post(Urls.SEARCH_REQUEST, params, null, false);
 
         String hash;
         try {

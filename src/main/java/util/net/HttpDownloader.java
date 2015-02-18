@@ -40,7 +40,7 @@ public class HttpDownloader {
     private static final String USER_AGENT = "Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)";
     private static final int REQUEST_TIMEOUT = 20 * 1000;
     private static final long WAIT_DELTA = 2 * 1000;
-    private static final long KAD_WAIT_DELTA = 30 * 1000;
+    private static final long KAD_WAIT_DELTA = 15 * 1000;
     private static final boolean USE_PROXY_DEFAULT = true;
     private static final String DEFAULT_ENCODING = "UTF-8";
     private final ConcurrentHashMap<String, Long> LAST_TIMES = new ConcurrentHashMap<>();
