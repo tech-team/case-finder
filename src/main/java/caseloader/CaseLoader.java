@@ -63,6 +63,7 @@ public class CaseLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
 
     public void stopExecution() {
         kadLoader.stopExecution();
+        System.out.println("CaseLoader.stopExec: " + thread.getName());
         thread.interrupt();
     }
 

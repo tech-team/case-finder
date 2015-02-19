@@ -57,7 +57,7 @@ public class Kartoteka extends WebSite {
     /**
      * Retrieves "validate" key from site using Selenium (for JS processing)
      */
-    synchronized public static void initialize() {
+    synchronized public static void initialize() throws InterruptedException {
         WebDriver driver = new HtmlUnitDriver(true);
         driver.get(Urls.SEARCH_FORM);
 
@@ -66,14 +66,16 @@ public class Kartoteka extends WebSite {
 
         // wait while "validate" become non-ip string
         do {
+            if (Thread.currentThread().isInterrupted()) {
+                driver.close();
+                return;
+            }
             WebElement validateInput = driver.findElement(By.name("validate"));
             validate = validateInput.getAttribute("value");
-            try {
-                Thread.sleep(TEST_PERIOD);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            Thread.sleep(TEST_PERIOD);
         } while (validate != null && validate.matches("\\d+\\.\\d+\\.\\d+\\.\\d+"));
+
+        driver.close();
 
         Kartoteka.validate = validate;
         logger.fine("Validation key obtained: " + validate);

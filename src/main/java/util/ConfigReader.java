@@ -12,10 +12,9 @@ public class ConfigReader {
     public ConfigReader(String path, String encoding)
             throws ConfigReaderIOException, ConfigReaderParseException {
 
-        File file = new File(this.getClass().getResource(path).getFile());
 
         try (
-            FileInputStream fis = new FileInputStream(file);
+            InputStream fis = this.getClass().getResourceAsStream(path);
             InputStreamReader isr = new InputStreamReader(fis, encoding);
             BufferedReader in = new BufferedReader(isr)
         ) {

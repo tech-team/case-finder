@@ -35,10 +35,10 @@ class KadWorkerFactory<CaseContainerType extends util.Appendable<CaseInfo> > {
         this.credentialsLoader = credentialsLoader;
     }
 
-    public Runnable buildWorker(final int id, final CaseInfo caseInfo) {
-        return new Runnable() {
-            @Override
-            public void run() {
+    public void buildWorker(final int id, final CaseInfo caseInfo) throws InterruptedException {
+//        return new Runnable() {
+//            @Override
+//            public void run() {
                 Logger logger = MyLogger.getLogger(this.getClass().toString());
 
                 int maxRetries = 3;
@@ -103,12 +103,14 @@ class KadWorkerFactory<CaseContainerType extends util.Appendable<CaseInfo> > {
                         logger.warning("-- Error retrieving case " + caseInfo.getCaseNumber() + ". Retry #" + (retry + 1));
                         continue;
                     } catch (InterruptedException e) {
-                        return;
+                        throw e;
+//                        System.out.println("Worker graceful? exit");
+//                        return;
                     }
                 }
                 CaseLoaderEvents.instance().caseProcessed.fire();
                 logger.warning("-- Couldn't retrieve case " + caseInfo.getCaseNumber() + ". Breaking");
             }
-        };
-    }
+//        };
+//    }
 }

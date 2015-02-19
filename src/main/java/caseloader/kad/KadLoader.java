@@ -4,12 +4,11 @@ import caseloader.CaseInfo;
 import caseloader.CaseLoaderEvents;
 import caseloader.CaseSearchRequest;
 import caseloader.credentials.CredentialsLoader;
-import util.net.MalformedUrlException;
 import org.json.JSONException;
 import org.json.JSONObject;
-import util.net.HttpDownloader;
 import util.MyLogger;
-import util.ThreadPool;
+import util.net.HttpDownloader;
+import util.net.MalformedUrlException;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -23,7 +22,7 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
     private static final int TOTAL_MAX_COUNT = 1000;
     private int retryCount = 1;
     private final AtomicInteger casesProgressCount = new AtomicInteger(0);
-    private final ThreadPool pool = new ThreadPool(1);
+//    private final ThreadPool pool = new ThreadPool(1);
     private KadWorkerFactory<CaseContainerType> kadWorkerFactory = null;
     private final List<CaseSearchRequest> brokenPages = new LinkedList<>();
     private final CredentialsLoader credentialsLoader = new CredentialsLoader();
@@ -65,16 +64,22 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
             processKadResponse(initial);
             totalCasesCount += initial.getItems().size();
 
+            boolean loadingLast = true;
             int iterationsCount = (int) Math.ceil(((double) totalCountToLoad) / initial.getPageSize());
-            for (int i = 2; i <= iterationsCount; ++i) {
+            for (int i = 2; i < iterationsCount; ++i) {
                 countPerRequest = countToLoadPerRequest(searchLimit);
                 request.setCount(countPerRequest);
 
                 if (Thread.currentThread().isInterrupted()) {
+                    System.out.println("retrieveData: Shut the fuck down please");
                     throw new InterruptedException();
                 }
 
-                request.setPage(i);
+                if (loadingLast) {
+                    request.setPage(iterationsCount);
+                } else {
+                    request.setPage(i);
+                }
                 KadResponse resp = retrieveKadResponse(request);
                 if (resp == null) {
                     Thread.sleep(10);
@@ -83,8 +88,15 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
                 }
 
                 if (resp.isSuccess()) {
+                    if (loadingLast) {
+                        totalCasesCount = (iterationsCount - 1) * initial.getPageSize() + resp.getPageSize();
+                        CaseLoaderEvents.instance().totalCasesCountObtained.fire(totalCasesCount);
+                        loadingLast = false;
+                        // careful: govnokod
+                        i -= 1;
+                    }
                     processKadResponse(resp);
-                    totalCasesCount += resp.getItems().size();
+//                    totalCasesCount += resp.getItems().size();
                     searchLimit -= countPerRequest;
                 } else {
                     logger.warning("Couldn't load page_" + i + ". Retrying.");
@@ -114,10 +126,10 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
                 }
                 logger.info("Finished broken pages");
             }
-            CaseLoaderEvents.instance().totalCasesCountObtained.fire(totalCasesCount);
+//            CaseLoaderEvents.instance().totalCasesCountObtained.fire(totalCasesCount);
         }
 
-        pool.waitForFinish();
+//        pool.waitForFinish();
 
         return data;
     }
@@ -126,8 +138,14 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
         List<CaseInfo> items = resp.getItems();
         for (CaseInfo item : items) {
             casesProgressCount.incrementAndGet();
-            Runnable w = kadWorkerFactory.buildWorker(casesProgressCount.get(), item);
-            w.run();
+            kadWorkerFactory.buildWorker(casesProgressCount.get(), item);
+//            w.run();
+            System.out.println("processKadResponse: SHOULD I STOP?");
+
+//            if (Thread.currentThread().isInterrupted()) {
+//                System.out.println("processKadResponse: PLEASE");
+//                throw new InterruptedException();
+//            }
 //            pool.execute(kadWorkerFactory.buildWorker(casesProgressCount.get(), item));
         }
     }
@@ -161,7 +179,8 @@ public class KadLoader<CaseContainerType extends util.Appendable<CaseInfo>> {
     }
 
     public void stopExecution() {
-        pool.stopExecution();
+        System.out.println("KadLoader: trying to stop");
+//        pool.stopExecution();
     }
 
 }

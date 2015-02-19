@@ -129,7 +129,13 @@ public class MainController {
         if (sitesInitializerThread != null && sitesInitializerThread.isAlive())
             sitesInitializerThread.interrupt();
 
-        sitesInitializerThread = new Thread(Kartoteka::initialize);
+        sitesInitializerThread = new Thread(() -> {
+            try {
+                Kartoteka.initialize();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
         sitesInitializerThread.start();
     }
 
